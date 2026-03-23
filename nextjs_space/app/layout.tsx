@@ -26,7 +26,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
   },
+  manifest: '/manifest.json',
   openGraph: {
     title: 'Dink Authority Magazine | The Voice of Pickleball',
     description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
@@ -39,6 +41,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${oswald.variable}`} suppressHydrationWarning>
       <head>
+        <meta name="theme-color" content="#090426" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <Script src="https://apps.abacus.ai/chatllm/appllm-lib.js" strategy="beforeInteractive" />
       </head>
       <body className="font-body bg-white text-brand-purple antialiased selection:bg-brand-neon/20 selection:text-brand-purple">

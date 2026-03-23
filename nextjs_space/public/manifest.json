@@ -1,0 +1,24 @@
+{
+  "name": "Dink Authority Magazine",
+  "short_name": "Dink Authority",
+  "description": "The Voice of Pickleball — News, tournaments, pro players, and gear reviews.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090426",
+  "theme_color": "#090426",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
