@@ -78,7 +78,7 @@ export default function Header() {
           {/* Logo + search row */}
           <div className="flex items-center justify-between py-4 md:py-5">
             <Link href="/" className="flex-shrink-0 group">
-              <div className="relative h-14 w-64 md:h-[72px] md:w-80 lg:h-20 lg:w-[360px]">
+              <div className="relative h-16 w-[295px] md:h-[83px] md:w-[368px] lg:h-[92px] lg:w-[414px]">
                 <Image src="/images/logo.png" alt="Dink Authority Magazine" fill className="object-contain drop-shadow-[0_0_15px_rgba(57,255,20,0.15)]" priority />
               </div>
             </Link>
@@ -97,7 +97,7 @@ export default function Header() {
           </div>
 
           {/* Navigation bar */}
-          <nav className="hidden lg:block border-t border-white/10">
+          <nav className="hidden lg:block">
             <div className="flex items-center gap-0">
               {NAV_ITEMS.map((item: any) => (
                 <Link
