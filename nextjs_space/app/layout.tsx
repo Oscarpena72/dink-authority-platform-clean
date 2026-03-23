@@ -1,0 +1,49 @@
+export const dynamic = "force-dynamic";
+import type { Metadata } from 'next';
+import { Inter, Oswald } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
+import Script from 'next/script';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+const oswald = Oswald({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000'),
+  title: 'Dink Authority Magazine | The Voice of Pickleball',
+  description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
+  keywords: 'pickleball, magazine, news, tournaments, pro players, gear reviews, pickleball community',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
+  openGraph: {
+    title: 'Dink Authority Magazine | The Voice of Pickleball',
+    description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
+    images: ['/og-image.png'],
+    type: 'website',
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${inter.variable} ${oswald.variable}`} suppressHydrationWarning>
+      <head>
+        <Script src="https://apps.abacus.ai/chatllm/appllm-lib.js" strategy="beforeInteractive" />
+      </head>
+      <body className="font-body bg-white text-brand-purple antialiased">
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}

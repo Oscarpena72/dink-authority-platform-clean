@@ -1,0 +1,11 @@
+export const dynamic = "force-dynamic";
+import AdminLayoutClient from './_components/admin-layout-client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { redirect } from 'next/navigation';
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect('/login');
+  return <AdminLayoutClient session={session}>{children}</AdminLayoutClient>;
+}
