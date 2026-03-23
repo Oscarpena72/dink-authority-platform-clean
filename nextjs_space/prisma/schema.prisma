@@ -133,3 +133,36 @@ model ContactSubmission {
   status    String   @default("new")
   createdAt DateTime @default(now())
 }
+
+model TournamentResult {
+  id            String   @id @default(cuid())
+  tournamentName String
+  division      String
+  winner        String
+  runnerUp      String
+  score         String?
+  location      String?
+  date          DateTime
+  externalUrl   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date])
+}
+
+model MagazineEdition {
+  id          String   @id @default(cuid())
+  title       String
+  issueNumber String?
+  coverUrl    String?
+  description String?  @db.Text
+  pdfUrl      String?
+  externalUrl String?
+  isCurrent   Boolean  @default(false)
+  publishDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([publishDate])
+}

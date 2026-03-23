@@ -62,7 +62,18 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/5 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Sponsors bar */}
+        <div className="border-t border-white/5 mt-10 pt-8">
+          <p className="text-white/30 text-[10px] uppercase tracking-widest text-center mb-4 font-medium">Our Sponsors & Partners</p>
+          <div className="flex items-center justify-center gap-8 flex-wrap opacity-40 hover:opacity-60 transition-opacity">
+            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">JOOLA</span>
+            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">SELKIRK</span>
+            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">FRANKLIN</span>
+            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">ENGAGE</span>
+          </div>
+        </div>
+
+        <div className="border-t border-white/5 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/30 text-xs">&copy; {new Date().getFullYear()} Dink Authority Magazine. All rights reserved.</p>
           <div className="flex items-center gap-4 text-white/30 text-xs">
             <span>Privacy Policy</span>

@@ -219,6 +219,44 @@ async function main() {
   }
   console.log('Site settings seeded');
 
+  // Seed tournament results
+  const RESULTS = [
+    { tournamentName: '2026 PPA Championship', division: "Men's Singles", winner: 'Ben Johns', runnerUp: 'Tyson McGuffin', score: '11-5, 11-7', location: 'Dallas, TX', date: new Date('2026-03-15') },
+    { tournamentName: '2026 PPA Championship', division: "Women's Singles", winner: 'Anna Leigh Waters', runnerUp: 'Catherine Parenteau', score: '11-8, 11-6', location: 'Dallas, TX', date: new Date('2026-03-15') },
+    { tournamentName: '2026 PPA Championship', division: "Mixed Doubles", winner: 'Johns / Waters', runnerUp: 'McGuffin / Parenteau', score: '11-9, 9-11, 11-7', location: 'Dallas, TX', date: new Date('2026-03-14') },
+    { tournamentName: 'MLP Austin Showdown', division: "Men's Doubles", winner: 'Johns / Johnson', runnerUp: 'Newman / Devilliers', score: '11-4, 11-8', location: 'Austin, TX', date: new Date('2026-03-08') },
+    { tournamentName: 'APP Suncoast Open', division: "Women's Doubles", winner: 'Irvine / Todd', runnerUp: 'Jardim / Kovalova', score: '11-7, 8-11, 11-5', location: 'Sarasota, FL', date: new Date('2026-03-01') },
+    { tournamentName: 'APP Suncoast Open', division: "Men's Singles", winner: 'Federico Staksrud', runnerUp: 'JW Johnson', score: '11-9, 11-8', location: 'Sarasota, FL', date: new Date('2026-03-01') },
+  ];
+
+  for (const result of RESULTS) {
+    const existing = await prisma.tournamentResult.findFirst({
+      where: { tournamentName: result.tournamentName, division: result.division },
+    });
+    if (!existing) {
+      await prisma.tournamentResult.create({ data: result });
+    }
+  }
+  console.log(`${RESULTS.length} tournament results seeded`);
+
+  // Seed magazine editions
+  const EDITIONS = [
+    { title: 'The Rise of Pickleball: 2026 Season Preview', issueNumber: 'Issue #15', description: 'Our comprehensive preview of the 2026 professional pickleball season, featuring player rankings, team analysis, and bold predictions for the year ahead.', isCurrent: true, publishDate: new Date('2026-03-01'), coverUrl: '/images/magazine-cover-1.jpg' },
+    { title: 'The Legends Issue: Greatest Players of All Time', issueNumber: 'Issue #14', description: 'We rank the top 50 pickleball players in history, from the pioneers to the modern superstars reshaping the game.', isCurrent: false, publishDate: new Date('2026-01-15'), coverUrl: '/images/magazine-cover-2.jpg' },
+    { title: 'Gear Guide 2025: The Ultimate Equipment Review', issueNumber: 'Issue #13', description: 'Our annual deep dive into paddles, shoes, bags, and accessories—everything you need to elevate your game.', isCurrent: false, publishDate: new Date('2025-11-01'), coverUrl: '/images/magazine-cover-3.jpg' },
+    { title: 'Pickleball Goes Global: The International Expansion', issueNumber: 'Issue #12', description: 'How pickleball is conquering new markets across Latin America, Europe, and Asia with explosive growth.', isCurrent: false, publishDate: new Date('2025-09-01'), coverUrl: '/images/magazine-cover-4.jpg' },
+  ];
+
+  for (const edition of EDITIONS) {
+    const existing = await prisma.magazineEdition.findFirst({
+      where: { title: edition.title },
+    });
+    if (!existing) {
+      await prisma.magazineEdition.create({ data: edition });
+    }
+  }
+  console.log(`${EDITIONS.length} magazine editions seeded`);
+
   console.log('Seeding complete!');
 }
 

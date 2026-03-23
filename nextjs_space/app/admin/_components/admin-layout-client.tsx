@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard, FileText, Calendar, Image as ImageIcon,
-  Mail, Settings, LogOut, Menu, X, Home, ChevronRight
+  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -14,6 +14,8 @@ const NAV_ITEMS = [
   { label: 'Articles', href: '/admin/articles', icon: FileText },
   { label: 'Homepage', href: '/admin/homepage', icon: Home },
   { label: 'Events', href: '/admin/events', icon: Calendar },
+  { label: 'Results', href: '/admin/results', icon: Trophy },
+  { label: 'Magazine', href: '/admin/magazine', icon: BookOpen },
   { label: 'Media', href: '/admin/media', icon: ImageIcon },
   { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { label: 'Settings', href: '/admin/settings', icon: Settings },

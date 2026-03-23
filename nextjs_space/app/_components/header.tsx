@@ -85,9 +85,9 @@ export default function Header() {
               <button onClick={() => setSearchOpen(!searchOpen)} className="p-2.5 text-white/80 hover:text-brand-neon transition-colors rounded-lg hover:bg-white/5" aria-label="Search">
                 <Search size={22} />
               </button>
-              <Link href="/articles" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-blue text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-brand-blue-light transition-all shadow-lg shadow-brand-blue/20">
-                Subscribe
-              </Link>
+              <a href="#newsletter" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-blue text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-brand-blue-light transition-all shadow-lg shadow-brand-blue/20">
+                Newsletter
+              </a>
               <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2.5 text-white hover:text-brand-neon transition-colors" aria-label="Menu">
                 {mobileOpen ? <X size={24} /> : <Menu size={24} />}
               </button>

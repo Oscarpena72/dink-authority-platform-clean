@@ -34,7 +34,7 @@ export default function NewsletterSignup() {
   };
 
   return (
-    <section className="py-16 relative overflow-hidden">
+    <section id="newsletter" className="py-16 relative overflow-hidden scroll-mt-32">
       {/* Blue gradient background */}
       <div className="absolute inset-0 blue-gradient" />
       <div className="absolute inset-0 bg-black/20" />

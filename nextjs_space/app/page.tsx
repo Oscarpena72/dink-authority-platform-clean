@@ -7,6 +7,8 @@ export default async function HomePage() {
   let latestArticles: any[] = [];
   let featuredArticles: any[] = [];
   let events: any[] = [];
+  let results: any[] = [];
+  let editions: any[] = [];
   let settings: Record<string, string> = {};
 
   try {
@@ -29,7 +31,7 @@ export default async function HomePage() {
     featuredArticles = await prisma.article.findMany({
       where: { isFeatured: true, status: 'published' },
       orderBy: { publishedAt: 'desc' },
-      take: 3,
+      take: 4,
       select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, category: true, authorName: true },
     });
   } catch { /* empty */ }
@@ -40,6 +42,23 @@ export default async function HomePage() {
       orderBy: { startDate: 'asc' },
       take: 3,
       select: { id: true, name: true, location: true, startDate: true, endDate: true, externalUrl: true },
+    });
+  } catch { /* empty */ }
+
+  try {
+    results = await prisma.tournamentResult.findMany({
+      where: { isActive: true },
+      orderBy: { date: 'desc' },
+      take: 6,
+      select: { id: true, tournamentName: true, division: true, winner: true, runnerUp: true, score: true, location: true, date: true, externalUrl: true },
+    });
+  } catch { /* empty */ }
+
+  try {
+    editions = await prisma.magazineEdition.findMany({
+      orderBy: { publishDate: 'desc' },
+      take: 4,
+      select: { id: true, title: true, issueNumber: true, coverUrl: true, description: true, externalUrl: true, isCurrent: true, publishDate: true },
     });
   } catch { /* empty */ }
 
@@ -55,6 +74,8 @@ export default async function HomePage() {
     latestArticles: (latestArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null })),
     featuredArticles: (featuredArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null })),
     events: (events ?? []).map((e: any) => ({ ...(e ?? {}), startDate: e?.startDate?.toISOString?.() ?? null, endDate: e?.endDate?.toISOString?.() ?? null })),
+    results: (results ?? []).map((r: any) => ({ ...(r ?? {}), date: r?.date?.toISOString?.() ?? null })),
+    editions: (editions ?? []).map((ed: any) => ({ ...(ed ?? {}), publishDate: ed?.publishDate?.toISOString?.() ?? null })),
     settings,
   };
 
