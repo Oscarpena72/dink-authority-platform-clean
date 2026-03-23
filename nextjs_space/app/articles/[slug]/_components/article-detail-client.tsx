@@ -35,7 +35,7 @@ export default function ArticleDetailClient({ article, relatedArticles }: { arti
               <ArrowLeft size={16} /> Back to Articles
             </Link>
 
-            <span className="inline-block px-3 py-1 bg-brand-neon/10 text-brand-neon-dim text-xs font-bold uppercase tracking-wider rounded mb-4">
+            <span className="inline-block px-3 py-1 bg-brand-blue/10 text-brand-blue text-xs font-bold uppercase tracking-wider rounded mb-4">
               {article?.category ?? 'News'}
             </span>
 
@@ -80,7 +80,7 @@ export default function ArticleDetailClient({ article, relatedArticles }: { arti
                         {a?.imageUrl && <Image src={a.imageUrl} alt={a?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
                       </div>
                       <div className="p-4">
-                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon-dim transition-colors line-clamp-2">
+                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-blue transition-colors line-clamp-2">
                           {a?.title ?? ''}
                         </h3>
                       </div>

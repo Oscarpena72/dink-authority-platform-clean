@@ -3,7 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Zap } from 'lucide-react';
 
 interface HeroStoryProps {
   article: {
@@ -21,45 +21,74 @@ interface HeroStoryProps {
 export default function HeroStory({ article }: HeroStoryProps) {
   if (!article) return null;
   return (
-    <section className="bg-brand-purple">
-      <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <section className="relative bg-brand-purple-dark overflow-hidden">
+      {/* Decorative blue accent line */}
+      <div className="absolute top-0 left-0 right-0 h-1 blue-gradient z-10" />
+      <div className="max-w-[1400px] mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative rounded-lg overflow-hidden group"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="relative group"
         >
           <Link href={`/articles/${article?.slug ?? ''}`}>
-            <div className="relative aspect-[16/7] md:aspect-[16/6] bg-brand-purple-light">
+            <div className="relative aspect-[16/8] md:aspect-[16/7] lg:aspect-[16/6] bg-brand-purple-light">
               {article?.imageUrl && (
                 <Image
                   src={article.imageUrl}
                   alt={article?.title ?? 'Hero story'}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover group-hover:scale-[1.03] transition-transform duration-1000"
                   priority
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                <span className="inline-block px-3 py-1 bg-brand-neon text-brand-purple text-xs font-bold uppercase tracking-wider rounded mb-3">
-                  {article?.category ?? 'News'}
-                </span>
-                <h1 className="text-2xl md:text-4xl lg:text-5xl font-heading font-bold text-white leading-tight mb-3">
-                  {article?.title ?? 'Featured Story'}
-                </h1>
-                {article?.excerpt && (
-                  <p className="text-white/80 text-sm md:text-base max-w-2xl line-clamp-2 mb-4">
-                    {article.excerpt}
-                  </p>
-                )}
-                <div className="flex items-center gap-4">
-                  <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple font-bold rounded hover:bg-brand-neon-dim transition-colors text-sm">
-                    Read Full Story <ArrowRight size={16} />
-                  </span>
-                  {article?.authorName && (
-                    <span className="text-white/60 text-sm">By {article.authorName}</span>
+              {/* Multi-layer gradient for depth */}
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-dark via-brand-purple-dark/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-dark/60 via-transparent to-transparent" />
+              
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-14">
+                <div className="max-w-3xl">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-blue text-white text-[11px] font-bold uppercase tracking-widest rounded mb-4">
+                      <Zap size={12} className="fill-current" />
+                      {article?.category ?? 'News'}
+                    </span>
+                  </motion.div>
+                  <motion.h1
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                    className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold text-white leading-[1.1] mb-4 drop-shadow-lg"
+                  >
+                    {article?.title ?? 'Featured Story'}
+                  </motion.h1>
+                  {article?.excerpt && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6, duration: 0.5 }}
+                      className="text-white/75 text-sm md:text-lg max-w-2xl line-clamp-2 mb-6 leading-relaxed"
+                    >
+                      {article.excerpt}
+                    </motion.p>
                   )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
+                    className="flex items-center gap-5"
+                  >
+                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-brand-blue text-white font-bold rounded-lg hover:bg-brand-blue-light transition-all text-sm uppercase tracking-wider shadow-lg shadow-brand-blue/30 group-hover:shadow-brand-blue/50">
+                      Read Full Story <ArrowRight size={16} />
+                    </span>
+                    {article?.authorName && (
+                      <span className="text-white/50 text-sm font-medium">By {article.authorName}</span>
+                    )}
+                  </motion.div>
                 </div>
               </div>
             </div>

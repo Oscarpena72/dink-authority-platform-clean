@@ -53,14 +53,14 @@ export default function ContactPageClient() {
           <div className="max-w-[800px] mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               <div className="flex items-start gap-3">
-                <Mail size={20} className="text-brand-neon mt-1 flex-shrink-0" />
+                <Mail size={20} className="text-brand-blue mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-heading font-bold text-brand-purple mb-1">Email</h3>
                   <p className="text-sm text-brand-gray-dark">info@dinkauthoritymagazine.com</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <MapPin size={20} className="text-brand-neon mt-1 flex-shrink-0" />
+                <MapPin size={20} className="text-brand-blue mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-heading font-bold text-brand-purple mb-1">Location</h3>
                   <p className="text-sm text-brand-gray-dark">Miami, FL</p>
@@ -70,7 +70,7 @@ export default function ContactPageClient() {
 
             {status === 'success' ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10">
-                <CheckCircle size={48} className="text-brand-neon mx-auto mb-4" />
+                <CheckCircle size={48} className="text-brand-blue mx-auto mb-4" />
                 <h2 className="text-2xl font-heading font-bold text-brand-purple mb-2">Message Sent!</h2>
                 <p className="text-brand-gray-dark">Thank you for reaching out. We will get back to you soon.</p>
                 <button onClick={() => setStatus('idle')} className="mt-6 px-6 py-3 bg-brand-purple text-white font-bold rounded-lg hover:bg-brand-purple-light transition-colors">

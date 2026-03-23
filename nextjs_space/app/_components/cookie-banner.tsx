@@ -18,22 +18,22 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-brand-purple-dark/95 backdrop-blur-md border-t border-white/10">
-      <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-brand-purple-dark/95 backdrop-blur-md border-t border-brand-blue/20">
+      <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Cookie size={20} className="text-brand-neon flex-shrink-0" />
-          <p className="text-white/80 text-sm">
+          <p className="text-white/70 text-sm">
             We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={handleAccept}
-            className="px-6 py-2 bg-brand-neon text-brand-purple font-bold text-sm rounded hover:bg-brand-neon-dim transition-colors"
+            className="px-6 py-2.5 bg-brand-blue text-white font-bold text-sm rounded-lg hover:bg-brand-blue-light transition-colors"
           >
             Accept
           </button>
-          <button onClick={handleAccept} className="p-2 text-white/50 hover:text-white transition-colors" aria-label="Close">
+          <button onClick={handleAccept} className="p-2 text-white/40 hover:text-white transition-colors" aria-label="Close">
             <X size={18} />
           </button>
         </div>

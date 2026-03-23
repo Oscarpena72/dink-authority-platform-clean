@@ -20,47 +20,51 @@ export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="py-12 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+    <section className="py-14 bg-white">
+      <div className="max-w-[1400px] mx-auto px-4">
+        <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
-            <div className="w-1 h-8 bg-brand-neon rounded-full" />
-            <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">Latest News</h2>
+            <div className="w-1.5 h-10 bg-brand-blue rounded-full" />
+            <div>
+              <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">Latest News</h2>
+              <p className="text-brand-gray-dark text-sm mt-0.5">Breaking coverage from the world of pickleball</p>
+            </div>
           </div>
-          <Link href="/articles" className="flex items-center gap-1 text-sm font-semibold text-brand-purple hover:text-brand-neon transition-colors">
+          <Link href="/articles" className="flex items-center gap-1.5 text-sm font-bold text-brand-blue hover:text-brand-blue-dark transition-colors uppercase tracking-wider">
             View All <ChevronRight size={16} />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
           {items.slice(0, 6).map((article: ArticleItem, i: number) => (
             <motion.div
               key={article?.id ?? i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.08 }}
             >
-              <Link href={`/articles/${article?.slug ?? ''}`} className="group block">
-                <div className="bg-brand-gray rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
-                  <div className="relative aspect-video bg-brand-gray">
+              <Link href={`/articles/${article?.slug ?? ''}`} className="group block sport-card">
+                <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-brand-blue/20 transition-all duration-300">
+                  <div className="relative aspect-[16/10] bg-brand-gray">
                     {article?.imageUrl && (
-                      <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
                     )}
-                    <span className="absolute top-3 left-3 px-2 py-1 bg-brand-purple text-white text-[10px] font-bold uppercase tracking-wider rounded">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-brand-blue text-white text-[10px] font-bold uppercase tracking-widest rounded">
                       {article?.category ?? 'News'}
                     </span>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon-dim transition-colors line-clamp-2 mb-2">
+                  <div className="p-5">
+                    <h3 className="font-heading font-bold text-brand-purple group-hover:text-brand-blue transition-colors line-clamp-2 mb-3 text-[17px] leading-snug">
                       {article?.title ?? 'Untitled'}
                     </h3>
                     <div className="flex items-center gap-2 text-xs text-brand-gray-dark">
-                      <Clock size={12} />
+                      <Clock size={12} className="text-brand-blue/60" />
                       <span>{article?.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
                       {article?.authorName && (
                         <>
-                          <span>·</span>
-                          <span>{article.authorName}</span>
+                          <span className="text-brand-blue">·</span>
+                          <span className="font-medium">{article.authorName}</span>
                         </>
                       )}
                     </div>
