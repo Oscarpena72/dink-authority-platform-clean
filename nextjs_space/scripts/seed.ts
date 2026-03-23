@@ -241,10 +241,10 @@ async function main() {
 
   // Seed magazine editions
   const EDITIONS = [
-    { title: 'The Rise of Pickleball: 2026 Season Preview', issueNumber: 'Issue #15', description: 'Our comprehensive preview of the 2026 professional pickleball season, featuring player rankings, team analysis, and bold predictions for the year ahead.', isCurrent: true, publishDate: new Date('2026-03-01'), coverUrl: '/images/magazine-cover-1.jpg' },
-    { title: 'The Legends Issue: Greatest Players of All Time', issueNumber: 'Issue #14', description: 'We rank the top 50 pickleball players in history, from the pioneers to the modern superstars reshaping the game.', isCurrent: false, publishDate: new Date('2026-01-15'), coverUrl: '/images/magazine-cover-2.jpg' },
-    { title: 'Gear Guide 2025: The Ultimate Equipment Review', issueNumber: 'Issue #13', description: 'Our annual deep dive into paddles, shoes, bags, and accessories—everything you need to elevate your game.', isCurrent: false, publishDate: new Date('2025-11-01'), coverUrl: '/images/magazine-cover-3.jpg' },
-    { title: 'Pickleball Goes Global: The International Expansion', issueNumber: 'Issue #12', description: 'How pickleball is conquering new markets across Latin America, Europe, and Asia with explosive growth.', isCurrent: false, publishDate: new Date('2025-09-01'), coverUrl: '/images/magazine-cover-4.jpg' },
+    { title: 'The Rise of Pickleball: 2026 Season Preview', issueNumber: 'Issue #15', description: 'Our comprehensive preview of the 2026 professional pickleball season, featuring player rankings, team analysis, and bold predictions for the year ahead.', isCurrent: true, publishDate: new Date('2026-03-01'), coverUrl: null },
+    { title: 'The Legends Issue: Greatest Players of All Time', issueNumber: 'Issue #14', description: 'We rank the top 50 pickleball players in history, from the pioneers to the modern superstars reshaping the game.', isCurrent: false, publishDate: new Date('2026-01-15'), coverUrl: null },
+    { title: 'Gear Guide 2025: The Ultimate Equipment Review', issueNumber: 'Issue #13', description: 'Our annual deep dive into paddles, shoes, bags, and accessories—everything you need to elevate your game.', isCurrent: false, publishDate: new Date('2025-11-01'), coverUrl: null },
+    { title: 'Pickleball Goes Global: The International Expansion', issueNumber: 'Issue #12', description: 'How pickleball is conquering new markets across Latin America, Europe, and Asia with explosive growth.', isCurrent: false, publishDate: new Date('2025-09-01'), coverUrl: null },
   ];
 
   for (const edition of EDITIONS) {

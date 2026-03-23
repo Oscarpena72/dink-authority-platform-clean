@@ -22,8 +22,8 @@ export default function HeroStory({ article }: HeroStoryProps) {
   if (!article) return null;
   return (
     <section className="relative bg-brand-purple-dark overflow-hidden">
-      {/* Decorative blue accent line */}
-      <div className="absolute top-0 left-0 right-0 h-1 blue-gradient z-10" />
+      {/* Decorative neon accent line */}
+      <div className="absolute top-0 left-0 right-0 h-1 neon-gradient z-10" />
       <div className="max-w-[1400px] mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
@@ -32,7 +32,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
           className="relative group"
         >
           <Link href={`/articles/${article?.slug ?? ''}`}>
-            <div className="relative aspect-[16/8] md:aspect-[16/7] lg:aspect-[16/6] bg-brand-purple-light">
+            <div className="relative aspect-[16/9] md:aspect-[16/8] lg:aspect-[16/7] bg-brand-purple-light">
               {article?.imageUrl && (
                 <Image
                   src={article.imageUrl}
@@ -43,17 +43,17 @@ export default function HeroStory({ article }: HeroStoryProps) {
                 />
               )}
               {/* Multi-layer gradient for depth */}
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-dark via-brand-purple-dark/40 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-dark/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-dark via-brand-purple-dark/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-dark/70 via-transparent to-transparent" />
               
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-14">
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-16">
                 <div className="max-w-3xl">
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
                   >
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-blue text-white text-[11px] font-bold uppercase tracking-widest rounded mb-4">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-neon text-brand-purple-dark text-[11px] font-bold uppercase tracking-widest rounded mb-4">
                       <Zap size={12} className="fill-current" />
                       {article?.category ?? 'News'}
                     </span>
@@ -62,7 +62,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
-                    className="text-3xl md:text-5xl lg:text-6xl font-heading font-bold text-white leading-[1.1] mb-4 drop-shadow-lg"
+                    className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold text-white leading-[1.05] mb-4 drop-shadow-lg"
                   >
                     {article?.title ?? 'Featured Story'}
                   </motion.h1>
@@ -71,7 +71,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.6, duration: 0.5 }}
-                      className="text-white/75 text-sm md:text-lg max-w-2xl line-clamp-2 mb-6 leading-relaxed"
+                      className="text-white/75 text-sm md:text-lg lg:text-xl max-w-2xl line-clamp-2 mb-6 leading-relaxed"
                     >
                       {article.excerpt}
                     </motion.p>
@@ -82,7 +82,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                     transition={{ delay: 0.7, duration: 0.5 }}
                     className="flex items-center gap-5"
                   >
-                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-brand-blue text-white font-bold rounded-lg hover:bg-brand-blue-light transition-all text-sm uppercase tracking-wider shadow-lg shadow-brand-blue/30 group-hover:shadow-brand-blue/50">
+                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg shadow-brand-neon/30 group-hover:shadow-brand-neon/50">
                       Read Full Story <ArrowRight size={16} />
                     </span>
                     {article?.authorName && (

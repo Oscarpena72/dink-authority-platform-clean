@@ -20,11 +20,11 @@ export default function FeaturedArticles({ articles }: { articles: ArticleItem[]
   if (items.length === 0) return null;
 
   return (
-    <section className="py-14 bg-brand-gray">
+    <section className="py-14 bg-white">
       <div className="max-w-[1400px] mx-auto px-4">
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-lg bg-brand-blue/10 flex items-center justify-center">
-            <Star size={20} className="text-brand-blue" />
+          <div className="w-10 h-10 rounded-lg bg-brand-neon/10 flex items-center justify-center">
+            <Star size={20} className="text-brand-neon" />
           </div>
           <div>
             <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">Featured Stories</h2>
@@ -41,7 +41,7 @@ export default function FeaturedArticles({ articles }: { articles: ArticleItem[]
               transition={{ delay: i * 0.12 }}
             >
               <Link href={`/articles/${article?.slug ?? ''}`} className="group block h-full sport-card">
-                <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-brand-blue/20 h-full flex flex-col">
+                <div className="bg-brand-gray rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 h-full flex flex-col">
                   <div className="relative aspect-[16/10] bg-brand-gray">
                     {article?.imageUrl && (
                       <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -52,14 +52,14 @@ export default function FeaturedArticles({ articles }: { articles: ArticleItem[]
                     </div>
                   </div>
                   <div className="p-6 flex flex-col flex-1">
-                    <span className="text-[11px] font-bold text-brand-blue uppercase tracking-widest mb-2">{article?.category ?? ''}</span>
-                    <h3 className="font-heading font-bold text-lg text-brand-purple group-hover:text-brand-blue transition-colors mb-3 leading-snug">
+                    <span className="text-[11px] font-bold text-brand-purple uppercase tracking-widest mb-2">{article?.category ?? ''}</span>
+                    <h3 className="font-heading font-bold text-lg text-brand-purple group-hover:text-brand-neon transition-colors mb-3 leading-snug">
                       {article?.title ?? ''}
                     </h3>
                     {article?.excerpt && (
                       <p className="text-sm text-brand-gray-dark line-clamp-3 mb-5 flex-1 leading-relaxed">{article.excerpt}</p>
                     )}
-                    <div className="flex items-center gap-2 text-brand-blue font-bold text-sm uppercase tracking-wider group-hover:gap-3 transition-all">
+                    <div className="flex items-center gap-2 text-brand-purple font-bold text-sm uppercase tracking-wider group-hover:gap-3 transition-all">
                       Read More <ArrowRight size={14} />
                     </div>
                   </div>

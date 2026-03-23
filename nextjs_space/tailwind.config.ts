@@ -11,13 +11,13 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          purple: '#0A1128',
-          'purple-light': '#1B2444',
-          'purple-dark': '#060D1F',
-          neon: '#00D4FF',
-          'neon-dim': '#00B8E0',
+          purple: '#0B1F3B',
+          'purple-light': '#132D52',
+          'purple-dark': '#071526',
+          neon: '#39FF14',
+          'neon-dim': '#2ED811',
           white: '#FFFFFF',
-          gray: '#F0F4F8',
+          gray: '#F4F6F8',
           'gray-dark': '#6B7B8D',
           blue: '#0052FF',
           'blue-light': '#3377FF',

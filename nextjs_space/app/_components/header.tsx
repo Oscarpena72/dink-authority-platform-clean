@@ -60,7 +60,7 @@ export default function Header() {
               </button>
               {langOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-brand-purple-light rounded-lg shadow-2xl z-50 border border-white/10 overflow-hidden">
-                  <button onClick={() => setLangOpen(false)} className="w-full px-4 py-2.5 text-left text-white font-semibold text-xs border-b border-white/10 bg-brand-blue/20 hover:bg-brand-blue/30">✓ English</button>
+                  <button onClick={() => setLangOpen(false)} className="w-full px-4 py-2.5 text-left text-white font-semibold text-xs border-b border-white/10 bg-brand-neon/10 hover:bg-brand-neon/20">✓ English</button>
                   <div className="px-4 py-2.5 text-white/40 text-xs cursor-not-allowed">Español (Coming soon)</div>
                   <div className="px-4 py-2.5 text-white/40 text-xs cursor-not-allowed">Português (Coming soon)</div>
                 </div>
@@ -71,13 +71,15 @@ export default function Header() {
       </div>
 
       {/* Main header with logo */}
-      <header className="sticky top-0 z-50 bg-brand-purple-dark shadow-2xl shadow-black/20">
+      <header className="sticky top-0 z-50 bg-brand-purple shadow-2xl shadow-black/30">
+        {/* Neon accent line at top */}
+        <div className="h-[3px] neon-gradient" />
         <div className="max-w-[1400px] mx-auto px-4">
           {/* Logo + search row */}
-          <div className="flex items-center justify-between py-3 md:py-4">
+          <div className="flex items-center justify-between py-4 md:py-5">
             <Link href="/" className="flex-shrink-0 group">
-              <div className="relative h-12 w-56 md:h-16 md:w-72 lg:h-[72px] lg:w-80">
-                <Image src="/images/logo.png" alt="Dink Authority Magazine" fill className="object-contain drop-shadow-lg" priority />
+              <div className="relative h-14 w-64 md:h-[72px] md:w-80 lg:h-20 lg:w-[360px]">
+                <Image src="/images/logo.png" alt="Dink Authority Magazine" fill className="object-contain drop-shadow-[0_0_15px_rgba(57,255,20,0.15)]" priority />
               </div>
             </Link>
 
@@ -85,7 +87,7 @@ export default function Header() {
               <button onClick={() => setSearchOpen(!searchOpen)} className="p-2.5 text-white/80 hover:text-brand-neon transition-colors rounded-lg hover:bg-white/5" aria-label="Search">
                 <Search size={22} />
               </button>
-              <a href="#newsletter" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-blue text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-brand-blue-light transition-all shadow-lg shadow-brand-blue/20">
+              <a href="#newsletter" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-brand-neon-dim transition-all shadow-lg shadow-brand-neon/20">
                 Newsletter
               </a>
               <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2.5 text-white hover:text-brand-neon transition-colors" aria-label="Menu">
@@ -94,17 +96,17 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Navigation bar - sports ticker style */}
+          {/* Navigation bar */}
           <nav className="hidden lg:block border-t border-white/10">
             <div className="flex items-center gap-0">
               {NAV_ITEMS.map((item: any) => (
                 <Link
                   key={item?.label}
                   href={item?.href ?? '#'}
-                  className="relative px-4 py-3 text-[13px] font-bold text-white/80 hover:text-white uppercase tracking-wider font-heading transition-all group"
+                  className="relative px-4 py-3 text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group"
                 >
                   {item?.label}
-                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-blue scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </Link>
               ))}
             </div>
@@ -113,17 +115,17 @@ export default function Header() {
 
         {/* Search bar */}
         {searchOpen && (
-          <div className="bg-brand-purple border-t border-white/10">
+          <div className="bg-brand-purple-dark border-t border-white/10">
             <form onSubmit={handleSearch} className="max-w-[1400px] mx-auto px-4 py-3 flex gap-2">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e: any) => setSearchQuery(e?.target?.value ?? '')}
                 placeholder="Search articles, players, events..."
-                className="flex-1 px-4 py-2.5 rounded-lg bg-brand-purple-light text-white placeholder-white/40 border border-white/15 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue/50"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-brand-purple-light text-white placeholder-white/40 border border-white/15 focus:border-brand-neon focus:outline-none focus:ring-1 focus:ring-brand-neon/50"
                 autoFocus
               />
-              <button type="submit" className="px-6 py-2.5 bg-brand-blue text-white font-bold rounded-lg hover:bg-brand-blue-light transition-colors">
+              <button type="submit" className="px-6 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-colors">
                 Search
               </button>
             </form>
@@ -132,7 +134,7 @@ export default function Header() {
 
         {/* Mobile nav */}
         {mobileOpen && (
-          <nav className="lg:hidden bg-brand-purple border-t border-white/10">
+          <nav className="lg:hidden bg-brand-purple-dark border-t border-white/10">
             <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-0.5">
               {NAV_ITEMS.map((item: any) => (
                 <Link

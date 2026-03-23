@@ -20,7 +20,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="py-14 bg-white">
+    <section className="py-14 bg-brand-gray">
       <div className="max-w-[1400px] mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
@@ -33,7 +33,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
             </div>
           </div>
         </div>
-        <div className="bg-brand-gray rounded-xl overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-xl overflow-hidden border border-gray-100">
           {/* Table header */}
           <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-brand-purple text-white text-xs font-bold uppercase tracking-widest">
             <div className="col-span-3">Tournament</div>
@@ -50,7 +50,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className={`group px-6 py-4 border-b border-gray-100 last:border-b-0 hover:bg-white transition-colors ${i % 2 === 0 ? 'bg-white/50' : 'bg-brand-gray/50'}`}
+              className={`group px-6 py-4 border-b border-gray-100 last:border-b-0 hover:bg-brand-gray/50 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-brand-gray/30'}`}
             >
               {/* Desktop */}
               <div className="hidden md:grid grid-cols-12 gap-4 items-center">
@@ -62,7 +62,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
                   </p>
                 </div>
                 <div className="col-span-2">
-                  <span className="inline-block px-2 py-0.5 bg-brand-blue/10 text-brand-blue text-[11px] font-bold uppercase tracking-wider rounded">
+                  <span className="inline-block px-2 py-0.5 bg-brand-neon/15 text-brand-purple text-[11px] font-bold uppercase tracking-wider rounded">
                     {result?.division ?? ''}
                   </span>
                 </div>
@@ -74,7 +74,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
                 <div className="col-span-2 flex items-center justify-between">
                   <span className="font-mono font-bold text-brand-purple text-sm">{result?.score ?? '-'}</span>
                   {result?.externalUrl && (
-                    <a href={result.externalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-blue opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a href={result.externalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-neon opacity-0 group-hover:opacity-100 transition-opacity">
                       <ChevronRight size={16} />
                     </a>
                   )}
@@ -83,7 +83,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
               {/* Mobile */}
               <div className="md:hidden">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="inline-block px-2 py-0.5 bg-brand-blue/10 text-brand-blue text-[10px] font-bold uppercase rounded">
+                  <span className="inline-block px-2 py-0.5 bg-brand-neon/15 text-brand-purple text-[10px] font-bold uppercase rounded">
                     {result?.division ?? ''}
                   </span>
                   <span className="text-brand-gray-dark text-xs">
@@ -95,7 +95,7 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
                   <Medal size={14} className="text-yellow-500" />
                   <span className="font-bold text-brand-purple">{result?.winner ?? ''}</span>
                   <span className="text-brand-gray-dark">vs {result?.runnerUp ?? ''}</span>
-                  <span className="font-mono font-bold text-brand-blue ml-auto">{result?.score ?? '-'}</span>
+                  <span className="font-mono font-bold text-brand-neon ml-auto">{result?.score ?? '-'}</span>
                 </div>
               </div>
             </motion.div>

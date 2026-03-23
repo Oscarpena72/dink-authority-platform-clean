@@ -62,8 +62,8 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                   onClick={() => router.push(buildUrl({ category: c?.value ?? '', q: query }))}
                   className={`px-3 py-1.5 text-sm rounded-full font-semibold transition-all ${
                     (category ?? '') === (c?.value ?? '')
-                      ? 'bg-brand-blue text-white'
-                      : 'bg-brand-gray text-brand-purple hover:bg-brand-blue/10'
+                      ? 'bg-brand-neon text-brand-purple-dark'
+                      : 'bg-brand-gray text-brand-purple hover:bg-brand-neon/10'
                   }`}
                 >
                   {c?.label}
@@ -92,12 +92,12 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                         {article?.imageUrl && (
                           <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                         )}
-                        <span className="absolute top-3 left-3 px-2 py-1 bg-brand-blue text-white text-[10px] font-bold uppercase tracking-wider rounded">
+                        <span className="absolute top-3 left-3 px-2 py-1 bg-brand-neon text-brand-purple-dark text-[10px] font-bold uppercase tracking-wider rounded">
                           {article?.category ?? 'News'}
                         </span>
                       </div>
                       <div className="p-4">
-                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-blue transition-colors line-clamp-2 mb-2">
+                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2 mb-2">
                           {article?.title ?? ''}
                         </h3>
                         {article?.excerpt && <p className="text-sm text-brand-gray-dark line-clamp-2 mb-2">{article.excerpt}</p>}
@@ -119,7 +119,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
               <button
                 onClick={() => router.push(buildUrl({ category, q: query, page: String(Math.max(1, currentPage - 1)) }))}
                 disabled={currentPage <= 1}
-                className="p-2 rounded bg-brand-gray hover:bg-brand-blue hover:text-white disabled:opacity-30 transition-all"
+                className="p-2 rounded bg-brand-gray hover:bg-brand-neon hover:text-brand-purple-dark disabled:opacity-30 transition-all"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -128,7 +128,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                   key={p}
                   onClick={() => router.push(buildUrl({ category, q: query, page: String(p) }))}
                   className={`w-10 h-10 rounded font-bold text-sm transition-all ${
-                    p === currentPage ? 'bg-brand-blue text-white' : 'bg-brand-gray text-brand-purple hover:bg-brand-blue/10'
+                    p === currentPage ? 'bg-brand-neon text-brand-purple-dark' : 'bg-brand-gray text-brand-purple hover:bg-brand-neon/10'
                   }`}
                 >
                   {p}
@@ -137,7 +137,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
               <button
                 onClick={() => router.push(buildUrl({ category, q: query, page: String(Math.min(totalPages, currentPage + 1)) }))}
                 disabled={currentPage >= totalPages}
-                className="p-2 rounded bg-brand-gray hover:bg-brand-blue hover:text-white disabled:opacity-30 transition-all"
+                className="p-2 rounded bg-brand-gray hover:bg-brand-neon hover:text-brand-purple-dark disabled:opacity-30 transition-all"
               >
                 <ChevronRight size={18} />
               </button>

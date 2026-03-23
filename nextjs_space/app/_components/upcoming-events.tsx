@@ -17,12 +17,12 @@ export default function UpcomingEvents({ events }: { events: EventItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="py-14 bg-brand-purple-dark relative overflow-hidden">
+    <section className="py-14 bg-brand-purple relative overflow-hidden">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
       <div className="max-w-[1400px] mx-auto px-4 relative z-10">
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-lg bg-brand-blue/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-brand-neon/15 flex items-center justify-center">
             <Calendar size={20} className="text-brand-neon" />
           </div>
           <div>
@@ -38,25 +38,25 @@ export default function UpcomingEvents({ events }: { events: EventItem[] }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-brand-purple-light/80 rounded-xl p-6 border border-white/5 hover:border-brand-blue/30 transition-all duration-300 hover:bg-brand-purple-light group"
+              className="bg-brand-purple-light/80 rounded-xl p-6 border border-white/5 hover:border-brand-neon/30 transition-all duration-300 hover:bg-brand-purple-light group"
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-16 h-16 blue-gradient rounded-xl flex flex-col items-center justify-center shadow-lg shadow-brand-blue/20">
-                  <span className="text-white text-xl font-bold font-heading leading-none">
+                <div className="flex-shrink-0 w-16 h-16 bg-brand-neon rounded-xl flex flex-col items-center justify-center shadow-lg shadow-brand-neon/20">
+                  <span className="text-brand-purple-dark text-xl font-bold font-heading leading-none">
                     {event?.startDate ? new Date(event.startDate).getDate() : '--'}
                   </span>
-                  <span className="text-white/80 text-[10px] uppercase font-bold mt-0.5">
+                  <span className="text-brand-purple-dark/80 text-[10px] uppercase font-bold mt-0.5">
                     {event?.startDate ? new Date(event.startDate).toLocaleDateString('en-US', { month: 'short' }) : ''}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-heading font-bold text-white text-lg mb-2 group-hover:text-brand-neon transition-colors">{event?.name ?? 'Event'}</h3>
                   <div className="flex items-center gap-1.5 text-white/50 text-sm mb-1">
-                    <MapPin size={14} className="text-brand-blue/70" />
+                    <MapPin size={14} className="text-brand-neon/70" />
                     <span>{event?.location ?? ''}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-white/50 text-sm">
-                    <Calendar size={14} className="text-brand-blue/70" />
+                    <Calendar size={14} className="text-brand-neon/70" />
                     <span>
                       {event?.startDate ? new Date(event.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}
                       {event?.endDate ? ` - ${new Date(event.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}` : ''}

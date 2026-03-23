@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <Script src="https://apps.abacus.ai/chatllm/appllm-lib.js" strategy="beforeInteractive" />
       </head>
-      <body className="font-body bg-white text-brand-purple antialiased selection:bg-brand-blue/20 selection:text-brand-purple">
+      <body className="font-body bg-white text-brand-purple antialiased selection:bg-brand-neon/20 selection:text-brand-purple">
         <Providers>{children}</Providers>
       </body>
     </html>

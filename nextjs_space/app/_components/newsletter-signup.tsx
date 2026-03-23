@@ -35,9 +35,9 @@ export default function NewsletterSignup() {
 
   return (
     <section id="newsletter" className="py-16 relative overflow-hidden scroll-mt-32">
-      {/* Blue gradient background */}
-      <div className="absolute inset-0 blue-gradient" />
-      <div className="absolute inset-0 bg-black/20" />
+      {/* Navy background with green accent */}
+      <div className="absolute inset-0 bg-brand-purple" />
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-neon/5 via-transparent to-brand-neon/5" />
       <div className="max-w-[1400px] mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -45,17 +45,17 @@ export default function NewsletterSignup() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/15 mb-5">
-            <Mail size={28} className="text-white" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-neon/15 mb-5">
+            <Mail size={28} className="text-brand-neon" />
           </div>
           <h2 className="text-3xl md:text-4xl font-heading font-bold text-white mb-3">
             Stay in the Game
           </h2>
-          <p className="text-white/80 mb-8 max-w-md mx-auto text-lg">
+          <p className="text-white/70 mb-8 max-w-md mx-auto text-lg">
             Get the latest pickleball news, tournament updates, and exclusive content delivered to your inbox.
           </p>
           {status === 'success' ? (
-            <div className="flex items-center justify-center gap-2 text-white bg-white/15 rounded-xl px-6 py-4 max-w-md mx-auto">
+            <div className="flex items-center justify-center gap-2 text-brand-neon bg-brand-neon/10 rounded-xl px-6 py-4 max-w-md mx-auto border border-brand-neon/20">
               <CheckCircle size={20} />
               <span className="font-semibold">{message}</span>
             </div>
@@ -67,24 +67,24 @@ export default function NewsletterSignup() {
                 onChange={(e: any) => setEmail(e?.target?.value ?? '')}
                 placeholder="Enter your email address"
                 required
-                className="flex-1 px-5 py-3.5 rounded-xl bg-white/15 text-white placeholder-white/50 border border-white/20 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
+                className="flex-1 px-5 py-3.5 rounded-xl bg-white/10 text-white placeholder-white/40 border border-white/15 focus:border-brand-neon focus:outline-none focus:ring-2 focus:ring-brand-neon/20 backdrop-blur-sm"
               />
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="px-8 py-3.5 bg-white text-brand-blue font-bold rounded-xl hover:bg-white/90 transition-all disabled:opacity-50 shadow-lg uppercase tracking-wider text-sm"
+                className="px-8 py-3.5 bg-brand-neon text-brand-purple-dark font-bold rounded-xl hover:bg-brand-neon-dim transition-all disabled:opacity-50 shadow-lg shadow-brand-neon/20 uppercase tracking-wider text-sm"
               >
                 {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
               </button>
             </form>
           )}
           {status === 'error' && (
-            <div className="flex items-center justify-center gap-2 text-red-200 mt-3">
+            <div className="flex items-center justify-center gap-2 text-red-300 mt-3">
               <AlertCircle size={16} />
               <span className="text-sm">{message}</span>
             </div>
           )}
-          <p className="text-white/50 text-xs mt-5">Your data is safe with us. We respect your privacy.</p>
+          <p className="text-white/40 text-xs mt-5">Your data is safe with us. We respect your privacy.</p>
         </motion.div>
       </div>
     </section>

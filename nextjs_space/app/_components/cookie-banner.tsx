@@ -18,7 +18,7 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-brand-purple-dark/95 backdrop-blur-md border-t border-brand-blue/20">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-brand-purple/95 backdrop-blur-md border-t border-brand-neon/20">
       <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Cookie size={20} className="text-brand-neon flex-shrink-0" />
@@ -29,7 +29,7 @@ export default function CookieBanner() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={handleAccept}
-            className="px-6 py-2.5 bg-brand-blue text-white font-bold text-sm rounded-lg hover:bg-brand-blue-light transition-colors"
+            className="px-6 py-2.5 bg-brand-neon text-brand-purple-dark font-bold text-sm rounded-lg hover:bg-brand-neon-dim transition-colors"
           >
             Accept
           </button>

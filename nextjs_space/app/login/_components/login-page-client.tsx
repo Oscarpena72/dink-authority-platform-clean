@@ -93,7 +93,7 @@ export default function LoginPageClient() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-8 py-3 bg-brand-blue text-white font-bold rounded-lg hover:bg-brand-blue-light transition-colors disabled:opacity-50"
+            className="w-full mt-8 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

@@ -65,7 +65,7 @@ export default function AboutPageClient() {
                   transition={{ delay: i * 0.1 }}
                   className="bg-white rounded-lg p-6 shadow-sm hover:shadow-lg transition-all"
                 >
-                  <v.icon size={32} className="text-brand-blue mb-4" />
+                  <v.icon size={32} className="text-brand-neon mb-4" />
                   <h3 className="font-heading font-bold text-brand-purple mb-2">{v?.title}</h3>
                   <p className="text-sm text-brand-gray-dark">{v?.desc}</p>
                 </motion.div>
