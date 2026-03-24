@@ -29,7 +29,6 @@ type ViewMode = 'flipbook' | 'reader';
 
 export default function MagazineViewerClient({ edition }: { edition: EditionData }) {
   const [viewMode, setViewMode] = useState<ViewMode>('flipbook');
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [numPages, setNumPages] = useState(0);
@@ -59,8 +58,11 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     if (isMobile) setViewMode('reader');
   }, [isMobile]);
 
-  // Fetch PDF via proxy (avoids CORS issues with S3 signed URLs)
+  // Fetch PDF via proxy and load as ArrayBuffer for reliable cross-device support
+  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
+
   useEffect(() => {
+    let cancelled = false;
     async function fetchPdf() {
       try {
         // First get the PDF info (cloud path)
@@ -77,67 +79,87 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         const data = await checkRes.json();
         if (data.pageCount) setNumPages(data.pageCount);
 
-        // Extract cloud path from the S3 URL returned by pdf-url
-        // The URL contains the S3 key as the path portion
-        let cloudPath = '';
-        if (data.url) {
-          try {
-            const u = new URL(data.url);
-            // S3 URL path starts with / followed by the key
-            cloudPath = decodeURIComponent(u.pathname.slice(1).split('?')[0]);
-          } catch {
-            // Fallback: use slug-based proxy
-            cloudPath = '';
-          }
+        // Download PDF via proxy as ArrayBuffer (most reliable across devices)
+        const proxyUrl = `/api/magazine/pdf-proxy?slug=${encodeURIComponent(edition.slug)}`;
+        const pdfResponse = await fetch(proxyUrl);
+        if (!pdfResponse.ok) {
+          throw new Error(`PDF download failed: ${pdfResponse.status}`);
         }
 
-        // Use proxy with the actual cloud path parameter
-        if (cloudPath) {
-          setPdfUrl(`/api/magazine/pdf-proxy?path=${encodeURIComponent(cloudPath)}`);
+        // Read with progress tracking
+        const contentLength = pdfResponse.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+        if (pdfResponse.body && total > 0) {
+          const reader = pdfResponse.body.getReader();
+          const chunks: Uint8Array[] = [];
+          let received = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done || cancelled) break;
+            chunks.push(value);
+            received += value.length;
+            setLoadProgress(Math.round((received / total) * 100));
+          }
+
+          if (cancelled) return;
+
+          // Combine chunks into single ArrayBuffer
+          const combined = new Uint8Array(received);
+          let offset = 0;
+          for (const chunk of chunks) {
+            combined.set(chunk, offset);
+            offset += chunk.length;
+          }
+          setPdfData(combined.buffer);
         } else {
-          setPdfUrl(`/api/magazine/pdf-proxy?slug=${encodeURIComponent(edition.slug)}`);
+          // Fallback: read entire response at once
+          const buffer = await pdfResponse.arrayBuffer();
+          if (cancelled) return;
+          setLoadProgress(100);
+          setPdfData(buffer);
         }
-      } catch {
-        setError('Failed to load magazine.');
+      } catch (err: any) {
+        if (cancelled) return;
+        console.error('PDF fetch error:', err);
+        setError(`Failed to load magazine: ${err?.message || 'Unknown error'}. Please try again.`);
       }
       setLoading(false);
     }
     fetchPdf();
+    return () => { cancelled = true; };
   }, [edition.slug, edition.externalUrl]);
 
-  // Load pdfjs library dynamically with progress tracking
+  // Load pdfjs from ArrayBuffer data (most reliable method - no worker for max compatibility)
   useEffect(() => {
-    if (!pdfUrl) return;
+    if (!pdfData) return;
     let cancelled = false;
     async function loadPdfJs() {
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-        const loadingTask = pdfjsLib.getDocument(pdfUrl!);
-        loadingTask.onProgress = (progress: { loaded: number; total: number }) => {
-          if (cancelled) return;
-          if (progress.total > 0) {
-            setLoadProgress(Math.round((progress.loaded / progress.total) * 100));
-          } else {
-            // If total is unknown, show incremental progress based on loaded bytes
-            const mb = (progress.loaded / (1024 * 1024)).toFixed(1);
-            setLoadProgress(prev => Math.min(prev + 1, 95));
-          }
-        };
+        // Disable worker for maximum browser compatibility (Safari, iOS, etc.)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        // Load from ArrayBuffer - no network issues, no CORS, no range requests
+        const loadingTask = pdfjsLib.getDocument({
+          data: new Uint8Array(pdfData as ArrayBuffer),
+          useWorkerFetch: false,
+          isEvalSupported: false,
+          useSystemFonts: true,
+        });
         const pdf = await loadingTask.promise;
         if (cancelled) return;
-        setLoadProgress(100);
         setPdfLib(pdf);
         setNumPages(pdf.numPages);
-      } catch (err) {
+      } catch (err: any) {
         if (cancelled) return;
-        console.error('PDF load error:', err);
-        setError('Failed to load PDF. The file may be corrupted or inaccessible.');
+        console.error('PDF parse error:', err);
+        setError(`Failed to render PDF: ${err?.message || 'Unknown error'}. Try refreshing the page.`);
       }
     }
     loadPdfJs();
     return () => { cancelled = true; };
-  }, [pdfUrl]);
+  }, [pdfData]);
 
   // Load flipbook component dynamically
   useEffect(() => {
@@ -272,7 +294,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
 
   const pageNumbers = useMemo(() => Array.from({ length: numPages }, (_, i) => i + 1), [numPages]);
 
-  if (loading || (pdfUrl && !pdfLib && !error)) {
+  if (loading || (pdfData && !pdfLib && !error)) {
     return (
       <div className="min-h-screen bg-brand-gray flex items-center justify-center">
         <div className="text-center max-w-xs mx-auto">
