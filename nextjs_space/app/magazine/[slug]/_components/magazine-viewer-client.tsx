@@ -63,8 +63,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   useEffect(() => {
     async function fetchPdf() {
       try {
-        // First check if PDF exists
-        const checkRes = await fetch(`/api/magazine/pdf-url?slug=${edition.slug}`);
+        // First get the PDF info (cloud path)
+        const checkRes = await fetch(`/api/magazine/pdf-url?slug=${encodeURIComponent(edition.slug)}`);
         if (!checkRes.ok) {
           if (edition.externalUrl) {
             window.location.href = edition.externalUrl;
@@ -76,8 +76,27 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         }
         const data = await checkRes.json();
         if (data.pageCount) setNumPages(data.pageCount);
-        // Use proxy URL to avoid CORS issues
-        setPdfUrl(`/api/magazine/pdf-proxy?slug=${edition.slug}`);
+
+        // Extract cloud path from the S3 URL returned by pdf-url
+        // The URL contains the S3 key as the path portion
+        let cloudPath = '';
+        if (data.url) {
+          try {
+            const u = new URL(data.url);
+            // S3 URL path starts with / followed by the key
+            cloudPath = decodeURIComponent(u.pathname.slice(1).split('?')[0]);
+          } catch {
+            // Fallback: use slug-based proxy
+            cloudPath = '';
+          }
+        }
+
+        // Use proxy with the actual cloud path parameter
+        if (cloudPath) {
+          setPdfUrl(`/api/magazine/pdf-proxy?path=${encodeURIComponent(cloudPath)}`);
+        } else {
+          setPdfUrl(`/api/magazine/pdf-proxy?slug=${encodeURIComponent(edition.slug)}`);
+        }
       } catch {
         setError('Failed to load magazine.');
       }
