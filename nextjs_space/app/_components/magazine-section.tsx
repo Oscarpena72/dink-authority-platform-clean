@@ -1,15 +1,18 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { BookOpen, ExternalLink } from 'lucide-react';
 
 interface EditionItem {
   id: string;
   title: string;
+  slug: string | null;
   issueNumber: string | null;
   coverUrl: string | null;
   description: string | null;
+  pdfCloudPath: string | null;
   externalUrl: string | null;
   isCurrent: boolean;
   publishDate: string;
@@ -69,7 +72,14 @@ export default function MagazineSection({ editions }: { editions: EditionItem[] 
                     <p className="text-brand-gray-dark text-xs mb-4">
                       {currentEdition?.publishDate ? new Date(currentEdition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
                     </p>
-                    {currentEdition?.externalUrl && (
+                    {currentEdition?.slug && currentEdition?.pdfCloudPath ? (
+                      <Link
+                        href={`/magazine/${currentEdition.slug}`}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
+                      >
+                        Read Now <BookOpen size={14} />
+                      </Link>
+                    ) : currentEdition?.externalUrl ? (
                       <a
                         href={currentEdition.externalUrl}
                         target="_blank"
@@ -78,7 +88,7 @@ export default function MagazineSection({ editions }: { editions: EditionItem[] 
                       >
                         Read Now <ExternalLink size={14} />
                       </a>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -117,11 +127,15 @@ export default function MagazineSection({ editions }: { editions: EditionItem[] 
                           {edition?.publishDate ? new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
                         </p>
                       </div>
-                      {edition?.externalUrl && (
+                      {edition?.slug && edition?.pdfCloudPath ? (
+                        <Link href={`/magazine/${edition.slug}`} className="text-brand-purple hover:text-brand-neon flex-shrink-0">
+                          <BookOpen size={16} />
+                        </Link>
+                      ) : edition?.externalUrl ? (
                         <a href={edition.externalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
                           <ExternalLink size={16} />
                         </a>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </motion.div>
