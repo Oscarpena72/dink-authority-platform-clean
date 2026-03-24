@@ -138,14 +138,10 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     async function loadPdfJs() {
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        // Disable worker for maximum browser compatibility (Safari, iOS, etc.)
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         // Load from ArrayBuffer - no network issues, no CORS, no range requests
         const loadingTask = pdfjsLib.getDocument({
           data: new Uint8Array(pdfData as ArrayBuffer),
-          useWorkerFetch: false,
-          isEvalSupported: false,
-          useSystemFonts: true,
         });
         const pdf = await loadingTask.promise;
         if (cancelled) return;
