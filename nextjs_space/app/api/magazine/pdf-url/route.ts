@@ -20,13 +20,13 @@ export async function GET(req: Request) {
     if (!edition) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     // If has cloud path, generate signed URL
-    if (edition.pdfCloudPath) {
+    if (edition.pdfCloudPath && edition.pdfCloudPath.trim().length > 0) {
       const url = await getFileUrl(edition.pdfCloudPath, false);
       return NextResponse.json({ url, pageCount: edition.pdfPageCount });
     }
 
     // If has direct pdfUrl
-    if (edition.pdfUrl) {
+    if (edition.pdfUrl && edition.pdfUrl.trim().length > 0) {
       return NextResponse.json({ url: edition.pdfUrl, pageCount: edition.pdfPageCount });
     }
 

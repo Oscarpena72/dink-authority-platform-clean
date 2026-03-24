@@ -37,6 +37,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pdfLib, setPdfLib] = useState<any>(null);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [pageImages, setPageImages] = useState<Map<number, string>>(new Map());
   const [renderingPages, setRenderingPages] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -85,23 +86,38 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     fetchPdf();
   }, [edition.slug, edition.externalUrl]);
 
-  // Load pdfjs library dynamically
+  // Load pdfjs library dynamically with progress tracking
   useEffect(() => {
     if (!pdfUrl) return;
+    let cancelled = false;
     async function loadPdfJs() {
       try {
         const pdfjsLib = await import('pdfjs-dist');
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         const loadingTask = pdfjsLib.getDocument(pdfUrl!);
+        loadingTask.onProgress = (progress: { loaded: number; total: number }) => {
+          if (cancelled) return;
+          if (progress.total > 0) {
+            setLoadProgress(Math.round((progress.loaded / progress.total) * 100));
+          } else {
+            // If total is unknown, show incremental progress based on loaded bytes
+            const mb = (progress.loaded / (1024 * 1024)).toFixed(1);
+            setLoadProgress(prev => Math.min(prev + 1, 95));
+          }
+        };
         const pdf = await loadingTask.promise;
+        if (cancelled) return;
+        setLoadProgress(100);
         setPdfLib(pdf);
         setNumPages(pdf.numPages);
       } catch (err) {
+        if (cancelled) return;
         console.error('PDF load error:', err);
         setError('Failed to load PDF. The file may be corrupted or inaccessible.');
       }
     }
     loadPdfJs();
+    return () => { cancelled = true; };
   }, [pdfUrl]);
 
   // Load flipbook component dynamically
@@ -237,12 +253,24 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
 
   const pageNumbers = useMemo(() => Array.from({ length: numPages }, (_, i) => i + 1), [numPages]);
 
-  if (loading) {
+  if (loading || (pdfUrl && !pdfLib && !error)) {
     return (
       <div className="min-h-screen bg-brand-gray flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-xs mx-auto">
           <Loader2 className="w-12 h-12 animate-spin text-brand-purple mx-auto mb-4" />
-          <p className="text-brand-gray-dark">Loading magazine...</p>
+          <p className="text-brand-purple font-heading font-bold text-lg mb-2">Loading magazine...</p>
+          {loadProgress > 0 && (
+            <div className="mt-3">
+              <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="bg-brand-neon h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${loadProgress}%` }}
+                />
+              </div>
+              <p className="text-brand-gray-dark text-xs mt-2">{loadProgress}% downloaded</p>
+            </div>
+          )}
+          <p className="text-brand-gray-dark text-xs mt-2">This may take a moment for large files</p>
         </div>
       </div>
     );

@@ -21,9 +21,9 @@ export async function GET(req: Request) {
 
     let pdfUrlToFetch: string | null = null;
 
-    if (edition.pdfCloudPath) {
+    if (edition.pdfCloudPath && edition.pdfCloudPath.trim().length > 0) {
       pdfUrlToFetch = await getFileUrl(edition.pdfCloudPath, false);
-    } else if (edition.pdfUrl) {
+    } else if (edition.pdfUrl && edition.pdfUrl.trim().length > 0) {
       pdfUrlToFetch = edition.pdfUrl;
     }
 
