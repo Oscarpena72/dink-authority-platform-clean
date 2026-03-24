@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { prisma } from "@/lib/db";
 
 function createS3Client() {
   return new S3Client({});
@@ -18,10 +19,27 @@ function getBucketConfig() {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const cloudPath = searchParams.get("path");
+    let cloudPath = searchParams.get("path");
+    const slug = searchParams.get("slug");
+    const id = searchParams.get("id");
 
+    // If no direct path provided, look up from database
     if (!cloudPath || cloudPath.trim().length === 0) {
-      return NextResponse.json({ error: "Missing path" }, { status: 400 });
+      let edition;
+      if (slug) {
+        edition = await prisma.magazineEdition.findFirst({ where: { slug } });
+      } else if (id) {
+        edition = await prisma.magazineEdition.findUnique({ where: { id } });
+      }
+
+      if (!edition) {
+        return NextResponse.json({ error: "Edition not found" }, { status: 404 });
+      }
+
+      cloudPath = edition.pdfCloudPath ?? null;
+      if (!cloudPath || cloudPath.trim().length === 0) {
+        return NextResponse.json({ error: "No PDF available" }, { status: 404 });
+      }
     }
 
     const s3 = createS3Client();
@@ -47,7 +65,6 @@ export async function GET(request: NextRequest) {
 
     const contentLength = s3Response.headers.get("content-length");
 
-    // Stream the response body directly instead of buffering
     const headers: Record<string, string> = {
       "Content-Type": "application/pdf",
       "Cache-Control": "public, max-age=3600, s-maxage=86400",
@@ -58,7 +75,7 @@ export async function GET(request: NextRequest) {
       headers["Content-Length"] = contentLength;
     }
 
-    // Use the ReadableStream from the fetch response directly
+    // Stream the response body directly
     if (s3Response.body) {
       return new Response(s3Response.body, {
         status: 200,
