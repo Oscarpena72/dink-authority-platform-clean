@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, ArrowLeft, Image as ImageIcon, Loader2, Eye } from 'lucide-react';
 
-const CATEGORIES = ['news', 'pro-players', 'enthusiasts', 'results', 'events', 'gear', 'magazine', 'latam'];
+const CATEGORIES = ['news', 'pro-players', 'enthusiasts', 'results', 'events', 'gear', 'tips', 'places', 'editorial', 'magazine', 'latam'];
 
 interface ArticleFormProps {
   article?: any;

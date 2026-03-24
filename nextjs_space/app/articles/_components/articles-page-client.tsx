@@ -17,6 +17,9 @@ const CATEGORIES = [
   { label: 'Results', value: 'results' },
   { label: 'Events', value: 'events' },
   { label: 'Gear', value: 'gear' },
+  { label: 'Tips', value: 'tips' },
+  { label: 'Places', value: 'places' },
+  { label: 'Editorial', value: 'editorial' },
   { label: 'Magazine', value: 'magazine' },
   { label: 'LATAM', value: 'latam' },
 ];

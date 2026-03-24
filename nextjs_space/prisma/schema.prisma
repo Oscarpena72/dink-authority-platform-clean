@@ -20,8 +20,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
-  sessions      Session[]
   articles      Article[]
+  sessions      Session[]
 }
 
 model Account {
@@ -30,12 +30,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -59,22 +59,22 @@ model VerificationToken {
 }
 
 model Article {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  slug        String   @unique
-  content     String   @db.Text
-  excerpt     String?  @db.Text
+  slug        String    @unique
+  content     String
+  excerpt     String?
   imageUrl    String?
-  category    String   @default("news")
-  status      String   @default("draft")
-  isFeatured  Boolean  @default(false)
-  isHeroStory Boolean  @default(false)
+  category    String    @default("news")
+  status      String    @default("draft")
+  isFeatured  Boolean   @default(false)
+  isHeroStory Boolean   @default(false)
   authorId    String?
   authorName  String?
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  author      User?    @relation(fields: [authorId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User?     @relation(fields: [authorId], references: [id])
 
   @@index([status, publishedAt])
   @@index([category])
@@ -82,17 +82,17 @@ model Article {
 }
 
 model Event {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  description String?  @db.Text
+  description String?
   location    String
   startDate   DateTime
   endDate     DateTime?
   imageUrl    String?
   externalUrl String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([startDate])
 }
@@ -119,7 +119,7 @@ model Media {
 model SiteSetting {
   id    String @id @default(cuid())
   key   String @unique
-  value String @db.Text
+  value String
 
   @@index([key])
 }
@@ -129,43 +129,43 @@ model ContactSubmission {
   name      String
   email     String
   subject   String?
-  message   String   @db.Text
+  message   String
   status    String   @default("new")
   createdAt DateTime @default(now())
 }
 
 model TournamentResult {
-  id            String   @id @default(cuid())
+  id             String   @id @default(cuid())
   tournamentName String
-  division      String
-  winner        String
-  runnerUp      String
-  score         String?
-  location      String?
-  date          DateTime
-  externalUrl   String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  division       String
+  winner         String
+  runnerUp       String
+  score          String?
+  location       String?
+  date           DateTime
+  externalUrl    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([date])
 }
 
 model MagazineEdition {
-  id               String   @id @default(cuid())
-  title            String
-  slug             String?  @unique
-  issueNumber      String?
-  coverUrl         String?
-  description      String?  @db.Text
-  pdfUrl           String?
-  pdfCloudPath     String?
-  pdfPageCount     Int?
-  externalUrl      String?
-  isCurrent        Boolean  @default(false)
-  publishDate      DateTime
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id           String   @id @default(cuid())
+  title        String
+  issueNumber  String?
+  coverUrl     String?
+  description  String?
+  pdfUrl       String?
+  externalUrl  String?
+  isCurrent    Boolean  @default(false)
+  publishDate  DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  pdfCloudPath String?
+  pdfPageCount Int?
+  slug         String?  @unique
 
   @@index([publishDate])
 }

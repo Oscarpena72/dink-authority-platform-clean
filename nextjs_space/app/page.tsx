@@ -29,7 +29,7 @@ export default async function HomePage() {
 
   try {
     featuredArticles = await prisma.article.findMany({
-      where: { isFeatured: true, status: 'published' },
+      where: { isFeatured: true, status: 'published', isHeroStory: false },
       orderBy: { publishedAt: 'desc' },
       take: 4,
       select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, category: true, authorName: true },
