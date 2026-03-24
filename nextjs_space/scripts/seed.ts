@@ -173,12 +173,12 @@ async function main() {
   console.log('Seeding database...');
 
   // Upsert admin user
-  const hashedPassword = await bcrypt.hash('johndoe123', 12);
+  const hashedPassword = await bcrypt.hash('DinkAuth2024!', 12);
   const admin = await prisma.user.upsert({
-    where: { email: 'john@doe.com' },
+    where: { email: 'admin@dinkauthority.com' },
     update: {},
     create: {
-      email: 'john@doe.com',
+      email: 'admin@dinkauthority.com',
       name: 'Admin',
       password: hashedPassword,
       role: 'admin',
