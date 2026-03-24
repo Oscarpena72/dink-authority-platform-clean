@@ -58,13 +58,13 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     if (isMobile) setViewMode('reader');
   }, [isMobile]);
 
-  // Fetch PDF URL
+  // Fetch PDF via proxy (avoids CORS issues with S3 signed URLs)
   useEffect(() => {
     async function fetchPdf() {
       try {
-        const res = await fetch(`/api/magazine/pdf-url?slug=${edition.slug}`);
-        if (!res.ok) {
-          // If no PDF, redirect to external URL
+        // First check if PDF exists
+        const checkRes = await fetch(`/api/magazine/pdf-url?slug=${edition.slug}`);
+        if (!checkRes.ok) {
           if (edition.externalUrl) {
             window.location.href = edition.externalUrl;
             return;
@@ -73,9 +73,10 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           setLoading(false);
           return;
         }
-        const data = await res.json();
-        setPdfUrl(data.url);
+        const data = await checkRes.json();
         if (data.pageCount) setNumPages(data.pageCount);
+        // Use proxy URL to avoid CORS issues
+        setPdfUrl(`/api/magazine/pdf-proxy?slug=${edition.slug}`);
       } catch {
         setError('Failed to load magazine.');
       }
@@ -90,8 +91,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     async function loadPdfJs() {
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        // Use the legacy build for worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         const loadingTask = pdfjsLib.getDocument(pdfUrl!);
         const pdf = await loadingTask.promise;
         setPdfLib(pdf);
