@@ -122,19 +122,16 @@ function MobileInlineSlot({ type, data }: { type: 'magazine' | 'sponsor'; data: 
     );
   }
 
-  // Sponsor slot — SI-style centered image ad banner
+  // Sponsor slot — same size as magazine cover slot
   const linkTarget = data.newTab ? '_blank' : '_self';
   const linkRel = data.newTab ? 'noopener noreferrer' : undefined;
   const inner = (
     <div className="flex flex-col items-center">
-      {data.label && (
-        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-brand-gray-dark/40 mb-1.5">{data.label}</p>
-      )}
-      {!data.label && (
-        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-brand-gray-dark/40 mb-1.5">Sponsored</p>
-      )}
-      <div className="relative w-[88%] max-w-[320px] aspect-[3.2/1] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-gray-50">
-        <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-cover" sizes="320px" />
+      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gray-dark/50 mb-2">{data.label || 'Sponsored'}</p>
+      <div className="w-[60%] max-w-[220px]">
+        <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-gray-50">
+          <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-cover" sizes="220px" />
+        </div>
       </div>
     </div>
   );
