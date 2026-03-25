@@ -93,7 +93,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                     <div className="bg-brand-gray rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all">
                       <div className="relative aspect-video bg-brand-gray">
                         {article?.imageUrl && (
-                          <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                         )}
                         <span className="absolute top-3 left-3 px-2 py-1 bg-brand-neon text-brand-purple-dark text-[10px] font-bold uppercase tracking-wider rounded">
                           {article?.category ?? 'News'}

@@ -32,13 +32,14 @@ export default function HeroStory({ article }: HeroStoryProps) {
           className="relative group"
         >
           <Link href={`/articles/${article?.slug ?? ''}`}>
-            <div className="relative aspect-[16/9] md:aspect-[16/8] lg:aspect-[16/7] bg-brand-purple-light">
+            <div className="relative aspect-[16/9] bg-brand-purple-light">
               {article?.imageUrl && (
                 <Image
                   src={article.imageUrl}
                   alt={article?.title ?? 'Hero story'}
                   fill
                   className="object-cover group-hover:scale-[1.03] transition-transform duration-1000"
+                  sizes="(max-width: 1400px) 100vw, 1400px"
                   priority
                 />
               )}

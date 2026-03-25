@@ -42,9 +42,9 @@ export default function FeaturedArticles({ articles }: { articles: ArticleItem[]
             >
               <Link href={`/articles/${article?.slug ?? ''}`} className="group block h-full sport-card">
                 <div className="bg-brand-gray rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 h-full flex flex-col">
-                  <div className="relative aspect-[16/10] bg-brand-gray">
+                  <div className="relative aspect-[16/9] bg-brand-gray">
                     {article?.imageUrl && (
-                      <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-700" sizes="(max-width: 1024px) 100vw, 33vw" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-brand-accent text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-lg">
