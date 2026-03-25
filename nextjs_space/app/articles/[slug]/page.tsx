@@ -15,6 +15,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     openGraph: {
       title: article?.title ?? 'Dink Authority Magazine',
       description: article?.excerpt ?? '',
+      images: article?.imageUrl ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }] : ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article?.title ?? 'Dink Authority Magazine',
+      description: article?.excerpt ?? '',
       images: article?.imageUrl ? [article.imageUrl] : ['/og-image.png'],
     },
   };
@@ -36,7 +42,7 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
       where: { status: 'published', category: article?.category, id: { not: article?.id } },
       take: 3,
       orderBy: { publishedAt: 'desc' },
-      select: { id: true, title: true, slug: true, imageUrl: true, category: true, publishedAt: true },
+      select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, publishedAt: true },
     });
   } catch { /* empty */ }
 

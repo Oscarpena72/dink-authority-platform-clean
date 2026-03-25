@@ -28,7 +28,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { q
         orderBy: { publishedAt: 'desc' },
         skip,
         take: perPage,
-        select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, category: true, publishedAt: true, authorName: true },
+        select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, publishedAt: true, authorName: true },
       }),
       prisma.article.count({ where }),
     ]);

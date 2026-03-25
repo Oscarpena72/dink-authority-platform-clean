@@ -24,7 +24,7 @@ export default function ArticleDetailClient({ article, relatedArticles }: { arti
         {/* Hero image */}
         {article?.imageUrl && (
           <div className="relative w-full aspect-[16/9] max-h-[600px] bg-brand-purple overflow-hidden">
-            <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover" sizes="100vw" priority />
+            <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover" style={{ objectPosition: `${article?.focalPointX ?? 50}% ${article?.focalPointY ?? 50}%` }} sizes="100vw" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/80 to-transparent" />
           </div>
         )}
@@ -76,8 +76,8 @@ export default function ArticleDetailClient({ article, relatedArticles }: { arti
                 {(relatedArticles ?? []).map((a: any, i: number) => (
                   <Link key={a?.id ?? i} href={`/articles/${a?.slug ?? ''}`} className="group block">
                     <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all">
-                      <div className="relative aspect-video bg-brand-gray">
-                        {a?.imageUrl && <Image src={a.imageUrl} alt={a?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />}
+                      <div className="relative aspect-[4/3] bg-brand-gray">
+                        {a?.imageUrl && <Image src={a.imageUrl} alt={a?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" style={{ objectPosition: `${a?.focalPointX ?? 50}% ${a?.focalPointY ?? 50}%` }} sizes="(max-width: 768px) 100vw, 33vw" />}
                       </div>
                       <div className="p-4">
                         <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2">

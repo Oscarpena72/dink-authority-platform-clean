@@ -45,6 +45,8 @@ export async function POST(request: Request) {
         content: body?.content ?? '',
         excerpt: body?.excerpt ?? null,
         imageUrl: body?.imageUrl ?? null,
+        focalPointX: typeof body?.focalPointX === 'number' ? body.focalPointX : 50,
+        focalPointY: typeof body?.focalPointY === 'number' ? body.focalPointY : 50,
         category: body?.category ?? 'news',
         status: body?.status ?? 'draft',
         isFeatured: body?.isFeatured ?? false,

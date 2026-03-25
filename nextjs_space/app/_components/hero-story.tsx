@@ -12,6 +12,8 @@ interface HeroStoryProps {
     slug: string;
     excerpt: string | null;
     imageUrl: string | null;
+    focalPointX?: number;
+    focalPointY?: number;
     category: string;
     authorName: string | null;
     publishedAt: string | null;
@@ -39,6 +41,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                   alt={article?.title ?? 'Hero story'}
                   fill
                   className="object-cover group-hover:scale-[1.03] transition-transform duration-1000"
+                  style={{ objectPosition: `${article?.focalPointX ?? 50}% ${article?.focalPointY ?? 50}%` }}
                   sizes="(max-width: 1400px) 100vw, 1400px"
                   priority
                 />

@@ -59,22 +59,24 @@ model VerificationToken {
 }
 
 model Article {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  content     String
-  excerpt     String?
-  imageUrl    String?
-  category    String    @default("news")
-  status      String    @default("draft")
-  isFeatured  Boolean   @default(false)
-  isHeroStory Boolean   @default(false)
-  authorId    String?
-  authorName  String?
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  author      User?     @relation(fields: [authorId], references: [id])
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  content      String
+  excerpt      String?
+  imageUrl     String?
+  focalPointX  Float     @default(50)
+  focalPointY  Float     @default(50)
+  category     String    @default("news")
+  status       String    @default("draft")
+  isFeatured   Boolean   @default(false)
+  isHeroStory  Boolean   @default(false)
+  authorId     String?
+  authorName   String?
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  author       User?     @relation(fields: [authorId], references: [id])
 
   @@index([status, publishedAt])
   @@index([category])
