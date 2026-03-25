@@ -4,10 +4,15 @@ import { headers } from 'next/headers';
 export default function robots(): MetadataRoute.Robots {
   const headersList = headers();
   const host = headersList.get('x-forwarded-host') ?? 'dinkauthoritymagazine.com';
-  const protocol = 'https';
-  const siteUrl = `${protocol}://${host}`;
+  const siteUrl = `https://${host}`;
   return {
-    rules: { userAgent: '*', allow: '/', disallow: '/admin/' },
+    rules: [
+      {
+        userAgent: '*',
+        allow: ['/', '/articles', '/articles/', '/magazine', '/magazine/', '/about', '/contact'],
+        disallow: ['/admin', '/admin/', '/api', '/api/', '/login'],
+      },
+    ],
     sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

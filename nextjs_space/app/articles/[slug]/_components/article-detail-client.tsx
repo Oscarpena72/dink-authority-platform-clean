@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, User, Check, Copy, Share2 } from 'lucide-react';
+import { Clock, User, Check, Copy, Share2 } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
@@ -212,9 +212,14 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
           {/* Article content */}
           <article className="min-w-0">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Link href="/articles" className="inline-flex items-center gap-2 text-sm text-brand-gray-dark hover:text-brand-purple transition-colors mb-6">
-                <ArrowLeft size={16} /> Back to Articles
-              </Link>
+              {/* Breadcrumbs */}
+              <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-brand-gray-dark mb-6">
+                <Link href="/" className="hover:text-brand-purple transition-colors">Home</Link>
+                <span className="text-brand-gray">/</span>
+                <Link href="/articles" className="hover:text-brand-purple transition-colors">Articles</Link>
+                <span className="text-brand-gray">/</span>
+                <span className="text-brand-purple/60 truncate max-w-[200px] md:max-w-[400px]">{article?.title ?? ''}</span>
+              </nav>
 
               <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-purple text-xs font-bold uppercase tracking-wider rounded mb-4">
                 {article?.category ?? 'News'}

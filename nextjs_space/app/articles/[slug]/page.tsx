@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const article = await prisma.article.findUnique({
     where: { slug: params?.slug ?? '' },
-    select: { title: true, excerpt: true, imageUrl: true },
+    select: { title: true, excerpt: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true },
   }).catch(() => null);
 
   const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
@@ -16,19 +16,34 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine',
     description: article?.excerpt ?? 'Read the latest pickleball news on Dink Authority Magazine.',
+    alternates: {
+      canonical: articleUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large' as any,
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
     openGraph: {
       title: article?.title ?? 'Dink Authority Magazine',
       description: article?.excerpt ?? '',
       type: 'article',
       url: articleUrl,
       siteName: 'Dink Authority Magazine',
+      locale: 'en_US',
       images: article?.imageUrl ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }] : ['/og-image.png'],
+      ...(article?.publishedAt ? { publishedTime: new Date(article.publishedAt).toISOString() } : {}),
+      ...(article?.updatedAt ? { modifiedTime: new Date(article.updatedAt).toISOString() } : {}),
+      ...(article?.authorName ? { authors: [article.authorName] } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title: article?.title ?? 'Dink Authority Magazine',
       description: article?.excerpt ?? '',
       images: article?.imageUrl ? [article.imageUrl] : ['/og-image.png'],
+      site: '@DinkAuthority',
     },
   };
 }
@@ -123,5 +138,51 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
   };
   const relSerialized = (relatedArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null }));
 
-  return <ArticleDetailClient article={serialized} relatedArticles={relSerialized} sidebarData={sidebarData} bannerData={bannerData} />;
+  const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
+  const articleUrl = `${siteUrl}/articles/${article?.slug ?? ''}`;
+
+  const jsonLdArticle = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article?.title ?? '',
+    description: article?.excerpt ?? '',
+    image: article?.imageUrl ? [article.imageUrl] : [],
+    author: {
+      '@type': 'Person',
+      name: article?.authorName ?? 'Dink Authority Staff',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Dink Authority Magazine',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/icon-512x512.png`,
+      },
+    },
+    datePublished: article?.publishedAt?.toISOString?.() ?? '',
+    dateModified: article?.updatedAt?.toISOString?.() ?? article?.publishedAt?.toISOString?.() ?? '',
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': articleUrl,
+    },
+    url: articleUrl,
+  };
+
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${siteUrl}/articles` },
+      { '@type': 'ListItem', position: 3, name: article?.title ?? '', item: articleUrl },
+    ],
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdArticle) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }} />
+      <ArticleDetailClient article={serialized} relatedArticles={relSerialized} sidebarData={sidebarData} bannerData={bannerData} />
+    </>
+  );
 }
