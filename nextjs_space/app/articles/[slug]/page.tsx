@@ -9,12 +9,19 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     where: { slug: params?.slug ?? '' },
     select: { title: true, excerpt: true, imageUrl: true },
   }).catch(() => null);
+
+  const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
+  const articleUrl = `${siteUrl}/articles/${params?.slug ?? ''}`;
+
   return {
     title: article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine',
     description: article?.excerpt ?? 'Read the latest pickleball news on Dink Authority Magazine.',
     openGraph: {
       title: article?.title ?? 'Dink Authority Magazine',
       description: article?.excerpt ?? '',
+      type: 'article',
+      url: articleUrl,
+      siteName: 'Dink Authority Magazine',
       images: article?.imageUrl ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }] : ['/og-image.png'],
     },
     twitter: {
