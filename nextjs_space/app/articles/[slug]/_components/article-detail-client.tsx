@@ -103,45 +103,43 @@ function ArticleSidebar({ sidebarData }: { sidebarData: any }) {
   );
 }
 
-/* ── Mobile Inline Slot (compact, editorial ad-style) ── */
+/* ── Mobile Inline Slot (SI-style centered ad within content) ── */
 function MobileInlineSlot({ type, data }: { type: 'magazine' | 'sponsor'; data: any }) {
   if (!data) return null;
 
   if (type === 'magazine') {
     return (
-      <div className="my-5 lg:hidden flex justify-center">
-        <Link href={data.link || '#'} className="w-[90%] max-w-[300px] flex items-center gap-3 rounded-lg border border-gray-200/80 bg-white/95 px-3 py-2.5 shadow-sm hover:shadow-md transition-all group">
-          <div className="relative w-14 h-[74px] flex-shrink-0 rounded overflow-hidden bg-gray-50">
-            <Image src={data.coverUrl} alt={data.title || 'Current Issue'} fill className="object-contain" sizes="56px" />
+      <div className="my-8 lg:hidden flex flex-col items-center">
+        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gray-dark/50 mb-2">Current Issue</p>
+        <Link href={data.link || '#'} className="block w-[60%] max-w-[220px] group">
+          <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-md group-hover:shadow-lg transition-shadow bg-gray-50">
+            <Image src={data.coverUrl} alt={data.title || 'Current Issue'} fill className="object-cover group-hover:scale-[1.02] transition-transform duration-300" sizes="220px" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-brand-gray-dark/70">Current Issue</p>
-            <p className="text-xs font-bold text-brand-purple line-clamp-2 mt-0.5 leading-tight">{data.title}</p>
-            <p className="text-[10px] text-brand-purple font-semibold mt-0.5 group-hover:underline">Read Now →</p>
-          </div>
+          <p className="text-[11px] font-bold text-brand-purple text-center mt-2 line-clamp-2 leading-tight">{data.title}</p>
+          <p className="text-[10px] text-brand-purple/70 font-semibold text-center mt-0.5 group-hover:underline">Read Now →</p>
         </Link>
       </div>
     );
   }
 
-  // Sponsor slot — compact horizontal ad banner
+  // Sponsor slot — SI-style centered image ad banner
   const linkTarget = data.newTab ? '_blank' : '_self';
   const linkRel = data.newTab ? 'noopener noreferrer' : undefined;
   const inner = (
-    <div className="w-[90%] max-w-[320px] flex items-center gap-2.5 rounded-lg border border-gray-200/80 bg-white/95 px-2.5 py-2 shadow-sm hover:shadow-md transition-all" style={{ maxHeight: '100px' }}>
-      <div className="relative w-[70px] h-[70px] flex-shrink-0 rounded overflow-hidden bg-gray-50">
-        <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-contain" sizes="70px" />
-      </div>
-      <div className="flex-1 min-w-0">
-        {data.label && (
-          <p className="text-[9px] font-bold uppercase tracking-wider text-brand-gray-dark/60 leading-tight">{data.label}</p>
-        )}
-        <p className="text-[10px] text-brand-gray-dark/40 mt-0.5">Sponsored</p>
+    <div className="flex flex-col items-center">
+      {data.label && (
+        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-brand-gray-dark/40 mb-1.5">{data.label}</p>
+      )}
+      {!data.label && (
+        <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-brand-gray-dark/40 mb-1.5">Sponsored</p>
+      )}
+      <div className="relative w-[88%] max-w-[320px] aspect-[3.2/1] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-gray-50">
+        <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-cover" sizes="320px" />
       </div>
     </div>
   );
   return (
-    <div className="my-5 lg:hidden flex justify-center">
+    <div className="my-8 lg:hidden">
       {data.link ? <a href={data.link} target={linkTarget} rel={linkRel} className="block">{inner}</a> : inner}
     </div>
   );
