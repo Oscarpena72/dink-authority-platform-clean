@@ -74,12 +74,65 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
   );
 }
 
-export default function ArticleDetailClient({ article, relatedArticles }: { article: any; relatedArticles: any[] }) {
+function SidebarSlot({ image, link, label, children }: { image?: string; link?: string; label?: string; children?: React.ReactNode }) {
+  if (children) return <>{children}</>;
+  if (!image) return null;
+  const content = (
+    <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
+      {label && (
+        <div className="px-3 py-1.5 bg-brand-gray text-[10px] font-semibold uppercase tracking-widest text-brand-gray-dark text-center">
+          {label}
+        </div>
+      )}
+      <div className="relative aspect-[3/4] bg-gray-50">
+        <Image src={image} alt={label || 'Sponsor'} fill className="object-contain" sizes="300px" />
+      </div>
+    </div>
+  );
+  if (link) return <a href={link} target="_blank" rel="noopener noreferrer" className="block">{content}</a>;
+  return content;
+}
+
+function ArticleSidebar({ sidebarData }: { sidebarData: any }) {
+  const { currentEdition, slot2, slot3 } = sidebarData ?? {};
+  const hasContent = currentEdition?.coverUrl || slot2 || slot3;
+  if (!hasContent) return null;
+
+  return (
+    <aside className="space-y-6">
+      {/* Slot 1: Current Magazine Edition */}
+      {currentEdition?.coverUrl && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-brand-gray-dark mb-2 text-center">Current Issue</p>
+          <Link href={currentEdition.link || '#'} className="block rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all group bg-white">
+            <div className="relative aspect-[3/4] bg-gray-50">
+              <Image src={currentEdition.coverUrl} alt={currentEdition.title || 'Current Issue'} fill className="object-contain group-hover:scale-[1.02] transition-transform duration-300" sizes="300px" />
+            </div>
+            <div className="p-3 text-center">
+              <p className="text-xs font-bold text-brand-purple line-clamp-2">{currentEdition.title}</p>
+              <p className="text-[10px] text-brand-purple font-semibold mt-1 group-hover:underline">Read Now →</p>
+            </div>
+          </Link>
+        </div>
+      )}
+
+      {/* Slot 2 */}
+      {slot2 && <SidebarSlot image={slot2.image} link={slot2.link} label={slot2.label} />}
+
+      {/* Slot 3 */}
+      {slot3 && <SidebarSlot image={slot3.image} link={slot3.link} label={slot3.label} />}
+    </aside>
+  );
+}
+
+export default function ArticleDetailClient({ article, relatedArticles, sidebarData }: { article: any; relatedArticles: any[]; sidebarData?: any }) {
+  const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        {/* Hero image */}
+        {/* Hero image — full width */}
         {article?.imageUrl && (
           <div className="relative w-full aspect-[16/9] md:aspect-auto md:h-[420px] lg:h-[460px] bg-brand-purple overflow-hidden">
             <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover" style={{ objectPosition: `${article?.focalPointX ?? 50}% ${article?.focalPointY ?? 50}%` }} sizes="100vw" priority />
@@ -87,48 +140,61 @@ export default function ArticleDetailClient({ article, relatedArticles }: { arti
           </div>
         )}
 
-        <article className="max-w-[800px] mx-auto px-4 py-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Link href="/articles" className="inline-flex items-center gap-2 text-sm text-brand-gray-dark hover:text-brand-purple transition-colors mb-6">
-              <ArrowLeft size={16} /> Back to Articles
-            </Link>
+        {/* Article + Sidebar layout */}
+        <div className={`max-w-[1200px] mx-auto px-4 py-10 ${hasSidebar ? 'lg:grid lg:grid-cols-[1fr_280px] lg:gap-10' : ''}`}>
+          {/* Article content */}
+          <article className="min-w-0">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <Link href="/articles" className="inline-flex items-center gap-2 text-sm text-brand-gray-dark hover:text-brand-purple transition-colors mb-6">
+                <ArrowLeft size={16} /> Back to Articles
+              </Link>
 
-            <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-purple text-xs font-bold uppercase tracking-wider rounded mb-4">
-              {article?.category ?? 'News'}
-            </span>
+              <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-purple text-xs font-bold uppercase tracking-wider rounded mb-4">
+                {article?.category ?? 'News'}
+              </span>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-purple leading-tight mb-6">
-              {article?.title ?? ''}
-            </h1>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-purple leading-tight mb-6">
+                {article?.title ?? ''}
+              </h1>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-brand-gray-dark mb-6 pb-6 border-b border-brand-gray">
-              <div className="flex items-center gap-4">
-                {article?.authorName && (
-                  <div className="flex items-center gap-2">
-                    <User size={14} /> {article.authorName}
-                  </div>
-                )}
-                {article?.publishedAt && (
-                  <div className="flex items-center gap-2">
-                    <Clock size={14} />
-                    {new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  </div>
-                )}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-brand-gray-dark mb-6 pb-6 border-b border-brand-gray">
+                <div className="flex items-center gap-4">
+                  {article?.authorName && (
+                    <div className="flex items-center gap-2">
+                      <User size={14} /> {article.authorName}
+                    </div>
+                  )}
+                  {article?.publishedAt && (
+                    <div className="flex items-center gap-2">
+                      <Clock size={14} />
+                      {new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  )}
+                </div>
+                <div className="ml-auto">
+                  <ShareButtons title={article?.title ?? ''} compact />
+                </div>
               </div>
-              <div className="ml-auto">
-                <ShareButtons title={article?.title ?? ''} compact />
+
+              <div
+                className="prose prose-lg max-w-none text-brand-purple/80"
+                dangerouslySetInnerHTML={{ __html: article?.content ?? '' }}
+              />
+
+              {/* Share buttons at end of article */}
+              <ShareButtons title={article?.title ?? ''} />
+            </motion.div>
+          </article>
+
+          {/* Sidebar — desktop: right column, mobile: below article */}
+          {hasSidebar && (
+            <div className="mt-10 lg:mt-0">
+              <div className="lg:sticky lg:top-6">
+                <ArticleSidebar sidebarData={sidebarData} />
               </div>
             </div>
-
-            <div
-              className="prose prose-lg max-w-none text-brand-purple/80"
-              dangerouslySetInnerHTML={{ __html: article?.content ?? '' }}
-            />
-
-            {/* Share buttons at end of article */}
-            <ShareButtons title={article?.title ?? ''} />
-          </motion.div>
-        </article>
+          )}
+        </div>
 
         {/* Related articles */}
         {(relatedArticles ?? []).length > 0 && (

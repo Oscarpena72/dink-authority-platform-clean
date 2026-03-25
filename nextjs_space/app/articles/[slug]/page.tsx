@@ -36,6 +36,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function ArticleDetailPage({ params }: { params: { slug: string } }) {
   let article: any = null;
   let relatedArticles: any[] = [];
+  let sidebarData: any = { currentEdition: null, slot2: null, slot3: null };
+
   try {
     article = await prisma.article.findUnique({
       where: { slug: params?.slug ?? '', status: 'published' },
@@ -53,6 +55,36 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
     });
   } catch { /* empty */ }
 
+  // Fetch sidebar data: current magazine edition + settings for slots 2/3
+  try {
+    const [currentEdition, settingsRows] = await Promise.all([
+      prisma.magazineEdition.findFirst({
+        where: { isCurrent: true },
+        select: { title: true, coverUrl: true, slug: true, externalUrl: true },
+      }).catch(() => null),
+      prisma.siteSetting.findMany({
+        where: { key: { startsWith: 'sidebar_slot' } },
+      }).catch(() => []),
+    ]);
+
+    const s: Record<string, string> = {};
+    for (const row of settingsRows ?? []) { s[row?.key ?? ''] = row?.value ?? ''; }
+
+    sidebarData = {
+      currentEdition: currentEdition ? {
+        title: currentEdition.title ?? '',
+        coverUrl: currentEdition.coverUrl ?? '',
+        link: currentEdition.slug ? `/magazine/${currentEdition.slug}` : (currentEdition.externalUrl ?? ''),
+      } : null,
+      slot2: s.sidebar_slot2_enabled === 'true' && s.sidebar_slot2_image ? {
+        image: s.sidebar_slot2_image, link: s.sidebar_slot2_link ?? '', label: s.sidebar_slot2_label ?? '',
+      } : null,
+      slot3: s.sidebar_slot3_enabled === 'true' && s.sidebar_slot3_image ? {
+        image: s.sidebar_slot3_image, link: s.sidebar_slot3_link ?? '', label: s.sidebar_slot3_label ?? '',
+      } : null,
+    };
+  } catch { /* empty */ }
+
   const serialized = {
     ...article,
     publishedAt: article?.publishedAt?.toISOString?.() ?? null,
@@ -61,5 +93,5 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
   };
   const relSerialized = (relatedArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null }));
 
-  return <ArticleDetailClient article={serialized} relatedArticles={relSerialized} />;
+  return <ArticleDetailClient article={serialized} relatedArticles={relSerialized} sidebarData={sidebarData} />;
 }

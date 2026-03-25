@@ -1,6 +1,46 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings } from 'lucide-react';
+import Image from 'next/image';
+import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff } from 'lucide-react';
+
+function SlotConfig({ slotNum, settings, onChange }: { slotNum: number; settings: Record<string, string>; onChange: (key: string, val: string) => void }) {
+  const prefix = `sidebar_slot${slotNum}`;
+  const enabled = settings?.[`${prefix}_enabled`] === 'true';
+  const imageUrl = settings?.[`${prefix}_image`] ?? '';
+  const link = settings?.[`${prefix}_link`] ?? '';
+  const label = settings?.[`${prefix}_label`] ?? '';
+
+  return (
+    <div className={`rounded-lg border p-4 transition-all ${enabled ? 'border-brand-neon/40 bg-brand-neon/5' : 'border-gray-200 bg-gray-50/50'}`}>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-brand-purple text-sm">Slot {slotNum} — Sponsor / Promo</h3>
+        <button type="button" onClick={() => onChange(`${prefix}_enabled`, enabled ? 'false' : 'true')}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${enabled ? 'bg-brand-neon/20 text-brand-purple' : 'bg-gray-200 text-brand-gray-dark'}`}>
+          {enabled ? <><Eye size={12} /> Active</> : <><EyeOff size={12} /> Inactive</>}
+        </button>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-xs font-semibold text-brand-purple mb-1">Label (optional)</label>
+          <input value={label} onChange={(e: any) => onChange(`${prefix}_label`, e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="e.g. Sponsored by JOOLA" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-brand-purple mb-1">Image URL</label>
+          <input value={imageUrl} onChange={(e: any) => onChange(`${prefix}_image`, e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://thumbs.dreamstime.com/b/sponsor-label-isolated-sign-158937500.jpg" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-brand-purple mb-1">Link URL</label>
+          <input value={link} onChange={(e: any) => onChange(`${prefix}_link`, e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://..." />
+        </div>
+        {imageUrl && (
+          <div className="relative w-full aspect-[3/4] max-w-[200px] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+            <Image src={imageUrl} alt={label || `Slot ${slotNum} preview`} fill className="object-contain" sizes="200px" onError={(e: any) => { if (e?.target) e.target.style.display = 'none'; }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminSettingsClient() {
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -55,6 +95,16 @@ export default function AdminSettingsClient() {
               <label className="block text-sm font-semibold text-brand-purple mb-1">Contact Email</label>
               <input value={settings?.contact_email ?? ''} onChange={(e: any) => handleChange('contact_email', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="info@dinkauthoritymagazine.com" />
             </div>
+          </div>
+        </div>
+
+        {/* Article Sidebar */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-heading font-bold text-brand-purple mb-2 flex items-center gap-2"><LayoutPanelLeft size={18} /> Article Sidebar</h2>
+          <p className="text-sm text-brand-gray-dark mb-4">Configure the sponsor/promo slots that appear in article pages. Slot 1 always shows the current magazine cover automatically.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SlotConfig slotNum={2} settings={settings} onChange={handleChange} />
+            <SlotConfig slotNum={3} settings={settings} onChange={handleChange} />
           </div>
         </div>
 
