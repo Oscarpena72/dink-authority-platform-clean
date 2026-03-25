@@ -77,10 +77,10 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
         link: currentEdition.slug ? `/magazine/${currentEdition.slug}` : (currentEdition.externalUrl ?? ''),
       } : null,
       slot2: s.sidebar_slot2_enabled === 'true' && s.sidebar_slot2_image ? {
-        image: s.sidebar_slot2_image, link: s.sidebar_slot2_link ?? '', label: s.sidebar_slot2_label ?? '',
+        image: s.sidebar_slot2_image, link: s.sidebar_slot2_link ?? '', label: s.sidebar_slot2_label ?? '', newTab: s.sidebar_slot2_newtab === 'true',
       } : null,
       slot3: s.sidebar_slot3_enabled === 'true' && s.sidebar_slot3_image ? {
-        image: s.sidebar_slot3_image, link: s.sidebar_slot3_link ?? '', label: s.sidebar_slot3_label ?? '',
+        image: s.sidebar_slot3_image, link: s.sidebar_slot3_link ?? '', label: s.sidebar_slot3_label ?? '', newTab: s.sidebar_slot3_newtab === 'true',
       } : null,
     };
   } catch { /* empty */ }

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff } from 'lucide-react';
+import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff, ExternalLink } from 'lucide-react';
 
 function SlotConfig({ slotNum, settings, onChange }: { slotNum: number; settings: Record<string, string>; onChange: (key: string, val: string) => void }) {
   const prefix = `sidebar_slot${slotNum}`;
@@ -9,6 +9,7 @@ function SlotConfig({ slotNum, settings, onChange }: { slotNum: number; settings
   const imageUrl = settings?.[`${prefix}_image`] ?? '';
   const link = settings?.[`${prefix}_link`] ?? '';
   const label = settings?.[`${prefix}_label`] ?? '';
+  const newTab = settings?.[`${prefix}_newtab`] === 'true';
 
   return (
     <div className={`rounded-lg border p-4 transition-all ${enabled ? 'border-brand-neon/40 bg-brand-neon/5' : 'border-gray-200 bg-gray-50/50'}`}>
@@ -30,7 +31,14 @@ function SlotConfig({ slotNum, settings, onChange }: { slotNum: number; settings
         </div>
         <div>
           <label className="block text-xs font-semibold text-brand-purple mb-1">Link URL</label>
-          <input value={link} onChange={(e: any) => onChange(`${prefix}_link`, e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://..." />
+          <input value={link} onChange={(e: any) => onChange(`${prefix}_link`, e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://thumbs.dreamstime.com/b/sponsor-sticker-sponsor-rectangular-label-isolated-white-background-sponsor-sticker-sponsor-label-303039058.jpg" />
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => onChange(`${prefix}_newtab`, newTab ? 'false' : 'true')}
+            className={`relative w-9 h-5 rounded-full transition-colors ${newTab ? 'bg-brand-neon/60' : 'bg-gray-300'}`}>
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${newTab ? 'translate-x-4' : ''}`} />
+          </button>
+          <span className="text-xs text-brand-gray-dark flex items-center gap-1"><ExternalLink size={11} /> Open in new tab</span>
         </div>
         {imageUrl && (
           <div className="relative w-full aspect-[3/4] max-w-[200px] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">

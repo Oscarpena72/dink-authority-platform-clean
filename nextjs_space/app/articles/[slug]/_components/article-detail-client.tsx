@@ -32,7 +32,7 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
             className={`p-2 rounded-lg border border-transparent text-brand-gray-dark transition-all duration-200 ${s.color}`}>{s.icon}</a>
         ))}
         <button onClick={copyLink} title="Copy link"
-          className={`p-2 rounded-lg border transition-all duration-200 ${copied ? 'bg-brand-neon/15 text-brand-neon border-brand-neon/30' : 'border-transparent text-brand-gray-dark hover:bg-brand-purple/10 hover:text-brand-purple hover:border-brand-purple/30'}`}>
+          className={`p-2 rounded-lg border transition-all duration-200 ${copied ? 'bg-green-50 text-green-700 border-green-300' : 'border-transparent text-brand-gray-dark hover:bg-brand-purple/10 hover:text-brand-purple hover:border-brand-purple/30'}`}>
           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
         </button>
       </div>
@@ -51,7 +51,7 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
             </a>
           ))}
           <button onClick={copyLink}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${copied ? 'bg-brand-neon/15 text-brand-neon border-brand-neon/30' : 'border-brand-gray text-brand-gray-dark hover:bg-brand-purple/10 hover:text-brand-purple hover:border-brand-purple/30'}`}>
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${copied ? 'bg-green-50 text-green-700 border-green-300' : 'border-brand-gray text-brand-gray-dark hover:bg-brand-purple/10 hover:text-brand-purple hover:border-brand-purple/30'}`}>
             {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /><span className="hidden sm:inline">Copy Link</span></>}
           </button>
         </div>
@@ -61,7 +61,7 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
 }
 
 /* ── Desktop Sidebar Slot ── */
-function SidebarSlot({ image, link, label }: { image?: string; link?: string; label?: string }) {
+function SidebarSlot({ image, link, label, newTab }: { image?: string; link?: string; label?: string; newTab?: boolean }) {
   if (!image) return null;
   const content = (
     <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
@@ -71,7 +71,7 @@ function SidebarSlot({ image, link, label }: { image?: string; link?: string; la
       </div>
     </div>
   );
-  if (link) return <a href={link} target="_blank" rel="noopener noreferrer" className="block">{content}</a>;
+  if (link) return <a href={link} target={newTab ? '_blank' : '_self'} rel={newTab ? 'noopener noreferrer' : undefined} className="block">{content}</a>;
   return content;
 }
 
@@ -97,47 +97,52 @@ function ArticleSidebar({ sidebarData }: { sidebarData: any }) {
           </Link>
         </div>
       )}
-      {slot2 && <SidebarSlot image={slot2.image} link={slot2.link} label={slot2.label} />}
-      {slot3 && <SidebarSlot image={slot3.image} link={slot3.link} label={slot3.label} />}
+      {slot2 && <SidebarSlot image={slot2.image} link={slot2.link} label={slot2.label} newTab={slot2.newTab} />}
+      {slot3 && <SidebarSlot image={slot3.image} link={slot3.link} label={slot3.label} newTab={slot3.newTab} />}
     </aside>
   );
 }
 
-/* ── Mobile Inline Slot (compact, editorial) ── */
+/* ── Mobile Inline Slot (compact, editorial ad-style) ── */
 function MobileInlineSlot({ type, data }: { type: 'magazine' | 'sponsor'; data: any }) {
   if (!data) return null;
 
   if (type === 'magazine') {
     return (
-      <div className="my-6 lg:hidden">
-        <Link href={data.link || '#'} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm hover:shadow-md transition-all group">
-          <div className="relative w-20 h-[106px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
-            <Image src={data.coverUrl} alt={data.title || 'Current Issue'} fill className="object-contain" sizes="80px" />
+      <div className="my-5 lg:hidden flex justify-center">
+        <Link href={data.link || '#'} className="w-[90%] max-w-[300px] flex items-center gap-3 rounded-lg border border-gray-200/80 bg-white/95 px-3 py-2.5 shadow-sm hover:shadow-md transition-all group">
+          <div className="relative w-14 h-[74px] flex-shrink-0 rounded overflow-hidden bg-gray-50">
+            <Image src={data.coverUrl} alt={data.title || 'Current Issue'} fill className="object-contain" sizes="56px" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-brand-gray-dark">Current Issue</p>
-            <p className="text-sm font-bold text-brand-purple line-clamp-2 mt-1">{data.title}</p>
-            <p className="text-xs text-brand-purple font-semibold mt-1 group-hover:underline">Read Now →</p>
+            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-brand-gray-dark/70">Current Issue</p>
+            <p className="text-xs font-bold text-brand-purple line-clamp-2 mt-0.5 leading-tight">{data.title}</p>
+            <p className="text-[10px] text-brand-purple font-semibold mt-0.5 group-hover:underline">Read Now →</p>
           </div>
         </Link>
       </div>
     );
   }
 
-  // Sponsor slot — compact horizontal
+  // Sponsor slot — compact horizontal ad banner
+  const linkTarget = data.newTab ? '_blank' : '_self';
+  const linkRel = data.newTab ? 'noopener noreferrer' : undefined;
   const inner = (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm hover:shadow-md transition-all">
-      <div className="relative w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
-        <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-contain" sizes="64px" />
+    <div className="w-[90%] max-w-[320px] flex items-center gap-2.5 rounded-lg border border-gray-200/80 bg-white/95 px-2.5 py-2 shadow-sm hover:shadow-md transition-all" style={{ maxHeight: '100px' }}>
+      <div className="relative w-[70px] h-[70px] flex-shrink-0 rounded overflow-hidden bg-gray-50">
+        <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-contain" sizes="70px" />
       </div>
-      {data.label && (
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-gray-dark flex-1">{data.label}</p>
-      )}
+      <div className="flex-1 min-w-0">
+        {data.label && (
+          <p className="text-[9px] font-bold uppercase tracking-wider text-brand-gray-dark/60 leading-tight">{data.label}</p>
+        )}
+        <p className="text-[10px] text-brand-gray-dark/40 mt-0.5">Sponsored</p>
+      </div>
     </div>
   );
   return (
-    <div className="my-6 lg:hidden">
-      {data.link ? <a href={data.link} target="_blank" rel="noopener noreferrer" className="block">{inner}</a> : inner}
+    <div className="my-5 lg:hidden flex justify-center">
+      {data.link ? <a href={data.link} target={linkTarget} rel={linkRel} className="block">{inner}</a> : inner}
     </div>
   );
 }
