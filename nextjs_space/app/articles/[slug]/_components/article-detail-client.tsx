@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -8,22 +8,14 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
 
+/* ── Share Buttons ── */
 function ShareButtons({ title, compact = false }: { title: string; compact?: boolean }) {
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
-
   useEffect(() => { setUrl(window?.location?.href ?? ''); }, []);
-
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
-
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch { /* fallback */ }
-  };
+  const copyLink = async () => { try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch { /* */ } };
 
   const socials = [
     { name: 'WhatsApp', href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`, color: 'hover:bg-[#25D366]/10 hover:text-[#25D366] hover:border-[#25D366]/30', icon: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> },
@@ -37,9 +29,7 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
       <div className="flex items-center gap-1.5">
         {socials.map((s) => (
           <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer" title={`Share on ${s.name}`}
-            className={`p-2 rounded-lg border border-transparent text-brand-gray-dark transition-all duration-200 ${s.color}`}>
-            {s.icon}
-          </a>
+            className={`p-2 rounded-lg border border-transparent text-brand-gray-dark transition-all duration-200 ${s.color}`}>{s.icon}</a>
         ))}
         <button onClick={copyLink} title="Copy link"
           className={`p-2 rounded-lg border transition-all duration-200 ${copied ? 'bg-brand-neon/15 text-brand-neon border-brand-neon/30' : 'border-transparent text-brand-gray-dark hover:bg-brand-purple/10 hover:text-brand-purple hover:border-brand-purple/30'}`}>
@@ -52,16 +42,12 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
   return (
     <div className="border-t border-b border-brand-gray py-6 my-8">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple">
-          <Share2 size={16} />
-          <span>Share this article</span>
-        </div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple"><Share2 size={16} /><span>Share this article</span></div>
         <div className="flex items-center gap-2 flex-wrap">
           {socials.map((s) => (
             <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer"
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-gray text-sm font-medium text-brand-gray-dark transition-all duration-200 ${s.color}`}>
-              {s.icon}
-              <span className="hidden sm:inline">{s.name}</span>
+              {s.icon}<span className="hidden sm:inline">{s.name}</span>
             </a>
           ))}
           <button onClick={copyLink}
@@ -74,16 +60,12 @@ function ShareButtons({ title, compact = false }: { title: string; compact?: boo
   );
 }
 
-function SidebarSlot({ image, link, label, children }: { image?: string; link?: string; label?: string; children?: React.ReactNode }) {
-  if (children) return <>{children}</>;
+/* ── Desktop Sidebar Slot ── */
+function SidebarSlot({ image, link, label }: { image?: string; link?: string; label?: string }) {
   if (!image) return null;
   const content = (
     <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white">
-      {label && (
-        <div className="px-3 py-1.5 bg-brand-gray text-[10px] font-semibold uppercase tracking-widest text-brand-gray-dark text-center">
-          {label}
-        </div>
-      )}
+      {label && <div className="px-3 py-1.5 bg-brand-gray text-[10px] font-semibold uppercase tracking-widest text-brand-gray-dark text-center">{label}</div>}
       <div className="relative aspect-[3/4] bg-gray-50">
         <Image src={image} alt={label || 'Sponsor'} fill className="object-contain" sizes="300px" />
       </div>
@@ -93,6 +75,7 @@ function SidebarSlot({ image, link, label, children }: { image?: string; link?: 
   return content;
 }
 
+/* ── Desktop Sidebar (hidden on mobile) ── */
 function ArticleSidebar({ sidebarData }: { sidebarData: any }) {
   const { currentEdition, slot2, slot3 } = sidebarData ?? {};
   const hasContent = currentEdition?.coverUrl || slot2 || slot3;
@@ -100,7 +83,6 @@ function ArticleSidebar({ sidebarData }: { sidebarData: any }) {
 
   return (
     <aside className="space-y-6">
-      {/* Slot 1: Current Magazine Edition */}
       {currentEdition?.coverUrl && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-brand-gray-dark mb-2 text-center">Current Issue</p>
@@ -115,18 +97,101 @@ function ArticleSidebar({ sidebarData }: { sidebarData: any }) {
           </Link>
         </div>
       )}
-
-      {/* Slot 2 */}
       {slot2 && <SidebarSlot image={slot2.image} link={slot2.link} label={slot2.label} />}
-
-      {/* Slot 3 */}
       {slot3 && <SidebarSlot image={slot3.image} link={slot3.link} label={slot3.label} />}
     </aside>
   );
 }
 
+/* ── Mobile Inline Slot (compact, editorial) ── */
+function MobileInlineSlot({ type, data }: { type: 'magazine' | 'sponsor'; data: any }) {
+  if (!data) return null;
+
+  if (type === 'magazine') {
+    return (
+      <div className="my-6 lg:hidden">
+        <Link href={data.link || '#'} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm hover:shadow-md transition-all group">
+          <div className="relative w-20 h-[106px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
+            <Image src={data.coverUrl} alt={data.title || 'Current Issue'} fill className="object-contain" sizes="80px" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-brand-gray-dark">Current Issue</p>
+            <p className="text-sm font-bold text-brand-purple line-clamp-2 mt-1">{data.title}</p>
+            <p className="text-xs text-brand-purple font-semibold mt-1 group-hover:underline">Read Now →</p>
+          </div>
+        </Link>
+      </div>
+    );
+  }
+
+  // Sponsor slot — compact horizontal
+  const inner = (
+    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-2.5 shadow-sm hover:shadow-md transition-all">
+      <div className="relative w-16 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
+        <Image src={data.image} alt={data.label || 'Sponsor'} fill className="object-contain" sizes="64px" />
+      </div>
+      {data.label && (
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-gray-dark flex-1">{data.label}</p>
+      )}
+    </div>
+  );
+  return (
+    <div className="my-6 lg:hidden">
+      {data.link ? <a href={data.link} target="_blank" rel="noopener noreferrer" className="block">{inner}</a> : inner}
+    </div>
+  );
+}
+
+/* ── Split HTML content into blocks for mobile slot insertion ── */
+function splitContentBlocks(html: string): string[] {
+  if (!html) return [''];
+  // Split on block-level HTML tags (p, div, h1-h6, ul, ol, blockquote, figure, table, hr, section)
+  const blockRegex = /(<\/(?:p|div|h[1-6]|ul|ol|blockquote|figure|table|section)>|<hr\s*\/?>)/gi;
+  const parts: string[] = [];
+  let lastIndex = 0;
+  let match;
+  const regex = new RegExp(blockRegex);
+  while ((match = regex.exec(html)) !== null) {
+    const end = match.index + match[0].length;
+    parts.push(html.slice(lastIndex, end));
+    lastIndex = end;
+  }
+  if (lastIndex < html.length) parts.push(html.slice(lastIndex));
+  // Filter empty strings
+  return parts.filter(p => p.trim().length > 0);
+}
+
+/* ── Main Component ── */
 export default function ArticleDetailClient({ article, relatedArticles, sidebarData }: { article: any; relatedArticles: any[]; sidebarData?: any }) {
   const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
+
+  // Build mobile slot list
+  const mobileSlots = useMemo(() => {
+    const slots: { type: 'magazine' | 'sponsor'; data: any }[] = [];
+    if (sidebarData?.currentEdition?.coverUrl) slots.push({ type: 'magazine', data: sidebarData.currentEdition });
+    if (sidebarData?.slot2) slots.push({ type: 'sponsor', data: sidebarData.slot2 });
+    if (sidebarData?.slot3) slots.push({ type: 'sponsor', data: sidebarData.slot3 });
+    return slots;
+  }, [sidebarData]);
+
+  // Split content for mobile interleaving
+  const contentBlocks = useMemo(() => splitContentBlocks(article?.content ?? ''), [article?.content]);
+
+  // Calculate insertion points: distribute slots evenly within content
+  // Insert after block indexes: aim for ~30% / ~55% / ~80% through content
+  const insertionMap = useMemo(() => {
+    const map: Record<number, { type: 'magazine' | 'sponsor'; data: any }> = {};
+    if (mobileSlots.length === 0 || contentBlocks.length < 2) return map;
+    const positions = mobileSlots.length === 1
+      ? [Math.max(1, Math.floor(contentBlocks.length * 0.35))]
+      : mobileSlots.length === 2
+        ? [Math.max(1, Math.floor(contentBlocks.length * 0.3)), Math.max(2, Math.floor(contentBlocks.length * 0.65))]
+        : [Math.max(1, Math.floor(contentBlocks.length * 0.25)), Math.max(2, Math.floor(contentBlocks.length * 0.5)), Math.max(3, Math.floor(contentBlocks.length * 0.75))];
+    mobileSlots.forEach((slot, i) => {
+      if (positions[i] !== undefined) map[positions[i]] = slot;
+    });
+    return map;
+  }, [mobileSlots, contentBlocks]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -160,9 +225,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-brand-gray-dark mb-6 pb-6 border-b border-brand-gray">
                 <div className="flex items-center gap-4">
                   {article?.authorName && (
-                    <div className="flex items-center gap-2">
-                      <User size={14} /> {article.authorName}
-                    </div>
+                    <div className="flex items-center gap-2"><User size={14} /> {article.authorName}</div>
                   )}
                   {article?.publishedAt && (
                     <div className="flex items-center gap-2">
@@ -171,24 +234,31 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                     </div>
                   )}
                 </div>
-                <div className="ml-auto">
-                  <ShareButtons title={article?.title ?? ''} compact />
-                </div>
+                <div className="ml-auto"><ShareButtons title={article?.title ?? ''} compact /></div>
               </div>
 
-              <div
-                className="prose prose-lg max-w-none text-brand-purple/80"
-                dangerouslySetInnerHTML={{ __html: article?.content ?? '' }}
-              />
+              {/* Desktop: single block content / Mobile: interleaved with slots */}
+              {/* Desktop content — rendered as single block (lg and up) */}
+              <div className="hidden lg:block prose prose-lg max-w-none text-brand-purple/80"
+                dangerouslySetInnerHTML={{ __html: article?.content ?? '' }} />
 
-              {/* Share buttons at end of article */}
+              {/* Mobile content — with inline slots inserted between blocks */}
+              <div className="lg:hidden">
+                {contentBlocks.map((block, i) => (
+                  <React.Fragment key={i}>
+                    <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: block }} />
+                    {insertionMap[i + 1] && <MobileInlineSlot type={insertionMap[i + 1].type} data={insertionMap[i + 1].data} />}
+                  </React.Fragment>
+                ))}
+              </div>
+
               <ShareButtons title={article?.title ?? ''} />
             </motion.div>
           </article>
 
-          {/* Sidebar — desktop: right column, mobile: below article */}
+          {/* Sidebar — desktop only (hidden on mobile via parent grid) */}
           {hasSidebar && (
-            <div className="mt-10 lg:mt-0">
+            <div className="hidden lg:block">
               <div className="lg:sticky lg:top-6">
                 <ArticleSidebar sidebarData={sidebarData} />
               </div>
@@ -209,9 +279,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                         {a?.imageUrl && <Image src={a.imageUrl} alt={a?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" style={{ objectPosition: `${a?.focalPointX ?? 50}% ${a?.focalPointY ?? 50}%` }} sizes="(max-width: 768px) 100vw, 33vw" />}
                       </div>
                       <div className="p-4">
-                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2">
-                          {a?.title ?? ''}
-                        </h3>
+                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2">{a?.title ?? ''}</h3>
                       </div>
                     </div>
                   </Link>
