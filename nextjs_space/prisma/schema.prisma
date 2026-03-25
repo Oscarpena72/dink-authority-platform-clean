@@ -106,6 +106,16 @@ model NewsletterSubscriber {
   subscribedAt DateTime @default(now())
 }
 
+model Subscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phoneNumber  String?
+  source       String   @default("footer")
+  subscribedAt DateTime @default(now())
+
+  @@index([subscribedAt])
+}
+
 model Media {
   id               String   @id @default(cuid())
   fileName         String

@@ -8,6 +8,7 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
 import StickyBanner from '@/app/_components/sticky-banner';
+import SubscribeForm from '@/app/_components/subscribe-form';
 
 /* ── Share Buttons ── */
 function ShareButtons({ title, compact = false }: { title: string; compact?: boolean }) {
@@ -238,20 +239,35 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                 <div className="ml-auto"><ShareButtons title={article?.title ?? ''} compact /></div>
               </div>
 
-              {/* Desktop: single block content / Mobile: interleaved with slots */}
-              {/* Desktop content — rendered as single block (lg and up) */}
-              <div className="hidden lg:block prose prose-lg max-w-none text-brand-purple/80"
-                dangerouslySetInnerHTML={{ __html: article?.content ?? '' }} />
+              {/* Desktop: content split at ~37% with subscribe block inserted */}
+              {(() => {
+                const subscribeIdx = Math.max(1, Math.floor(contentBlocks.length * 0.37));
+                const beforeSubscribe = contentBlocks.slice(0, subscribeIdx).join('');
+                const afterSubscribe = contentBlocks.slice(subscribeIdx).join('');
+                return (
+                  <div className="hidden lg:block">
+                    <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: beforeSubscribe }} />
+                    <SubscribeForm source="article" variant="inline" />
+                    <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: afterSubscribe }} />
+                  </div>
+                );
+              })()}
 
-              {/* Mobile content — with inline slots inserted between blocks */}
-              <div className="lg:hidden">
-                {contentBlocks.map((block, i) => (
-                  <React.Fragment key={i}>
-                    <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: block }} />
-                    {insertionMap[i + 1] && <MobileInlineSlot type={insertionMap[i + 1].type} data={insertionMap[i + 1].data} />}
-                  </React.Fragment>
-                ))}
-              </div>
+              {/* Mobile content — with inline slots & subscribe block inserted between blocks */}
+              {(() => {
+                const subscribeIdx = Math.max(1, Math.floor(contentBlocks.length * 0.37));
+                return (
+                  <div className="lg:hidden">
+                    {contentBlocks.map((block, i) => (
+                      <React.Fragment key={i}>
+                        <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: block }} />
+                        {i + 1 === subscribeIdx && <SubscribeForm source="article" variant="inline" />}
+                        {insertionMap[i + 1] && <MobileInlineSlot type={insertionMap[i + 1].type} data={insertionMap[i + 1].data} />}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                );
+              })()}
 
               <ShareButtons title={article?.title ?? ''} />
             </motion.div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Instagram, Facebook, Twitter, Youtube, Mail } from 'lucide-react';
+import SubscribeForm from '@/app/_components/subscribe-form';
 
 const FOOTER_NAV = [
   { label: 'News', href: '/articles?category=news' },
@@ -23,7 +24,7 @@ export default function Footer() {
       {/* Neon accent line at top */}
       <div className="h-1 neon-gradient" />
       <div className="max-w-[1400px] mx-auto px-4 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
             <h3 className="font-heading font-bold text-2xl text-white mb-1">DINK AUTHORITY<span className="text-brand-neon">.</span></h3>
@@ -59,6 +60,11 @@ export default function Footer() {
               <Mail size={14} className="text-brand-neon" />
               <span>info@dinkauthoritymagazine.com</span>
             </div>
+          </div>
+
+          {/* Subscribe */}
+          <div>
+            <SubscribeForm source="footer" variant="footer" />
           </div>
         </div>
 
