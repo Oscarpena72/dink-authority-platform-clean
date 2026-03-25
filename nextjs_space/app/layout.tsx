@@ -4,6 +4,8 @@ import { Inter, Oswald } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Script from 'next/script';
+import PWARegister from './_components/pwa-register';
+import PWAInstallPrompt from './_components/pwa-install-prompt';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,10 +46,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#090426" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Dink Authority" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <Script src="https://apps.abacus.ai/chatllm/appllm-lib.js" strategy="beforeInteractive" />
       </head>
       <body className="font-body bg-white text-brand-purple antialiased selection:bg-brand-neon/20 selection:text-brand-purple">
         <Providers>{children}</Providers>
+        <PWARegister />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
