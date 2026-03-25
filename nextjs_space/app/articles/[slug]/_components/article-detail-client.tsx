@@ -23,7 +23,7 @@ export default function ArticleDetailClient({ article, relatedArticles }: { arti
       <main className="flex-1">
         {/* Hero image */}
         {article?.imageUrl && (
-          <div className="relative w-full aspect-[16/9] max-h-[600px] bg-brand-purple overflow-hidden">
+          <div className="relative w-full aspect-[16/9] md:aspect-auto md:h-[420px] lg:h-[460px] bg-brand-purple overflow-hidden">
             <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover" style={{ objectPosition: `${article?.focalPointX ?? 50}% ${article?.focalPointY ?? 50}%` }} sizes="100vw" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/80 to-transparent" />
           </div>
