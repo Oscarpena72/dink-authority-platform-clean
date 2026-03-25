@@ -267,23 +267,43 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
           )}
         </div>
 
-        {/* Related articles */}
+        {/* You May Also Like */}
         {(relatedArticles ?? []).length > 0 && (
-          <section className="bg-brand-gray py-12">
-            <div className="max-w-[1200px] mx-auto px-4">
-              <h2 className="text-2xl font-heading font-bold text-brand-purple mb-6">Related Articles</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <section className="bg-brand-gray py-14">
+            <div className="max-w-[1400px] mx-auto px-4">
+              <div className="flex items-center gap-3 mb-10">
+                <div className="w-1.5 h-10 bg-brand-neon rounded-full" />
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">You May Also Like</h2>
+                  <p className="text-brand-gray-dark text-sm mt-0.5">Keep reading from Dink Authority</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
                 {(relatedArticles ?? []).map((a: any, i: number) => (
-                  <Link key={a?.id ?? i} href={`/articles/${a?.slug ?? ''}`} className="group block">
-                    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all">
-                      <div className="relative aspect-[4/3] bg-brand-gray">
-                        {a?.imageUrl && <Image src={a.imageUrl} alt={a?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-500" style={{ objectPosition: `${a?.focalPointX ?? 50}% ${a?.focalPointY ?? 50}%` }} sizes="(max-width: 768px) 100vw, 33vw" />}
+                  <motion.div key={a?.id ?? i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
+                    <Link href={`/articles/${a?.slug ?? ''}`} className="group block">
+                      <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                        <div className="relative aspect-[4/3] bg-brand-gray">
+                          {a?.imageUrl && (
+                            <Image src={a.imageUrl} alt={a?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-700" style={{ objectPosition: `${a?.focalPointX ?? 50}% ${a?.focalPointY ?? 50}%` }} sizes="(max-width: 768px) 100vw, 33vw" />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <span className="absolute top-3 left-3 px-2.5 py-1 bg-brand-neon text-brand-purple-dark text-[10px] font-bold uppercase tracking-widest rounded">
+                            {a?.category ?? 'News'}
+                          </span>
+                        </div>
+                        <div className="p-5">
+                          <h3 className="font-heading font-bold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2 mb-3 text-[17px] leading-snug">
+                            {a?.title ?? ''}
+                          </h3>
+                          <div className="flex items-center gap-2 text-xs text-brand-gray-dark">
+                            <Clock size={12} className="text-brand-neon/60" />
+                            <span>{a?.publishedAt ? new Date(a.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-heading font-semibold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2">{a?.title ?? ''}</h3>
-                      </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
             </div>

@@ -46,13 +46,27 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
 
   if (!article) return notFound();
 
+  // Recommended articles: same category first, then fill with recent from other categories
   try {
-    relatedArticles = await prisma.article.findMany({
+    const selectFields = { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, publishedAt: true };
+    const sameCat = await prisma.article.findMany({
       where: { status: 'published', category: article?.category, id: { not: article?.id } },
       take: 3,
       orderBy: { publishedAt: 'desc' },
-      select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, publishedAt: true },
-    });
+      select: selectFields,
+    }).catch(() => []);
+    if ((sameCat?.length ?? 0) < 3) {
+      const existingIds = [article?.id, ...(sameCat ?? []).map((a: any) => a?.id)].filter(Boolean);
+      const filler = await prisma.article.findMany({
+        where: { status: 'published', id: { notIn: existingIds } },
+        take: 3 - (sameCat?.length ?? 0),
+        orderBy: { publishedAt: 'desc' },
+        select: selectFields,
+      }).catch(() => []);
+      relatedArticles = [...(sameCat ?? []), ...(filler ?? [])];
+    } else {
+      relatedArticles = sameCat ?? [];
+    }
   } catch { /* empty */ }
 
   // Fetch sidebar + sticky banner data
