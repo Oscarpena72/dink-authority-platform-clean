@@ -55,7 +55,8 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
     });
   } catch { /* empty */ }
 
-  // Fetch sidebar data: current magazine edition + settings for slots 2/3
+  // Fetch sidebar + sticky banner data
+  let bannerData: any = null;
   try {
     const [currentEdition, settingsRows] = await Promise.all([
       prisma.magazineEdition.findFirst({
@@ -63,7 +64,12 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
         select: { title: true, coverUrl: true, slug: true, externalUrl: true },
       }).catch(() => null),
       prisma.siteSetting.findMany({
-        where: { key: { startsWith: 'sidebar_slot' } },
+        where: { key: { in: [
+          'sidebar_slot2_enabled', 'sidebar_slot2_image', 'sidebar_slot2_link', 'sidebar_slot2_label', 'sidebar_slot2_newtab',
+          'sidebar_slot3_enabled', 'sidebar_slot3_image', 'sidebar_slot3_link', 'sidebar_slot3_label', 'sidebar_slot3_newtab',
+          'sticky_banner_active', 'sticky_banner_image_desktop', 'sticky_banner_image_mobile',
+          'sticky_banner_link', 'sticky_banner_newtab', 'sticky_banner_close_enabled',
+        ] } },
       }).catch(() => []),
     ]);
 
@@ -83,6 +89,16 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
         image: s.sidebar_slot3_image, link: s.sidebar_slot3_link ?? '', label: s.sidebar_slot3_label ?? '', newTab: s.sidebar_slot3_newtab === 'true',
       } : null,
     };
+
+    if (s.sticky_banner_active === 'true' && (s.sticky_banner_image_desktop || s.sticky_banner_image_mobile)) {
+      bannerData = {
+        desktopImage: s.sticky_banner_image_desktop ?? '',
+        mobileImage: s.sticky_banner_image_mobile ?? '',
+        link: s.sticky_banner_link ?? '',
+        newTab: s.sticky_banner_newtab === 'true',
+        closeEnabled: s.sticky_banner_close_enabled !== 'false',
+      };
+    }
   } catch { /* empty */ }
 
   const serialized = {
@@ -93,5 +109,5 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
   };
   const relSerialized = (relatedArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null }));
 
-  return <ArticleDetailClient article={serialized} relatedArticles={relSerialized} sidebarData={sidebarData} />;
+  return <ArticleDetailClient article={serialized} relatedArticles={relSerialized} sidebarData={sidebarData} bannerData={bannerData} />;
 }

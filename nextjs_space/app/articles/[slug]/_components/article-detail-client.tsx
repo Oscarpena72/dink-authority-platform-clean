@@ -7,6 +7,7 @@ import { ArrowLeft, Clock, User, Check, Copy, Share2 } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
+import StickyBanner from '@/app/_components/sticky-banner';
 
 /* ── Share Buttons ── */
 function ShareButtons({ title, compact = false }: { title: string; compact?: boolean }) {
@@ -162,7 +163,7 @@ function splitContentBlocks(html: string): string[] {
 }
 
 /* ── Main Component ── */
-export default function ArticleDetailClient({ article, relatedArticles, sidebarData }: { article: any; relatedArticles: any[]; sidebarData?: any }) {
+export default function ArticleDetailClient({ article, relatedArticles, sidebarData, bannerData }: { article: any; relatedArticles: any[]; sidebarData?: any; bannerData?: any }) {
   const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
 
   // Build mobile slot list
@@ -290,6 +291,17 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
         )}
       </main>
       <Footer />
+      {/* Add bottom padding when banner is active so footer/content isn't hidden */}
+      {bannerData && <div className="h-[100px] md:h-[90px]" />}
+      {bannerData && (
+        <StickyBanner
+          desktopImage={bannerData.desktopImage}
+          mobileImage={bannerData.mobileImage}
+          link={bannerData.link}
+          newTab={bannerData.newTab}
+          closeEnabled={bannerData.closeEnabled}
+        />
+      )}
       <WhatsAppButton phoneNumber={null} />
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff, ExternalLink, MonitorSmartphone } from 'lucide-react';
 
 function SlotConfig({ slotNum, settings, onChange }: { slotNum: number; settings: Record<string, string>; onChange: (key: string, val: string) => void }) {
   const prefix = `sidebar_slot${slotNum}`;
@@ -113,6 +113,69 @@ export default function AdminSettingsClient() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SlotConfig slotNum={2} settings={settings} onChange={handleChange} />
             <SlotConfig slotNum={3} settings={settings} onChange={handleChange} />
+          </div>
+        </div>
+
+        {/* Sticky Bottom Banner */}
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <h2 className="font-heading font-bold text-brand-purple mb-2 flex items-center gap-2"><MonitorSmartphone size={18} /> Sticky Bottom Banner</h2>
+          <p className="text-sm text-brand-gray-dark mb-4">A fixed advertising banner at the bottom of article pages. Desktop: 970×90px, Mobile: 320×100px.</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-brand-purple">Banner Status</span>
+              <button type="button" onClick={() => handleChange('sticky_banner_active', settings?.sticky_banner_active === 'true' ? 'false' : 'true')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${settings?.sticky_banner_active === 'true' ? 'bg-brand-neon/20 text-brand-purple' : 'bg-gray-200 text-brand-gray-dark'}`}>
+                {settings?.sticky_banner_active === 'true' ? <><Eye size={12} /> Active</> : <><EyeOff size={12} /> Inactive</>}
+              </button>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Desktop Image URL (970×90)</label>
+              <input value={settings?.sticky_banner_image_desktop ?? ''} onChange={(e: any) => handleChange('sticky_banner_image_desktop', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://www.shutterstock.com/shutterstock/photos/1315572647/display_1500/stock-vector-download-this-elegant-banner-collection-ad-banner-templates-eps-file-easy-to-edit-vector-1315572647.jpg" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Mobile Image URL (320×100)</label>
+              <input value={settings?.sticky_banner_image_mobile ?? ''} onChange={(e: any) => handleChange('sticky_banner_image_mobile', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://d212k0qo5yzg53.cloudfront.net/wp-content/uploads/20170124173806/example-digital-mobile-mobile-expandable-sticky-banner-in-app-browser.jpg" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Link URL</label>
+              <input value={settings?.sticky_banner_link ?? ''} onChange={(e: any) => handleChange('sticky_banner_link', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://cdn.dribbble.com/userupload/15862528/file/still-204c62a4a723cad3714c83392255814d.png?format=webp&resize=400x300&vertical=center" />
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => handleChange('sticky_banner_newtab', settings?.sticky_banner_newtab === 'true' ? 'false' : 'true')}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${settings?.sticky_banner_newtab === 'true' ? 'bg-brand-neon/60' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${settings?.sticky_banner_newtab === 'true' ? 'translate-x-4' : ''}`} />
+                </button>
+                <span className="text-xs text-brand-gray-dark flex items-center gap-1"><ExternalLink size={11} /> Open in new tab</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => handleChange('sticky_banner_close_enabled', settings?.sticky_banner_close_enabled === 'true' ? 'false' : 'true')}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${settings?.sticky_banner_close_enabled !== 'false' ? 'bg-brand-neon/60' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${settings?.sticky_banner_close_enabled !== 'false' ? 'translate-x-4' : ''}`} />
+                </button>
+                <span className="text-xs text-brand-gray-dark">Close button enabled</span>
+              </div>
+            </div>
+            {(settings?.sticky_banner_image_desktop || settings?.sticky_banner_image_mobile) && (
+              <div className="flex gap-4 flex-wrap">
+                {settings?.sticky_banner_image_desktop && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-brand-gray-dark mb-1">Desktop Preview</p>
+                    <div className="relative w-[300px] h-[28px] rounded overflow-hidden bg-gray-100 border border-gray-200">
+                      <Image src={settings.sticky_banner_image_desktop} alt="Desktop banner preview" fill className="object-cover" sizes="300px" onError={(e: any) => { if (e?.target) e.target.style.display = 'none'; }} />
+                    </div>
+                  </div>
+                )}
+                {settings?.sticky_banner_image_mobile && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-brand-gray-dark mb-1">Mobile Preview</p>
+                    <div className="relative w-[160px] h-[50px] rounded overflow-hidden bg-gray-100 border border-gray-200">
+                      <Image src={settings.sticky_banner_image_mobile} alt="Mobile banner preview" fill className="object-cover" sizes="160px" onError={(e: any) => { if (e?.target) e.target.style.display = 'none'; }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
