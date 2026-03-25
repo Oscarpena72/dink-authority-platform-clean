@@ -50,6 +50,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="Dink Authority" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <Script src="https://apps.abacus.ai/chatllm/appllm-lib.js" strategy="beforeInteractive" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Dink Authority Magazine',
+              url: 'https://dinkauthoritymagazine.com',
+              logo: {
+                '@type': 'ImageObject',
+                url: 'https://dinkauthoritymagazine.com/icon-512x512.png',
+                width: 512,
+                height: 512,
+              },
+              sameAs: [],
+              description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Dink Authority Magazine',
+              url: 'https://dinkauthoritymagazine.com',
+              publisher: {
+                '@type': 'Organization',
+                name: 'Dink Authority Magazine',
+              },
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://dinkauthoritymagazine.com/articles?q={search_term_string}',
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
       </head>
       <body className="font-body bg-white text-brand-purple antialiased selection:bg-brand-neon/20 selection:text-brand-purple">
         <Providers>{children}</Providers>

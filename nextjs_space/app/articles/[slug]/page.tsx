@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       images: article?.imageUrl ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }] : ['/og-image.png'],
       ...(article?.publishedAt ? { publishedTime: new Date(article.publishedAt).toISOString() } : {}),
       ...(article?.updatedAt ? { modifiedTime: new Date(article.updatedAt).toISOString() } : {}),
-      ...(article?.authorName ? { authors: [article.authorName] } : {}),
+      authors: [article?.authorName || 'Dink Authority Editorial Team'],
     },
     twitter: {
       card: 'summary_large_image',
@@ -141,23 +141,37 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
   const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
   const articleUrl = `${siteUrl}/articles/${article?.slug ?? ''}`;
 
+  const authorName = article?.authorName || 'Dink Authority Editorial Team';
+
   const jsonLdArticle = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
     headline: article?.title ?? '',
     description: article?.excerpt ?? '',
-    image: article?.imageUrl ? [article.imageUrl] : [],
+    image: article?.imageUrl
+      ? [{
+          '@type': 'ImageObject',
+          url: article.imageUrl,
+          width: 1200,
+          height: 630,
+        }]
+      : [],
     author: {
       '@type': 'Person',
-      name: article?.authorName ?? 'Dink Authority Staff',
+      name: authorName,
+      url: `${siteUrl}/articles`,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Dink Authority Magazine',
+      url: siteUrl,
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/icon-512x512.png`,
+        width: 512,
+        height: 512,
       },
+      sameAs: [],
     },
     datePublished: article?.publishedAt?.toISOString?.() ?? '',
     dateModified: article?.updatedAt?.toISOString?.() ?? article?.publishedAt?.toISOString?.() ?? '',
@@ -166,6 +180,7 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
       '@id': articleUrl,
     },
     url: articleUrl,
+    isAccessibleForFree: true,
   };
 
   const jsonLdBreadcrumb = {
