@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -24,7 +24,9 @@ interface HeroStoryProps {
 
 export default function HeroStory({ article }: HeroStoryProps) {
   const { t } = useLanguage();
-  const translated = useTranslatedArticles(article ? [article] : []);
+  // Stabilize array reference to prevent infinite re-render loop in useTranslatedArticles
+  const articleArray = useMemo(() => (article ? [article] : []), [article]);
+  const translated = useTranslatedArticles(articleArray);
   const displayArticle = translated[0] || article;
   if (!article) return null;
   return (

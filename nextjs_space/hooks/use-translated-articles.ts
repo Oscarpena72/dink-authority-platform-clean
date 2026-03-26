@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 interface ArticleWithTranslation {
@@ -12,21 +12,31 @@ interface ArticleWithTranslation {
 /**
  * Hook that returns articles with translated titles/excerpts when locale != 'en'.
  * Uses batch API with persistent DB cache.
+ * IMPORTANT: Uses a stable cache key derived from article IDs to prevent infinite
+ * re-render loops when callers pass a new array reference on every render.
  */
 export function useTranslatedArticles<T extends ArticleWithTranslation>(articles: T[]): T[] {
   const { locale } = useLanguage();
   const [translatedMap, setTranslatedMap] = useState<Record<string, { title: string; excerpt: string }>>({});
   const fetchedRef = useRef<string>(''); // Track what we've fetched to avoid re-fetching
 
+  // Derive a stable key from article IDs so reference changes don't trigger re-fetches
+  const articleIds = useMemo(
+    () => (articles || []).map(a => a.id).sort().join(','),
+    [articles]
+  );
+
   useEffect(() => {
     if (locale === 'en' || !articles || articles.length === 0) {
-      setTranslatedMap({});
-      fetchedRef.current = '';
+      if (fetchedRef.current !== '') {
+        setTranslatedMap({});
+        fetchedRef.current = '';
+      }
       return;
     }
 
     // Build a cache key to avoid re-fetching same set
-    const cacheKey = `${locale}:${articles.map(a => a.id).sort().join(',')}`;
+    const cacheKey = `${locale}:${articleIds}`;
     if (fetchedRef.current === cacheKey) return;
     fetchedRef.current = cacheKey;
 
@@ -57,7 +67,8 @@ export function useTranslatedArticles<T extends ArticleWithTranslation>(articles
 
     fetchTranslations();
     return () => controller.abort();
-  }, [locale, articles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, articleIds]);
 
   // If English or no translations, return original
   if (locale === 'en' || Object.keys(translatedMap).length === 0) return articles;
