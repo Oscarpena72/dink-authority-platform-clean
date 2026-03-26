@@ -1,14 +1,15 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Clock, User, Check, Copy, Share2 } from 'lucide-react';
+import { Clock, User, Check, Copy, Share2, Globe, Loader2, Eye } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
 import StickyBanner from '@/app/_components/sticky-banner';
 import SubscribeForm from '@/app/_components/subscribe-form';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 /* ── Share Buttons ── */
 function ShareButtons({ title, compact = false }: { title: string; compact?: boolean }) {
@@ -163,9 +164,104 @@ function splitContentBlocks(html: string): string[] {
   return parts.filter(p => p.trim().length > 0);
 }
 
+/* ── Translation Banner ── */
+function TranslationBanner({ isTranslating, isTranslated, translationError, showOriginal, onToggle, t }: {
+  isTranslating: boolean; isTranslated: boolean; translationError: boolean; showOriginal: boolean; onToggle: () => void; t: (key: any) => string;
+}) {
+  if (!isTranslating && !isTranslated && !translationError) return null;
+
+  return (
+    <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg mb-6 text-sm ${
+      isTranslating ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+      translationError ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+      'bg-brand-neon/10 text-brand-purple border border-brand-neon/30'
+    }`}>
+      {isTranslating && (
+        <>
+          <Loader2 size={16} className="animate-spin flex-shrink-0" />
+          <span className="font-medium">{t('article.translating')}</span>
+        </>
+      )}
+      {translationError && (
+        <span className="font-medium">{t('article.translationFailed')}</span>
+      )}
+      {isTranslated && !isTranslating && (
+        <>
+          <Globe size={16} className="flex-shrink-0" />
+          <span className="font-medium">{t('article.translated')}</span>
+          <button
+            onClick={onToggle}
+            className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-md bg-white border border-brand-gray text-brand-purple text-xs font-semibold hover:bg-brand-gray transition-colors"
+          >
+            <Eye size={13} />
+            {showOriginal ? t('article.translated') : t('article.viewOriginal')}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ── Main Component ── */
 export default function ArticleDetailClient({ article, relatedArticles, sidebarData, bannerData }: { article: any; relatedArticles: any[]; sidebarData?: any; bannerData?: any }) {
   const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
+  const { locale, t } = useLanguage();
+
+  // Translation state
+  const [translatedData, setTranslatedData] = useState<{ title: string; excerpt: string; content: string } | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  // Fetch translation when locale changes (only for non-English)
+  const fetchTranslation = useCallback(async () => {
+    if (locale === 'en' || !article?.id) {
+      setTranslatedData(null);
+      setTranslationError(false);
+      return;
+    }
+
+    setIsTranslating(true);
+    setTranslationError(false);
+    setShowOriginal(false);
+
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          articleId: article.id,
+          title: article.title,
+          excerpt: article.excerpt || '',
+          content: article.content,
+          locale,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Translation failed');
+
+      const data = await res.json();
+      setTranslatedData({
+        title: data.title,
+        excerpt: data.excerpt,
+        content: data.content,
+      });
+    } catch {
+      setTranslationError(true);
+      setTranslatedData(null);
+    } finally {
+      setIsTranslating(false);
+    }
+  }, [locale, article?.id, article?.title, article?.excerpt, article?.content]);
+
+  useEffect(() => {
+    fetchTranslation();
+  }, [fetchTranslation]);
+
+  // Determine displayed content
+  const isTranslated = !!translatedData && locale !== 'en';
+  const displayTitle = (isTranslated && !showOriginal) ? translatedData!.title : (article?.title ?? '');
+  const displayContent = (isTranslated && !showOriginal) ? translatedData!.content : (article?.content ?? '');
 
   // Build mobile slot list
   const mobileSlots = useMemo(() => {
@@ -177,7 +273,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
   }, [sidebarData]);
 
   // Split content for mobile interleaving
-  const contentBlocks = useMemo(() => splitContentBlocks(article?.content ?? ''), [article?.content]);
+  const contentBlocks = useMemo(() => splitContentBlocks(displayContent), [displayContent]);
 
   // Calculate insertion points: distribute slots evenly within content
   // Insert after block indexes: aim for ~30% / ~55% / ~80% through content
@@ -214,19 +310,29 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               {/* Breadcrumbs */}
               <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-brand-gray-dark mb-6">
-                <Link href="/" className="hover:text-brand-purple transition-colors">Home</Link>
+                <Link href="/" className="hover:text-brand-purple transition-colors">{t('article.home')}</Link>
                 <span className="text-brand-gray">/</span>
-                <Link href="/articles" className="hover:text-brand-purple transition-colors">Articles</Link>
+                <Link href="/articles" className="hover:text-brand-purple transition-colors">{t('article.articles')}</Link>
                 <span className="text-brand-gray">/</span>
-                <span className="text-brand-purple/60 truncate max-w-[200px] md:max-w-[400px]">{article?.title ?? ''}</span>
+                <span className="text-brand-purple/60 truncate max-w-[200px] md:max-w-[400px]">{displayTitle}</span>
               </nav>
 
+              {/* Translation indicator */}
+              <TranslationBanner
+                isTranslating={isTranslating}
+                isTranslated={isTranslated}
+                translationError={translationError}
+                showOriginal={showOriginal}
+                onToggle={() => setShowOriginal((v) => !v)}
+                t={t}
+              />
+
               <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-purple text-xs font-bold uppercase tracking-wider rounded mb-4">
-                {article?.category ?? 'News'}
+                {t((`category.${article?.category ?? 'news'}`) as any)}
               </span>
 
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-brand-purple leading-tight mb-6">
-                {article?.title ?? ''}
+                {displayTitle}
               </h1>
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-brand-gray-dark mb-6 pb-6 border-b border-brand-gray">
@@ -295,8 +401,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
               <div className="flex items-center gap-3 mb-10">
                 <div className="w-1.5 h-10 bg-brand-neon rounded-full" />
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">You May Also Like</h2>
-                  <p className="text-brand-gray-dark text-sm mt-0.5">Keep reading from Dink Authority</p>
+                  <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">{t('article.related')}</h2>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-7">

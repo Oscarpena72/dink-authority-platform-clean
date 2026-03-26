@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
 
 const LANG_MAP: Record<string, string> = {
   es: 'Spanish',
@@ -8,7 +9,7 @@ const LANG_MAP: Record<string, string> = {
 
 export async function POST(request: Request) {
   try {
-    const { title, excerpt, content, locale } = await request.json();
+    const { articleId, title, excerpt, content, locale } = await request.json();
 
     if (!locale || !LANG_MAP[locale]) {
       return NextResponse.json({ error: 'Invalid locale' }, { status: 400 });
@@ -17,6 +18,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Nothing to translate' }, { status: 400 });
     }
 
+    // 1. Check persistent DB cache first
+    if (articleId) {
+      try {
+        const cached = await prisma.articleTranslation.findUnique({
+          where: { articleId_locale: { articleId, locale } },
+        });
+        if (cached) {
+          return NextResponse.json({
+            title: cached.title,
+            excerpt: cached.excerpt || excerpt || '',
+            content: cached.content,
+            cached: true,
+          });
+        }
+      } catch (err) {
+        console.error('Cache lookup error:', err);
+        // Continue to LLM translation
+      }
+    }
+
+    // 2. Call LLM for translation
     const targetLang = LANG_MAP[locale];
 
     const prompt = `You are a professional translator specializing in sports journalism, specifically pickleball. Translate the following article content from English to ${targetLang}.
@@ -71,11 +93,37 @@ Respond with raw JSON only. Do not include code blocks, markdown, or any other f
 
     try {
       const translated = JSON.parse(raw);
-      return NextResponse.json({
+      const result = {
         title: translated.title || title,
-        excerpt: translated.excerpt || excerpt,
+        excerpt: translated.excerpt || excerpt || '',
         content: translated.content || content,
-      });
+      };
+
+      // 3. Save to DB cache for future requests
+      if (articleId) {
+        try {
+          await prisma.articleTranslation.upsert({
+            where: { articleId_locale: { articleId, locale } },
+            create: {
+              articleId,
+              locale,
+              title: result.title,
+              excerpt: result.excerpt,
+              content: result.content,
+            },
+            update: {
+              title: result.title,
+              excerpt: result.excerpt,
+              content: result.content,
+            },
+          });
+        } catch (err) {
+          console.error('Cache save error:', err);
+          // Non-critical — still return the translation
+        }
+      }
+
+      return NextResponse.json({ ...result, cached: false });
     } catch {
       console.error('Failed to parse translation response:', raw.substring(0, 200));
       return NextResponse.json({ error: 'Translation parsing failed' }, { status: 500 });

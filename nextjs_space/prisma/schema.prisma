@@ -163,6 +163,20 @@ model TournamentResult {
   @@index([date])
 }
 
+model ArticleTranslation {
+  id        String   @id @default(cuid())
+  articleId String
+  locale    String
+  title     String
+  excerpt   String?
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([articleId, locale])
+  @@index([articleId])
+}
+
 model MagazineEdition {
   id           String   @id @default(cuid())
   title        String
