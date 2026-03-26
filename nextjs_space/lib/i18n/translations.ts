@@ -165,6 +165,15 @@ const translations = {
   'cookie.message': { en: 'We use cookies to enhance your experience. By continuing to browse, you agree to our use of cookies.', es: 'Usamos cookies para mejorar tu experiencia. Al continuar navegando, aceptas nuestro uso de cookies.', pt: 'Usamos cookies para melhorar sua experiência. Ao continuar navegando, você concorda com o uso de cookies.' },
   'cookie.accept': { en: 'Accept', es: 'Aceptar', pt: 'Aceitar' },
 
+  // Shop
+  'nav.shop': { en: 'Shop', es: 'Tienda', pt: 'Loja' },
+  'shop.title': { en: 'Shop', es: 'Tienda', pt: 'Loja' },
+  'shop.subtitle': { en: 'Official Dink Authority merchandise and gear', es: 'Merchandise y equipamiento oficial de Dink Authority', pt: 'Produtos e equipamentos oficiais da Dink Authority' },
+  'shop.viewProduct': { en: 'View Product', es: 'Ver Producto', pt: 'Ver Produto' },
+  'shop.buyNow': { en: 'Buy Now', es: 'Comprar Ahora', pt: 'Comprar Agora' },
+  'shop.description': { en: 'Description', es: 'Descripción', pt: 'Descrição' },
+  'shop.relatedProducts': { en: 'You May Also Like', es: 'También Te Puede Gustar', pt: 'Você Também Pode Gostar' },
+
   // Common
   'common.by': { en: 'By', es: 'Por', pt: 'Por' },
   'common.readTime': { en: 'min read', es: 'min de lectura', pt: 'min de leitura' },

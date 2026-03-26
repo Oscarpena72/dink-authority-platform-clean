@@ -257,6 +257,84 @@ async function main() {
   }
   console.log(`${EDITIONS.length} magazine editions seeded`);
 
+  // Seed demo products
+  const PRODUCTS = [
+    {
+      name: 'Dink Authority Hoodie',
+      slug: 'dink-authority-hoodie',
+      category: 'apparel',
+      price: 59.99,
+      shortDescription: 'Premium heavyweight hoodie with embroidered Dink Authority logo. Stay warm on and off the court.',
+      fullDescription: 'Our signature Dink Authority Hoodie is crafted from premium 400gsm heavyweight French terry cotton. Features an embroidered Dink Authority logo on the chest, kangaroo pocket, and ribbed cuffs. Perfect for cool mornings at the court or casual wear. Available in multiple sizes.\n\n• 100% premium cotton French terry\n• 400gsm heavyweight fabric\n• Embroidered logo\n• Kangaroo pocket\n• Ribbed cuffs and hem\n• Unisex fit',
+      images: ['/images/products/hoodie.png'],
+      buttonLabel: 'Buy Now',
+      isActive: true,
+      isFeatured: true,
+      inventoryStatus: 'in_stock',
+    },
+    {
+      name: 'Dink Authority Cap',
+      slug: 'dink-authority-cap',
+      category: 'accessories',
+      price: 29.99,
+      shortDescription: 'Classic structured cap with embroidered Dink Authority logo. Adjustable strap for a perfect fit.',
+      fullDescription: 'Rep Dink Authority on the court with our classic structured cap. Features a premium embroidered logo on the front panel, pre-curved brim, and adjustable metal buckle strap for a perfect fit. Breathable cotton twill construction keeps you cool during play.\n\n• 100% cotton twill\n• Structured six-panel design\n• Embroidered front logo\n• Pre-curved brim\n• Adjustable metal buckle strap\n• One size fits most',
+      images: ['/images/products/cap.png'],
+      buttonLabel: 'Buy Now',
+      isActive: true,
+      isFeatured: false,
+      inventoryStatus: 'in_stock',
+    },
+    {
+      name: 'Dink Authority T-Shirt',
+      slug: 'dink-authority-tshirt',
+      category: 'apparel',
+      price: 34.99,
+      shortDescription: 'Soft, breathable performance tee with Dink Authority print. Perfect for play or everyday wear.',
+      fullDescription: 'The Dink Authority T-Shirt blends style with performance. Made from a premium cotton-polyester blend for softness and moisture-wicking properties. Features a bold Dink Authority graphic print on the chest. Great for the court or casual wear.\n\n• 60% cotton, 40% polyester blend\n• Moisture-wicking fabric\n• Screen-printed graphic\n• Crew neck\n• Side-seamed construction\n• Unisex sizing',
+      images: ['/images/products/tshirt.png'],
+      buttonLabel: 'Buy Now',
+      isActive: true,
+      isFeatured: true,
+      inventoryStatus: 'in_stock',
+    },
+    {
+      name: 'Dink Authority Tumbler',
+      slug: 'dink-authority-tumbler',
+      category: 'drinkware',
+      price: 24.99,
+      shortDescription: 'Double-wall insulated stainless steel tumbler. Keeps drinks cold for 24h or hot for 12h.',
+      fullDescription: 'Stay hydrated courtside with the Dink Authority Tumbler. This premium double-wall vacuum insulated stainless steel tumbler keeps your drinks ice-cold for 24 hours or piping hot for 12 hours. Features a laser-engraved Dink Authority logo and a splash-proof sliding lid.\n\n• 20oz capacity\n• Double-wall vacuum insulation\n• 18/8 stainless steel\n• Laser-engraved logo\n• Splash-proof sliding lid\n• BPA-free\n• Fits standard cup holders',
+      images: ['/images/products/tumbler.png'],
+      buttonLabel: 'Buy Now',
+      isActive: true,
+      isFeatured: false,
+      inventoryStatus: 'in_stock',
+    },
+    {
+      name: 'Dink Authority Mug',
+      slug: 'dink-authority-mug',
+      category: 'drinkware',
+      price: 19.99,
+      shortDescription: 'Classic ceramic mug with Dink Authority logo. Start your mornings right before hitting the court.',
+      fullDescription: 'The perfect mug for every pickleball enthusiast. This classic ceramic mug features a high-quality printed Dink Authority logo that won\'t fade. Microwave and dishwasher safe. Makes a great gift for your pickleball-loving friends.\n\n• 11oz classic ceramic mug\n• High-quality print\n• Microwave safe\n• Dishwasher safe\n• Comfortable C-handle\n• Makes a great gift',
+      images: ['/images/products/mug.png'],
+      buttonLabel: 'Buy Now',
+      isActive: true,
+      isFeatured: false,
+      inventoryStatus: 'in_stock',
+    },
+  ];
+
+  for (const prod of PRODUCTS) {
+    await prisma.product.upsert({
+      where: { slug: prod.slug },
+      update: {},
+      create: prod,
+    });
+  }
+  console.log(`${PRODUCTS.length} demo products seeded`);
+
   console.log('Seeding complete!');
 }
 

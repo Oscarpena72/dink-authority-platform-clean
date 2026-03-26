@@ -17,6 +17,7 @@ const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.gear', href: '/articles?category=gear' },
   { labelKey: 'nav.magazine', href: '/articles?category=magazine' },
   { labelKey: 'nav.latam', href: '/articles?category=latam' },
+  { labelKey: 'nav.shop', href: '/shop' },
 ];
 
 const SOCIAL_LINKS = [
