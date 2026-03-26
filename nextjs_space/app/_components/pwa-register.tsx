@@ -8,6 +8,12 @@ export default function PWARegister() {
         .register('/sw.js')
         .then((reg) => {
           console.log('SW registered, scope:', reg.scope);
+          // Force check for updates immediately
+          reg.update().catch(() => {});
+          // Check for updates periodically (every 60 seconds)
+          setInterval(() => {
+            reg.update().catch(() => {});
+          }, 60000);
         })
         .catch((err) => {
           console.log('SW registration failed:', err);
