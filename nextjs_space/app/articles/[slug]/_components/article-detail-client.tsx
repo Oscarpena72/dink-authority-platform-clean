@@ -207,26 +207,31 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
   const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
   const { locale, t } = useLanguage();
 
-  // Translation state
-  const [translatedData, setTranslatedData] = useState<{ title: string; excerpt: string; content: string } | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
+  // Translation state — 2-phase: meta (title+excerpt) then content
+  const [translatedMeta, setTranslatedMeta] = useState<{ title: string; excerpt: string } | null>(null);
+  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
+  const [isTranslatingMeta, setIsTranslatingMeta] = useState(false);
+  const [isTranslatingContent, setIsTranslatingContent] = useState(false);
   const [translationError, setTranslationError] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
 
-  // Fetch translation when locale changes (only for non-English)
+  // Phase 1: Fetch title+excerpt translation (fast ~3s)
+  // Phase 2: Fetch content translation (slower ~15-40s)
   const fetchTranslation = useCallback(async () => {
     if (locale === 'en' || !article?.id) {
-      setTranslatedData(null);
+      setTranslatedMeta(null);
+      setTranslatedContent(null);
       setTranslationError(false);
       return;
     }
 
-    setIsTranslating(true);
     setTranslationError(false);
     setShowOriginal(false);
 
+    // Phase 1: meta (title + excerpt)
+    setIsTranslatingMeta(true);
     try {
-      const res = await fetch('/api/translate', {
+      const metaRes = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -235,22 +240,55 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
           excerpt: article.excerpt || '',
           content: article.content,
           locale,
+          phase: 'meta',
         }),
       });
 
-      if (!res.ok) throw new Error('Translation failed');
+      if (!metaRes.ok) throw new Error('Meta translation failed');
 
-      const data = await res.json();
-      setTranslatedData({
-        title: data.title,
-        excerpt: data.excerpt,
-        content: data.content,
-      });
+      const metaData = await metaRes.json();
+
+      // If the cache returned content too (full cache hit), use it all
+      if (metaData.content) {
+        setTranslatedMeta({ title: metaData.title, excerpt: metaData.excerpt });
+        setTranslatedContent(metaData.content);
+        setIsTranslatingMeta(false);
+        return;
+      }
+
+      setTranslatedMeta({ title: metaData.title, excerpt: metaData.excerpt });
+      setIsTranslatingMeta(false);
     } catch {
+      setIsTranslatingMeta(false);
       setTranslationError(true);
-      setTranslatedData(null);
+      return;
+    }
+
+    // Phase 2: content (HTML body)
+    setIsTranslatingContent(true);
+    try {
+      const contentRes = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          articleId: article.id,
+          title: article.title,
+          excerpt: article.excerpt || '',
+          content: article.content,
+          locale,
+          phase: 'content',
+        }),
+      });
+
+      if (!contentRes.ok) throw new Error('Content translation failed');
+
+      const contentData = await contentRes.json();
+      setTranslatedContent(contentData.content);
+    } catch {
+      // Meta translation succeeded, content failed — show what we have
+      console.error('Content translation failed, showing translated title/excerpt with original content');
     } finally {
-      setIsTranslating(false);
+      setIsTranslatingContent(false);
     }
   }, [locale, article?.id, article?.title, article?.excerpt, article?.content]);
 
@@ -259,9 +297,12 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
   }, [fetchTranslation]);
 
   // Determine displayed content
-  const isTranslated = !!translatedData && locale !== 'en';
-  const displayTitle = (isTranslated && !showOriginal) ? translatedData!.title : (article?.title ?? '');
-  const displayContent = (isTranslated && !showOriginal) ? translatedData!.content : (article?.content ?? '');
+  const isTranslating = isTranslatingMeta || isTranslatingContent;
+  const hasMetaTranslation = !!translatedMeta && locale !== 'en';
+  const hasContentTranslation = !!translatedContent && locale !== 'en';
+  const isTranslated = hasMetaTranslation; // Consider translated once meta is ready
+  const displayTitle = (hasMetaTranslation && !showOriginal) ? translatedMeta!.title : (article?.title ?? '');
+  const displayContent = (hasContentTranslation && !showOriginal) ? translatedContent! : (article?.content ?? '');
 
   // Build mobile slot list
   const mobileSlots = useMemo(() => {
@@ -319,13 +360,20 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
 
               {/* Translation indicator */}
               <TranslationBanner
-                isTranslating={isTranslating}
+                isTranslating={isTranslatingMeta || (isTranslatingContent && !hasMetaTranslation)}
                 isTranslated={isTranslated}
                 translationError={translationError}
                 showOriginal={showOriginal}
                 onToggle={() => setShowOriginal((v) => !v)}
                 t={t}
               />
+              {/* Content still translating indicator */}
+              {isTranslatingContent && hasMetaTranslation && !showOriginal && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-xs bg-blue-50 text-blue-600 border border-blue-100">
+                  <Loader2 size={13} className="animate-spin flex-shrink-0" />
+                  <span>{t('article.translatingContent')}</span>
+                </div>
+              )}
 
               <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-purple text-xs font-bold uppercase tracking-wider rounded mb-4">
                 {t((`category.${article?.category ?? 'news'}`) as any)}

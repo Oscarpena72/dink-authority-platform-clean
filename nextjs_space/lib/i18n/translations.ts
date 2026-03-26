@@ -97,6 +97,7 @@ const translations = {
   'article.copied': { en: 'Copied!', es: '¡Copiado!', pt: 'Copiado!' },
   'article.related': { en: 'YOU MAY ALSO LIKE', es: 'TAMBIÉN TE PUEDE GUSTAR', pt: 'VOCÊ TAMBÉM PODE GOSTAR' },
   'article.translating': { en: 'Translating...', es: 'Traduciendo...', pt: 'Traduzindo...' },
+  'article.translatingContent': { en: 'Translating article content...', es: 'Traduciendo contenido del artículo...', pt: 'Traduzindo conteúdo do artigo...' },
   'article.translationFailed': { en: 'Translation unavailable', es: 'Traducción no disponible', pt: 'Tradução não disponível' },
   'article.viewOriginal': { en: 'View Original', es: 'Ver original', pt: 'Ver original' },
   'article.translated': { en: 'Translated', es: 'Traducido', pt: 'Traduzido' },
