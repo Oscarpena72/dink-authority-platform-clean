@@ -37,16 +37,23 @@ export default function Header() {
   const router = useRouter();
   const { locale, setLocale, t } = useLanguage();
 
-  // Close lang dropdown on outside click
+  // Close lang dropdown on outside click (bubble phase)
   useEffect(() => {
+    if (!langOpen) return;
     const handler = (e: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    // Use setTimeout to avoid the current click event triggering close immediately
+    const id = setTimeout(() => {
+      document.addEventListener('click', handler);
+    }, 0);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener('click', handler);
+    };
+  }, [langOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +67,7 @@ export default function Header() {
   return (
     <>
       {/* Top utility bar */}
-      <div className="bg-brand-purple text-white">
+      <div className="bg-brand-purple text-white relative z-[60]">
         <div className="max-w-[1400px] mx-auto px-4 py-1.5 flex items-center justify-between text-xs">
           <div className="flex items-center gap-4">
             {SOCIAL_LINKS.map((s: any) => (
@@ -77,7 +84,7 @@ export default function Header() {
                 <span className="text-[11px] uppercase tracking-wider">{LOCALE_LABELS[locale]}</span>
               </button>
               {langOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-brand-purple-light rounded-lg shadow-2xl z-50 border border-white/10 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-44 bg-brand-purple-light rounded-lg shadow-2xl z-[9999] border border-white/10 overflow-hidden">
                   {LOCALES.map((loc) => (
                     <button
                       key={loc}
