@@ -171,7 +171,7 @@ export default function Header() {
         {/* Mobile nav */}
         {mobileOpen && (
           <nav className="lg:hidden bg-brand-purple-dark border-t border-white/10">
-            <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-0.5">
+            <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-0.5 max-h-[calc(100vh-140px)] overflow-y-auto">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.labelKey}
