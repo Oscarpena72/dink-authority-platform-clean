@@ -9,6 +9,7 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const CATEGORIES: { labelKey: TranslationKey; value: string }[] = [
@@ -37,7 +38,8 @@ interface Props {
 export default function ArticlesPageClient({ articles, currentPage, totalPages, query, category }: Props) {
   const router = useRouter();
   const { t } = useLanguage();
-  const items = articles ?? [];
+  const translated = useTranslatedArticles(articles ?? []);
+  const items = translated ?? [];
 
   const buildUrl = (params: Record<string, string>) => {
     const p = new URLSearchParams();

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Star } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 
 interface ArticleItem {
   id: string;
@@ -20,7 +21,8 @@ interface ArticleItem {
 
 export default function FeaturedArticles({ articles }: { articles: ArticleItem[] }) {
   const { t } = useLanguage();
-  const items = articles ?? [];
+  const translated = useTranslatedArticles(articles ?? []);
+  const items = translated ?? [];
   if (items.length === 0) return null;
 
   return (

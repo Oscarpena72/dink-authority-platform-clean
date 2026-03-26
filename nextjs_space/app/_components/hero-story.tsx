@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Zap } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 
 interface HeroStoryProps {
   article: {
@@ -23,6 +24,8 @@ interface HeroStoryProps {
 
 export default function HeroStory({ article }: HeroStoryProps) {
   const { t } = useLanguage();
+  const translated = useTranslatedArticles(article ? [article] : []);
+  const displayArticle = translated[0] || article;
   if (!article) return null;
   return (
     <section className="relative bg-brand-purple-dark overflow-hidden">
@@ -70,16 +73,16 @@ export default function HeroStory({ article }: HeroStoryProps) {
                     transition={{ delay: 0.4, duration: 0.6 }}
                     className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold text-white leading-[1.05] mb-4 drop-shadow-lg"
                   >
-                    {article?.title ?? 'Featured Story'}
+                    {displayArticle?.title ?? 'Featured Story'}
                   </motion.h1>
-                  {article?.excerpt && (
+                  {displayArticle?.excerpt && (
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.6, duration: 0.5 }}
                       className="text-white/75 text-sm md:text-lg lg:text-xl max-w-2xl line-clamp-2 mb-6 leading-relaxed"
                     >
-                      {article.excerpt}
+                      {displayArticle.excerpt}
                     </motion.p>
                   )}
                   <motion.div
