@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Clock, ChevronRight } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 interface ArticleItem {
   id: string;
@@ -18,6 +19,7 @@ interface ArticleItem {
 }
 
 export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
+  const { t } = useLanguage();
   const items = articles ?? [];
   if (items.length === 0) return null;
 
@@ -29,11 +31,11 @@ export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
             <div className="w-1.5 h-10 bg-brand-neon rounded-full" />
             <div>
               <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">Latest News</h2>
-              <p className="text-brand-gray-dark text-sm mt-0.5">Breaking coverage from the world of pickleball</p>
+              <p className="text-brand-gray-dark text-sm mt-0.5">{t('latestNews.subtitle')}</p>
             </div>
           </div>
           <Link href="/articles" className="flex items-center gap-1.5 text-sm font-bold text-brand-purple hover:text-brand-purple-light transition-colors uppercase tracking-wider">
-            View All <ChevronRight size={16} className="text-brand-neon" />
+            {t('latestNews.viewAll')} <ChevronRight size={16} className="text-brand-neon" />
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">

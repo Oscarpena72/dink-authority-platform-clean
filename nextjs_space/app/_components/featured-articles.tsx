@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Star } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 interface ArticleItem {
   id: string;
@@ -18,6 +19,7 @@ interface ArticleItem {
 }
 
 export default function FeaturedArticles({ articles }: { articles: ArticleItem[] }) {
+  const { t } = useLanguage();
   const items = articles ?? [];
   if (items.length === 0) return null;
 
@@ -62,7 +64,7 @@ export default function FeaturedArticles({ articles }: { articles: ArticleItem[]
                       <p className="text-sm text-brand-gray-dark line-clamp-3 mb-5 flex-1 leading-relaxed">{article.excerpt}</p>
                     )}
                     <div className="flex items-center gap-2 text-brand-purple font-bold text-sm uppercase tracking-wider group-hover:gap-3 transition-all">
-                      Read More <ArrowRight size={14} />
+                      {t('featured.readMore')} <ArrowRight size={14} />
                     </div>
                   </div>
                 </div>

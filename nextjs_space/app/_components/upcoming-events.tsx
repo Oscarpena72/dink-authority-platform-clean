@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ExternalLink } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 interface EventItem {
   id: string;
@@ -13,6 +14,7 @@ interface EventItem {
 }
 
 export default function UpcomingEvents({ events }: { events: EventItem[] }) {
+  const { t } = useLanguage();
   const items = events ?? [];
   if (items.length === 0) return null;
 
@@ -69,7 +71,7 @@ export default function UpcomingEvents({ events }: { events: EventItem[] }) {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 mt-3 text-brand-neon text-sm font-bold hover:text-white transition-colors uppercase tracking-wider"
                     >
-                      Learn More <ExternalLink size={12} />
+                      {t('events.learnMore')} <ExternalLink size={12} />
                     </a>
                   )}
                 </div>

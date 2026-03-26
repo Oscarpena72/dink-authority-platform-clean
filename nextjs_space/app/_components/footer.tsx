@@ -3,12 +3,14 @@ import React from 'react';
 import Link from 'next/link';
 import { Instagram, Facebook, Twitter, Youtube, Mail } from 'lucide-react';
 import SubscribeForm from '@/app/_components/subscribe-form';
+import { useLanguage } from '@/lib/i18n/language-context';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
-const FOOTER_NAV = [
-  { label: 'News', href: '/articles?category=news' },
-  { label: 'About', href: '/about' },
-  { label: 'Contact', href: '/contact' },
-  { label: 'Events', href: '/articles?category=events' },
+const FOOTER_NAV: { labelKey: TranslationKey; href: string }[] = [
+  { labelKey: 'nav.news', href: '/articles?category=news' },
+  { labelKey: 'about.title', href: '/about' },
+  { labelKey: 'nav.contact', href: '/contact' },
+  { labelKey: 'nav.events', href: '/articles?category=events' },
 ];
 
 const SOCIALS = [
@@ -19,6 +21,7 @@ const SOCIALS = [
 ];
 
 export default function Footer() {
+  const { t } = useLanguage();
   return (
     <footer className="bg-brand-purple text-white">
       {/* Neon accent line at top */}
@@ -30,17 +33,17 @@ export default function Footer() {
             <h3 className="font-heading font-bold text-2xl text-white mb-1">DINK AUTHORITY<span className="text-brand-neon">.</span></h3>
             <p className="text-brand-neon text-xs font-bold uppercase tracking-[0.2em] mb-4">Magazine</p>
             <p className="text-white/50 text-sm leading-relaxed">
-              The premier digital magazine for the global pickleball community. Covering pro players, tournaments, gear, and everything pickleball.
+              {t('footer.description')}
             </p>
           </div>
 
           {/* Navigation */}
           <div>
-            <h3 className="font-heading font-bold text-white mb-5 uppercase text-sm tracking-wider">Navigation</h3>
+            <h3 className="font-heading font-bold text-white mb-5 uppercase text-sm tracking-wider">{t('footer.navigation')}</h3>
             <div className="flex flex-col gap-3">
-              {FOOTER_NAV.map((item: any) => (
-                <Link key={item?.label} href={item?.href ?? '#'} className="text-white/50 hover:text-brand-neon transition-colors text-sm font-medium">
-                  {item?.label}
+              {FOOTER_NAV.map((item) => (
+                <Link key={item.labelKey} href={item.href} className="text-white/50 hover:text-brand-neon transition-colors text-sm font-medium">
+                  {t(item.labelKey)}
                 </Link>
               ))}
             </div>
@@ -48,7 +51,7 @@ export default function Footer() {
 
           {/* Contact & Social */}
           <div>
-            <h3 className="font-heading font-bold text-white mb-5 uppercase text-sm tracking-wider">Connect</h3>
+            <h3 className="font-heading font-bold text-white mb-5 uppercase text-sm tracking-wider">{t('footer.connect')}</h3>
             <div className="flex items-center gap-3 mb-5">
               {SOCIALS.map((s: any) => (
                 <a key={s?.label} href={s?.href ?? '#'} aria-label={s?.label} className="p-2.5 bg-white/5 rounded-xl hover:bg-brand-neon/15 hover:text-brand-neon transition-all border border-white/5 hover:border-brand-neon/30">
@@ -80,7 +83,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/5 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-xs">&copy; {new Date().getFullYear()} Dink Authority Magazine. All rights reserved.</p>
+          <p className="text-white/30 text-xs">&copy; {new Date().getFullYear()} Dink Authority Magazine. {t('footer.rights')}</p>
           <div className="flex items-center gap-4 text-white/30 text-xs">
             <span>Privacy Policy</span>
             <span>Terms of Use</span>

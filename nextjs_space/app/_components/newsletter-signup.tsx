@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 export default function NewsletterSignup() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -49,10 +51,10 @@ export default function NewsletterSignup() {
             <Mail size={28} className="text-brand-neon" />
           </div>
           <h2 className="text-3xl md:text-4xl font-heading font-bold text-white mb-3">
-            Stay in the Game
+            {t('newsletter.title')}
           </h2>
           <p className="text-white/70 mb-8 max-w-md mx-auto text-lg">
-            Get the latest pickleball news, tournament updates, and exclusive content delivered to your inbox.
+            {t('newsletter.subtitle')}
           </p>
           {status === 'success' ? (
             <div className="flex items-center justify-center gap-2 text-brand-neon bg-brand-neon/10 rounded-xl px-6 py-4 max-w-md mx-auto border border-brand-neon/20">
@@ -65,7 +67,7 @@ export default function NewsletterSignup() {
                 type="email"
                 value={email}
                 onChange={(e: any) => setEmail(e?.target?.value ?? '')}
-                placeholder="Enter your email address"
+                placeholder={t('newsletter.placeholder')}
                 required
                 className="flex-1 px-5 py-3.5 rounded-xl bg-white/10 text-white placeholder-white/40 border border-white/15 focus:border-brand-neon focus:outline-none focus:ring-2 focus:ring-brand-neon/20 backdrop-blur-sm"
               />
@@ -74,7 +76,7 @@ export default function NewsletterSignup() {
                 disabled={status === 'loading'}
                 className="px-8 py-3.5 bg-brand-neon text-brand-purple-dark font-bold rounded-xl hover:bg-brand-neon-dim transition-all disabled:opacity-50 shadow-lg shadow-brand-neon/20 uppercase tracking-wider text-sm"
               >
-                {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+                {status === 'loading' ? t('newsletter.subscribing') : t('newsletter.subscribe')}
               </button>
             </form>
           )}
@@ -84,7 +86,7 @@ export default function NewsletterSignup() {
               <span className="text-sm">{message}</span>
             </div>
           )}
-          <p className="text-white/40 text-xs mt-5">Your data is safe with us. We respect your privacy.</p>
+          <p className="text-white/40 text-xs mt-5">{t('newsletter.privacy')}</p>
         </motion.div>
       </div>
     </section>

@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Cookie, X } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 export default function CookieBanner() {
+  const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function CookieBanner() {
         <div className="flex items-center gap-3">
           <Cookie size={20} className="text-brand-neon flex-shrink-0" />
           <p className="text-white/70 text-sm">
-            We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
+            {t('cookie.message')}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -31,7 +33,7 @@ export default function CookieBanner() {
             onClick={handleAccept}
             className="px-6 py-2.5 bg-brand-neon text-brand-purple-dark font-bold text-sm rounded-lg hover:bg-brand-neon-dim transition-colors"
           >
-            Accept
+            {t('cookie.accept')}
           </button>
           <button onClick={handleAccept} className="p-2 text-white/40 hover:text-white transition-colors" aria-label="Close">
             <X size={18} />

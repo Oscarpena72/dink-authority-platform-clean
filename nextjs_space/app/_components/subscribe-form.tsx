@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 interface SubscribeFormProps {
   source: 'article' | 'footer';
@@ -11,6 +12,7 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,11 +64,11 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
   if (variant === 'footer') {
     return (
       <form onSubmit={handleSubmit} className="space-y-3">
-        <h3 className="font-heading font-bold text-white mb-2 uppercase text-sm tracking-wider">Stay Connected</h3>
-        <p className="text-white/50 text-sm mb-3">Get updates, new editions & event alerts.</p>
+        <h3 className="font-heading font-bold text-white mb-2 uppercase text-sm tracking-wider">{t('subscribe.stayConnected')}</h3>
+        <p className="text-white/50 text-sm mb-3">{t('subscribe.stayConnectedCta')}</p>
         <input
           type="email"
-          placeholder="Email address *"
+          placeholder={t('subscribe.emailPlaceholderShort')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -74,7 +76,7 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
         />
         <input
           type="tel"
-          placeholder="Phone (optional)"
+          placeholder={t('subscribe.phonePlaceholderShort')}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-brand-neon/50 transition-colors"
@@ -84,7 +86,7 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
           disabled={status === 'loading'}
           className="w-full py-2.5 bg-brand-neon text-brand-purple font-bold text-sm uppercase tracking-wider rounded-lg hover:brightness-110 transition-all disabled:opacity-50"
         >
-          {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+          {status === 'loading' ? t('subscribe.submitting') : t('subscribe.button')}
         </button>
         {status === 'error' && <p className="text-red-400 text-xs">{message}</p>}
       </form>
@@ -95,15 +97,15 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
   return (
     <div className="bg-brand-purple rounded-2xl p-8 md:p-10 my-10">
       <div className="max-w-lg mx-auto text-center">
-        <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-neon text-xs font-bold uppercase tracking-widest rounded mb-4">Don&apos;t miss out</span>
-        <h3 className="font-heading font-bold text-2xl md:text-3xl text-white mb-2">LOVE PICKLEBALL?</h3>
+        <span className="inline-block px-3 py-1 bg-brand-neon/15 text-brand-neon text-xs font-bold uppercase tracking-widest rounded mb-4">{t('subscribe.dontMiss')}</span>
+        <h3 className="font-heading font-bold text-2xl md:text-3xl text-white mb-2">{t('subscribe.lovePickleball')}</h3>
         <p className="text-white/60 text-sm md:text-base mb-6 leading-relaxed">
-          Get Dink Authority Magazine updates, new editions, pro stories and event alerts.
+          {t('subscribe.cta')}
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="email"
-            placeholder="Your email address *"
+            placeholder={t('subscribe.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -111,7 +113,7 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
           />
           <input
             type="tel"
-            placeholder="Phone number (optional)"
+            placeholder={t('subscribe.phonePlaceholder')}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className="w-full px-4 py-3 bg-white/10 border border-white/15 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-brand-neon/50 transition-colors text-sm"
@@ -121,11 +123,11 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
             disabled={status === 'loading'}
             className="w-full py-3.5 bg-brand-neon text-brand-purple font-bold text-sm uppercase tracking-wider rounded-xl hover:brightness-110 hover:shadow-[0_0_20px_rgba(57,255,20,0.3)] transition-all disabled:opacity-50"
           >
-            {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+            {status === 'loading' ? t('subscribe.submitting') : t('subscribe.button')}
           </button>
           {status === 'error' && <p className="text-red-400 text-xs mt-1">{message}</p>}
         </form>
-        <p className="text-white/30 text-xs mt-4">We respect your privacy. Unsubscribe anytime.</p>
+        <p className="text-white/30 text-xs mt-4">{t('subscribe.privacy')}</p>
       </div>
     </div>
   );

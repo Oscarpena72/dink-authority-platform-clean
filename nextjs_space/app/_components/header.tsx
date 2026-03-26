@@ -1,19 +1,22 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, Menu, X, Globe, Instagram, Facebook, Twitter, Youtube, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { LOCALE_LABELS, LOCALE_NAMES, Locale } from '@/lib/i18n/translations';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
-const NAV_ITEMS = [
-  { label: 'News', href: '/articles?category=news' },
-  { label: 'Pro Players', href: '/articles?category=pro-players' },
-  { label: 'Enthusiasts', href: '/articles?category=enthusiasts' },
-  { label: 'Results', href: '/articles?category=results' },
-  { label: 'Events', href: '/articles?category=events' },
-  { label: 'Gear', href: '/articles?category=gear' },
-  { label: 'Magazine', href: '/articles?category=magazine' },
-  { label: 'LATAM', href: '/articles?category=latam' },
+const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
+  { labelKey: 'nav.news', href: '/articles?category=news' },
+  { labelKey: 'nav.proPlayers', href: '/articles?category=pro-players' },
+  { labelKey: 'nav.enthusiasts', href: '/articles?category=enthusiasts' },
+  { labelKey: 'nav.results', href: '/articles?category=results' },
+  { labelKey: 'nav.events', href: '/articles?category=events' },
+  { labelKey: 'nav.gear', href: '/articles?category=gear' },
+  { labelKey: 'nav.magazine', href: '/articles?category=magazine' },
+  { labelKey: 'nav.latam', href: '/articles?category=latam' },
 ];
 
 const SOCIAL_LINKS = [
@@ -23,12 +26,27 @@ const SOCIAL_LINKS = [
   { icon: Youtube, href: '#', label: 'YouTube' },
 ];
 
+const LOCALES: Locale[] = ['en', 'es', 'pt'];
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { locale, setLocale, t } = useLanguage();
+
+  // Close lang dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,17 +70,27 @@ export default function Header() {
             ))}
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/contact" className="hidden sm:block text-white/70 hover:text-brand-neon transition-colors text-[11px] uppercase tracking-wider font-medium">Contact</Link>
-            <div className="relative">
+            <Link href="/contact" className="hidden sm:block text-white/70 hover:text-brand-neon transition-colors text-[11px] uppercase tracking-wider font-medium">{t('nav.contact')}</Link>
+            <div className="relative" ref={langRef}>
               <button onClick={() => setLangOpen(!langOpen)} className="flex items-center gap-1.5 hover:text-brand-neon transition-colors font-medium" aria-label="Language selector">
                 <Globe size={13} />
-                <span className="text-[11px] uppercase tracking-wider">EN</span>
+                <span className="text-[11px] uppercase tracking-wider">{LOCALE_LABELS[locale]}</span>
               </button>
               {langOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-brand-purple-light rounded-lg shadow-2xl z-50 border border-white/10 overflow-hidden">
-                  <button onClick={() => setLangOpen(false)} className="w-full px-4 py-2.5 text-left text-white font-semibold text-xs border-b border-white/10 bg-brand-neon/10 hover:bg-brand-neon/20">✓ English</button>
-                  <div className="px-4 py-2.5 text-white/40 text-xs cursor-not-allowed">Español (Coming soon)</div>
-                  <div className="px-4 py-2.5 text-white/40 text-xs cursor-not-allowed">Português (Coming soon)</div>
+                  {LOCALES.map((loc) => (
+                    <button
+                      key={loc}
+                      onClick={() => { setLocale(loc); setLangOpen(false); }}
+                      className={`w-full px-4 py-2.5 text-left text-xs font-semibold transition-colors ${
+                        locale === loc
+                          ? 'text-brand-neon bg-brand-neon/10'
+                          : 'text-white hover:bg-white/5 hover:text-brand-neon'
+                      }`}
+                    >
+                      {locale === loc ? '✓ ' : ''}{LOCALE_NAMES[loc]}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -88,7 +116,7 @@ export default function Header() {
                 <Search size={22} />
               </button>
               <a href="#newsletter" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-brand-neon-dim transition-all shadow-lg shadow-brand-neon/20">
-                Newsletter
+                {t('nav.newsletter')}
               </a>
               <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2.5 text-white hover:text-brand-neon transition-colors" aria-label="Menu">
                 {mobileOpen ? <X size={24} /> : <Menu size={24} />}
@@ -99,13 +127,13 @@ export default function Header() {
           {/* Navigation bar */}
           <nav className="hidden lg:block">
             <div className="flex items-center gap-0">
-              {NAV_ITEMS.map((item: any) => (
+              {NAV_ITEMS.map((item) => (
                 <Link
-                  key={item?.label}
-                  href={item?.href ?? '#'}
+                  key={item.labelKey}
+                  href={item.href}
                   className="relative px-4 py-3 text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group"
                 >
-                  {item?.label}
+                  {t(item.labelKey)}
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </Link>
               ))}
@@ -121,12 +149,12 @@ export default function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e: any) => setSearchQuery(e?.target?.value ?? '')}
-                placeholder="Search articles, players, events..."
+                placeholder={t('search.placeholder')}
                 className="flex-1 px-4 py-2.5 rounded-lg bg-brand-purple-light text-white placeholder-white/40 border border-white/15 focus:border-brand-neon focus:outline-none focus:ring-1 focus:ring-brand-neon/50"
                 autoFocus
               />
               <button type="submit" className="px-6 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-colors">
-                Search
+                {t('search.button')}
               </button>
             </form>
           </div>
@@ -136,14 +164,14 @@ export default function Header() {
         {mobileOpen && (
           <nav className="lg:hidden bg-brand-purple-dark border-t border-white/10">
             <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-0.5">
-              {NAV_ITEMS.map((item: any) => (
+              {NAV_ITEMS.map((item) => (
                 <Link
-                  key={item?.label}
-                  href={item?.href ?? '#'}
+                  key={item.labelKey}
+                  href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="px-4 py-3 text-white hover:text-brand-neon hover:bg-white/5 rounded-lg transition-all font-heading uppercase text-sm font-bold tracking-wide flex items-center justify-between"
                 >
-                  {item?.label}
+                  {t(item.labelKey)}
                   <ChevronRight size={16} className="text-white/30" />
                 </Link>
               ))}

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Zap } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 interface HeroStoryProps {
   article: {
@@ -21,6 +22,7 @@ interface HeroStoryProps {
 }
 
 export default function HeroStory({ article }: HeroStoryProps) {
+  const { t } = useLanguage();
   if (!article) return null;
   return (
     <section className="relative bg-brand-purple-dark overflow-hidden">
@@ -87,7 +89,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                     className="flex items-center gap-5"
                   >
                     <span className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg shadow-brand-neon/30 group-hover:shadow-brand-neon/50">
-                      Read Full Story <ArrowRight size={16} />
+                      {t('hero.readFullStory')} <ArrowRight size={16} />
                     </span>
                     {article?.authorName && (
                       <span className="text-white/50 text-sm font-medium">By {article.authorName}</span>
