@@ -7,6 +7,34 @@ const LANG_MAP: Record<string, string> = {
   pt: 'Brazilian Portuguese',
 };
 
+/** Strip markdown code fences and extract valid JSON from LLM output */
+function extractJSON(raw: string): string {
+  let s = raw.trim();
+  // Remove ```json ... ``` or ``` ... ``` wrappers
+  s = s.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
+  s = s.trim();
+  return s;
+}
+
+/** Safely parse JSON from LLM response with fallback extraction */
+function safeParseJSON(raw: string): any {
+  const cleaned = extractJSON(raw);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Try to find first { ... } or [ ... ] in the string
+    const objMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+      try { return JSON.parse(objMatch[0]); } catch { /* fall through */ }
+    }
+    const arrMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (arrMatch) {
+      try { return JSON.parse(arrMatch[0]); } catch { /* fall through */ }
+    }
+    return null;
+  }
+}
+
 async function callLLM(prompt: string, apiKey: string, maxTokens = 16000): Promise<string> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 120000); // 2 min timeout
@@ -38,6 +66,18 @@ async function callLLM(prompt: string, apiKey: string, maxTokens = 16000): Promi
     return data?.choices?.[0]?.message?.content ?? '';
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+/** Call LLM with one automatic retry on failure */
+async function callLLMWithRetry(prompt: string, apiKey: string, maxTokens = 16000): Promise<string> {
+  try {
+    return await callLLM(prompt, apiKey, maxTokens);
+  } catch (err) {
+    console.warn('[translate] First LLM attempt failed, retrying...', (err as Error)?.message);
+    // Wait 2s before retry
+    await new Promise(r => setTimeout(r, 2000));
+    return await callLLM(prompt, apiKey, maxTokens);
   }
 }
 
@@ -114,8 +154,14 @@ Excerpt: ${excerpt || ''}
 
 JSON format: {"title": "translated title", "excerpt": "translated excerpt"}`;
 
-      const raw = await callLLM(prompt, apiKey, 1000);
-      const translated = JSON.parse(raw);
+      const raw = await callLLMWithRetry(prompt, apiKey, 1000);
+      const translated = safeParseJSON(raw);
+
+      if (!translated || !translated.title) {
+        console.error('[translate] meta parse failed, raw:', raw.substring(0, 300));
+        return NextResponse.json({ error: 'Translation parsing failed' }, { status: 500 });
+      }
+
       const result = {
         title: translated.title || title,
         excerpt: translated.excerpt || excerpt || '',
@@ -153,8 +199,14 @@ ${content || ''}
 
 JSON format: {"content": "translated HTML content"}`;
 
-      const raw = await callLLM(prompt, apiKey, 16000);
-      const translated = JSON.parse(raw);
+      const raw = await callLLMWithRetry(prompt, apiKey, 16000);
+      const translated = safeParseJSON(raw);
+
+      if (!translated || !translated.content) {
+        console.error('[translate] content parse failed, raw:', raw.substring(0, 300));
+        return NextResponse.json({ error: 'Translation parsing failed' }, { status: 500 });
+      }
+
       const translatedContent = translated.content || content;
 
       // Update content in DB
@@ -196,33 +248,33 @@ Respond in this exact JSON format:
 
 Respond with raw JSON only. Do not include code blocks, markdown, or any other formatting.`;
 
-    const raw = await callLLM(prompt, apiKey, 16000);
+    const raw = await callLLMWithRetry(prompt, apiKey, 16000);
+    const translated = safeParseJSON(raw);
 
-    try {
-      const translated = JSON.parse(raw);
-      const result = {
-        title: translated.title || title,
-        excerpt: translated.excerpt || excerpt || '',
-        content: translated.content || content,
-      };
-
-      if (articleId) {
-        try {
-          await prisma.articleTranslation.upsert({
-            where: { articleId_locale: { articleId, locale } },
-            create: { articleId, locale, title: result.title, excerpt: result.excerpt, content: result.content },
-            update: { title: result.title, excerpt: result.excerpt, content: result.content },
-          });
-        } catch (err) {
-          console.error('Cache save error:', err);
-        }
-      }
-
-      return NextResponse.json({ ...result, cached: false });
-    } catch {
-      console.error('Failed to parse translation response:', raw.substring(0, 200));
+    if (!translated || !translated.title) {
+      console.error('[translate] full parse failed, raw:', raw.substring(0, 300));
       return NextResponse.json({ error: 'Translation parsing failed' }, { status: 500 });
     }
+
+    const result = {
+      title: translated.title || title,
+      excerpt: translated.excerpt || excerpt || '',
+      content: translated.content || content,
+    };
+
+    if (articleId) {
+      try {
+        await prisma.articleTranslation.upsert({
+          where: { articleId_locale: { articleId, locale } },
+          create: { articleId, locale, title: result.title, excerpt: result.excerpt, content: result.content },
+          update: { title: result.title, excerpt: result.excerpt, content: result.content },
+        });
+      } catch (err) {
+        console.error('Cache save error:', err);
+      }
+    }
+
+    return NextResponse.json({ ...result, cached: false });
   } catch (err: any) {
     console.error('Translation error:', err?.message || err);
     return NextResponse.json({ error: 'Translation failed' }, { status: 500 });

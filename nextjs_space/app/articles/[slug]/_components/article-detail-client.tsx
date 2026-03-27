@@ -165,8 +165,8 @@ function splitContentBlocks(html: string): string[] {
 }
 
 /* ── Translation Banner ── */
-function TranslationBanner({ isTranslating, isTranslated, translationError, showOriginal, onToggle, t }: {
-  isTranslating: boolean; isTranslated: boolean; translationError: boolean; showOriginal: boolean; onToggle: () => void; t: (key: any) => string;
+function TranslationBanner({ isTranslating, isTranslated, translationError, showOriginal, onToggle, onRetry, t }: {
+  isTranslating: boolean; isTranslated: boolean; translationError: boolean; showOriginal: boolean; onToggle: () => void; onRetry?: () => void; t: (key: any) => string;
 }) {
   if (!isTranslating && !isTranslated && !translationError) return null;
 
@@ -183,7 +183,17 @@ function TranslationBanner({ isTranslating, isTranslated, translationError, show
         </>
       )}
       {translationError && (
-        <span className="font-medium">{t('article.translationFailed')}</span>
+        <>
+          <span className="font-medium">{t('article.translationFailed')}</span>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-md bg-white border border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
+            >
+              ↻ {t('article.retryTranslation') || 'Retry'}
+            </button>
+          )}
+        </>
       )}
       {isTranslated && !isTranslating && (
         <>
@@ -365,6 +375,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                 translationError={translationError}
                 showOriginal={showOriginal}
                 onToggle={() => setShowOriginal((v) => !v)}
+                onRetry={fetchTranslation}
                 t={t}
               />
               {/* Content still translating indicator */}

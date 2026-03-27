@@ -99,6 +99,7 @@ const translations = {
   'article.translating': { en: 'Translating...', es: 'Traduciendo...', pt: 'Traduzindo...' },
   'article.translatingContent': { en: 'Translating article content...', es: 'Traduciendo contenido del artículo...', pt: 'Traduzindo conteúdo do artigo...' },
   'article.translationFailed': { en: 'Translation unavailable', es: 'Traducción no disponible', pt: 'Tradução não disponível' },
+  'article.retryTranslation': { en: 'Retry', es: 'Reintentar', pt: 'Tentar novamente' },
   'article.viewOriginal': { en: 'View Original', es: 'Ver original', pt: 'Ver original' },
   'article.translated': { en: 'Translated', es: 'Traducido', pt: 'Traduzido' },
 
