@@ -3,28 +3,33 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import { motion } from 'framer-motion';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
-const CATEGORIES = [
-  { value: '', label: 'All Tips' },
-  { value: 'technique', label: 'Technique' },
-  { value: 'strategy', label: 'Strategy' },
-  { value: 'fitness', label: 'Fitness' },
-  { value: 'mental-game', label: 'Mental Game' },
-  { value: 'equipment', label: 'Equipment' },
+const CATEGORIES: { value: string; labelKey: TranslationKey }[] = [
+  { value: '', labelKey: 'tips.cat.all' },
+  { value: 'technique', labelKey: 'tips.cat.technique' },
+  { value: 'strategy', labelKey: 'tips.cat.strategy' },
+  { value: 'fitness', labelKey: 'tips.cat.fitness' },
+  { value: 'mental-game', labelKey: 'tips.cat.mentalGame' },
+  { value: 'equipment', labelKey: 'tips.cat.equipment' },
 ];
 
 export default function TipsPageClient({ tips, category, bannerData }: { tips: any[]; category: string; bannerData?: any }) {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState(category || '');
 
+  // Translate tip titles and excerpts for non-EN locales
+  const translatedTips = useTranslatedArticles(tips ?? []);
+
   const filtered = activeCategory
-    ? (tips ?? []).filter((tip: any) => tip?.category === activeCategory)
-    : tips ?? [];
+    ? (translatedTips ?? []).filter((tip: any) => tip?.category === activeCategory)
+    : translatedTips ?? [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -69,7 +74,7 @@ export default function TipsPageClient({ tips, category, bannerData }: { tips: a
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {cat.label}
+                {t(cat.labelKey)}
               </button>
             ))}
           </div>
@@ -80,7 +85,7 @@ export default function TipsPageClient({ tips, category, bannerData }: { tips: a
       <section className="max-w-7xl mx-auto px-4 py-12">
         {filtered.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No tips available yet. Check back soon!</p>
+            <p className="text-gray-500 text-lg">{t('tips.noTips')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

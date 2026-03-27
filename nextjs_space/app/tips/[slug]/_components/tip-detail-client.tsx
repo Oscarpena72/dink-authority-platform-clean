@@ -3,10 +3,11 @@ import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, User, ArrowLeft, ArrowRight, Share2, Facebook, Linkedin, Mail, Link2, Copy, Check,
-  X as XIcon, ChevronLeft, ChevronRight, Play, ExternalLink, Instagram
+  X as XIcon, ChevronLeft, ChevronRight, Play, ExternalLink, Instagram, Globe, Eye, Loader2
 } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
@@ -172,7 +173,7 @@ function BannerAd({ image, link, label }: { image?: string | null; link?: string
 }
 
 /** Fixed banner for the latest magazine edition — always shows if available */
-function LatestEditionBanner({ edition }: { edition: any }) {
+function LatestEditionBanner({ edition, t }: { edition: any; t?: (key: any) => string }) {
   if (!edition?.coverUrl) return null;
   return (
     <div className="my-8">
@@ -182,10 +183,10 @@ function LatestEditionBanner({ edition }: { edition: any }) {
             <Image src={edition.coverUrl} alt={edition.title || 'Latest Edition'} fill className="object-cover" sizes="96px" />
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-brand-neon">Latest Edition</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-brand-neon">{t?.('tips.latestEdition') || 'Latest Edition'}</span>
             <h4 className="text-base md:text-lg font-heading font-bold text-brand-purple mt-1 line-clamp-2">{edition.title}</h4>
             <span className="inline-flex items-center gap-1 text-sm text-brand-purple font-semibold mt-2 hover:gap-2 transition-all">
-              Read Now <ArrowRight size={14} />
+              {t?.('tips.readNow') || 'Read Now'} <ArrowRight size={14} />
             </span>
           </div>
         </div>
@@ -194,8 +195,56 @@ function LatestEditionBanner({ edition }: { edition: any }) {
   );
 }
 
+/* ── Translation Banner ── */
+function TipTranslationBanner({ isTranslating, isTranslated, translationError, showOriginal, onToggle, onRetry, t }: {
+  isTranslating: boolean; isTranslated: boolean; translationError: boolean; showOriginal: boolean; onToggle: () => void; onRetry?: () => void; t: (key: any) => string;
+}) {
+  if (!isTranslating && !isTranslated && !translationError) return null;
+
+  return (
+    <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg mb-6 text-sm ${
+      isTranslating ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+      translationError ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+      'bg-brand-neon/10 text-brand-purple border border-brand-neon/30'
+    }`}>
+      {isTranslating && (
+        <>
+          <Loader2 size={16} className="animate-spin flex-shrink-0" />
+          <span className="font-medium">{t('tips.translating')}</span>
+        </>
+      )}
+      {translationError && (
+        <>
+          <span className="font-medium">{t('tips.translationFailed')}</span>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-md bg-white border border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
+            >
+              ↻ Retry
+            </button>
+          )}
+        </>
+      )}
+      {isTranslated && !isTranslating && (
+        <>
+          <Globe size={16} className="flex-shrink-0" />
+          <span className="font-medium">{t('tips.translated')}</span>
+          <button
+            onClick={onToggle}
+            className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-md bg-white border border-brand-gray text-brand-purple text-xs font-semibold hover:bg-brand-gray transition-colors"
+          >
+            <Eye size={13} />
+            {showOriginal ? t('tips.translated') : t('tips.viewOriginal')}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function TipDetailClient({ tip, related, latestEdition, bannerData }: { tip: any; related: any[]; latestEdition?: any; bannerData?: any }) {
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   React.useEffect(() => setMounted(true), []);
 
@@ -208,9 +257,99 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
     gallery = [];
   }
 
+  // ── Translation state — 2-phase: meta (title+excerpt) then content ──
+  const [translatedMeta, setTranslatedMeta] = useState<{ title: string; excerpt: string } | null>(null);
+  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
+  const [isTranslatingMeta, setIsTranslatingMeta] = useState(false);
+  const [isTranslatingContent, setIsTranslatingContent] = useState(false);
+  const [translationError, setTranslationError] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  const fetchTranslation = useCallback(async () => {
+    if (locale === 'en' || !tip?.id) {
+      setTranslatedMeta(null);
+      setTranslatedContent(null);
+      setTranslationError(false);
+      return;
+    }
+
+    setTranslationError(false);
+    setShowOriginal(false);
+
+    // Phase 1: meta (title + excerpt) — fast ~3s
+    setIsTranslatingMeta(true);
+    try {
+      const metaRes = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          articleId: tip.id,
+          title: tip.title,
+          excerpt: tip.excerpt || '',
+          content: tip.content,
+          locale,
+          phase: 'meta',
+        }),
+      });
+      if (!metaRes.ok) throw new Error('Meta translation failed');
+      const metaData = await metaRes.json();
+      if (metaData.content) {
+        setTranslatedMeta({ title: metaData.title, excerpt: metaData.excerpt });
+        setTranslatedContent(metaData.content);
+        setIsTranslatingMeta(false);
+        return;
+      }
+      setTranslatedMeta({ title: metaData.title, excerpt: metaData.excerpt });
+      setIsTranslatingMeta(false);
+    } catch {
+      setIsTranslatingMeta(false);
+      setTranslationError(true);
+      return;
+    }
+
+    // Phase 2: content (HTML body) — slower ~15-40s
+    setIsTranslatingContent(true);
+    try {
+      const contentRes = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          articleId: tip.id,
+          title: tip.title,
+          excerpt: tip.excerpt || '',
+          content: tip.content,
+          locale,
+          phase: 'content',
+        }),
+      });
+      if (!contentRes.ok) throw new Error('Content translation failed');
+      const contentData = await contentRes.json();
+      setTranslatedContent(contentData.content);
+    } catch {
+      console.error('Content translation failed, showing translated title/excerpt with original content');
+    } finally {
+      setIsTranslatingContent(false);
+    }
+  }, [locale, tip?.id, tip?.title, tip?.excerpt, tip?.content]);
+
+  React.useEffect(() => {
+    fetchTranslation();
+  }, [fetchTranslation]);
+
+  // Determine displayed content
+  const isTranslating = isTranslatingMeta || isTranslatingContent;
+  const hasMetaTranslation = !!translatedMeta && locale !== 'en';
+  const hasContentTranslation = !!translatedContent && locale !== 'en';
+  const isTranslated = hasMetaTranslation;
+  const displayTitle = (hasMetaTranslation && !showOriginal) ? translatedMeta!.title : (tip?.title ?? '');
+  const displayExcerpt = (hasMetaTranslation && !showOriginal) ? (translatedMeta!.excerpt || tip?.excerpt) : (tip?.excerpt ?? '');
+  const displayContent = (hasContentTranslation && !showOriginal) ? translatedContent! : (tip?.content ?? '');
+
+  // Translate related tips
+  const translatedRelated = useTranslatedArticles(related ?? []);
+
   // Split content into 3 parts for banner interleaving
-  const fullContent = tip?.content ?? '';
-  const contentParts = splitContent(fullContent, 3);
+  const contentParts = splitContent(displayContent, 3);
 
   return (
     <div className="min-h-screen bg-white">
@@ -220,7 +359,7 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
       <section className="relative">
         {tip?.featuredImage && (
           <div className="relative w-full aspect-[16/10] sm:aspect-[16/8] md:aspect-[16/7] max-h-[65vh] overflow-hidden">
-            <Image src={tip.featuredImage} alt={tip?.title ?? ''} fill className="object-cover" priority sizes="100vw" />
+            <Image src={tip.featuredImage} alt={displayTitle} fill className="object-cover" priority sizes="100vw" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           </div>
         )}
@@ -230,10 +369,10 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
               {tip?.category ?? 'tip'}
             </span>
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-heading font-black text-white mb-3 md:mb-4 leading-tight">
-              {tip?.title ?? ''}
+              {displayTitle}
             </h1>
-            {tip?.excerpt && (
-              <p className="text-white/80 text-base md:text-xl max-w-3xl line-clamp-3 md:line-clamp-none">{tip.excerpt}</p>
+            {displayExcerpt && (
+              <p className="text-white/80 text-base md:text-xl max-w-3xl line-clamp-3 md:line-clamp-none">{displayExcerpt}</p>
             )}
           </div>
         </div>
@@ -262,9 +401,22 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
                 {new Date(tip.publishDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </span>
             )}
-            <ShareButtons url={currentUrl} title={tip?.title ?? ''} />
+            <ShareButtons url={currentUrl} title={displayTitle} />
           </div>
         </div>
+      </div>
+
+      {/* Translation Banner */}
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <TipTranslationBanner
+          isTranslating={isTranslating}
+          isTranslated={isTranslated}
+          translationError={translationError}
+          showOriginal={showOriginal}
+          onToggle={() => setShowOriginal(!showOriginal)}
+          onRetry={fetchTranslation}
+          t={t}
+        />
       </div>
 
       {/* Content with interleaved banners */}
@@ -274,21 +426,21 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
         )}
 
         {/* Banner 1: Fixed — Latest Magazine Edition (inamovible) */}
-        <LatestEditionBanner edition={latestEdition} />
+        <LatestEditionBanner edition={latestEdition} t={t} />
 
         {contentParts[1] && (
           <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[1] }} />
         )}
 
         {/* Banner 2: Editable from admin */}
-        <BannerAd image={tip?.banner2Image} link={tip?.banner2Link} label="Sponsored" />
+        <BannerAd image={tip?.banner2Image} link={tip?.banner2Link} label={t('common.ad')} />
 
         {contentParts[2] && (
           <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[2] }} />
         )}
 
         {/* Banner 3: Editable from admin */}
-        <BannerAd image={tip?.banner3Image} link={tip?.banner3Link} label="Sponsored" />
+        <BannerAd image={tip?.banner3Image} link={tip?.banner3Link} label={t('common.ad')} />
 
         {/* YouTube Embed */}
         {videoId && (
@@ -325,14 +477,14 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
       </article>
 
       {/* Related Tips */}
-      {(related ?? []).length > 0 && (
+      {(translatedRelated ?? []).length > 0 && (
         <section className="bg-gray-50 py-12">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-2xl font-heading font-bold text-brand-purple mb-8">
               {t('tips.relatedTips')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {(related ?? []).map((r: any) => (
+              {(translatedRelated ?? []).map((r: any) => (
                 <Link key={r?.id} href={`/tips/${r?.slug ?? ''}`} className="group block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <div className="relative aspect-video bg-gray-100">
                     {r?.featuredImage && <Image src={r.featuredImage} alt={r?.title ?? ''} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, 33vw" />}
@@ -352,7 +504,7 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Link href="/tips" className="inline-flex items-center gap-2 text-brand-purple hover:text-brand-purple-light font-semibold transition-colors">
           <ArrowLeft size={18} />
-          Back to Tips
+          {t('tips.backToTips')}
         </Link>
       </div>
       </main>
