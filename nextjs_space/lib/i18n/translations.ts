@@ -167,7 +167,18 @@ const translations = {
   'cookie.accept': { en: 'Accept', es: 'Aceptar', pt: 'Aceitar' },
 
   // Shop
+  'nav.tips': { en: 'Tips', es: 'Tips', pt: 'Dicas' },
   'nav.shop': { en: 'Shop', es: 'Tienda', pt: 'Loja' },
+  'tips.title': { en: 'Pro Tips', es: 'Tips Pro', pt: 'Dicas Pro' },
+  'tips.subtitle': { en: 'Expert advice from professional players and coaches', es: 'Consejos expertos de jugadoras y entrenadoras profesionales', pt: 'Conselhos de jogadoras e treinadoras profissionais' },
+  'tips.readTip': { en: 'Read Tip', es: 'Leer Tip', pt: 'Ler Dica' },
+  'tips.by': { en: 'By', es: 'Por', pt: 'Por' },
+  'tips.watchMore': { en: 'Watch more on YouTube', es: 'Ver más en YouTube', pt: 'Veja mais no YouTube' },
+  'tips.shareTitle': { en: 'Share this tip', es: 'Compartir este tip', pt: 'Compartilhar esta dica' },
+  'tips.copyLink': { en: 'Copy Link', es: 'Copiar enlace', pt: 'Copiar link' },
+  'tips.copied': { en: 'Copied!', es: '¡Copiado!', pt: 'Copiado!' },
+  'tips.gallery': { en: 'Gallery', es: 'Galería', pt: 'Galeria' },
+  'tips.relatedTips': { en: 'More Tips', es: 'Más Tips', pt: 'Mais Dicas' },
   'shop.title': { en: 'Shop', es: 'Tienda', pt: 'Loja' },
   'shop.subtitle': { en: 'Official Dink Authority merchandise and gear', es: 'Merchandise y equipamiento oficial de Dink Authority', pt: 'Produtos e equipamentos oficiais da Dink Authority' },
   'shop.viewProduct': { en: 'View Product', es: 'Ver Producto', pt: 'Ver Produto' },

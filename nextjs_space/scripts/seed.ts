@@ -335,6 +335,147 @@ async function main() {
   }
   console.log(`${PRODUCTS.length} demo products seeded`);
 
+  // ── Tip Authors ──
+  const TIP_AUTHORS = [
+    {
+      name: 'Domenika Turkovic',
+      slug: 'domenika-turkovic',
+      photoUrl: 'https://www.croatiaweek.com/wp-content/uploads/2025/06/810de4eb-bdc2-42da-a880-2eb6fcd5b1c0.jpeg?x20603',
+      bio: 'Croatian pickleball champion and IPTPA-certified coach specializing in dink strategy and soft game mastery.',
+    },
+    {
+      name: 'Lorena Duknic',
+      slug: 'lorena-duknic',
+      photoUrl: 'https://pickleballcroatia.com/wp-content/uploads/2024/11/Snapinsta.app_462465709_1556043648325268_813180944037166130_n_1080.jpg',
+      bio: 'Professional pickleball player from Croatia, doubles specialist, and ambassador for pickleball growth in LATAM and Europe.',
+    },
+    {
+      name: 'Dalia Garza',
+      slug: 'dalia-garza',
+      photoUrl: 'https://teachme.to/_next/image?url=https%3A%2F%2Fmedia.teachme.to%2Fhttps%3A%2F%2Fngzrkxhrgwvawcdlsfnb.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fmedia%2Fusers%2F1743998629998_cropped_avatar.jpg%3Ftr%3Dw-720%252Cq-80&w=3840&q=75',
+      bio: 'Certified pickleball instructor based in Mexico, focusing on footwork fundamentals and fitness conditioning for competitive players.',
+    },
+    {
+      name: 'Dink Authority Team',
+      slug: 'dink-authority-team',
+      photoUrl: 'https://img.freepik.com/premium-vector/pickleball-sport-academy-logo-with-team-design_867408-212.jpg?semt=ais_hybrid&w=740&q=80',
+      bio: 'The editorial team behind Dink Authority Magazine — curating the best tips, drills, and insights from the world of professional pickleball.',
+    },
+  ];
+
+  for (const author of TIP_AUTHORS) {
+    await prisma.tipAuthor.upsert({
+      where: { slug: author.slug },
+      update: {},
+      create: author,
+    });
+  }
+  console.log(`${TIP_AUTHORS.length} tip authors seeded`);
+
+  // ── Tips ──
+  const tipAuthors = await prisma.tipAuthor.findMany();
+  const getAuthorId = (slug: string) => tipAuthors.find((a: any) => a.slug === slug)?.id ?? null;
+
+  const TIPS = [
+    {
+      title: 'Mastering the Kitchen Dink: The Foundation of Smart Pickleball',
+      slug: 'mastering-kitchen-dink-foundation',
+      excerpt: 'Learn why the dink shot is the most important weapon in your pickleball arsenal and how to execute it with precision every time.',
+      featuredImage: 'https://i.ytimg.com/vi/R5bFJthuIBI/maxresdefault.jpg',
+      authorId: getAuthorId('domenika-turkovic'),
+      publishDate: new Date('2026-03-20'),
+      category: 'technique',
+      content: `<p>The dink is not just a shot — it's a philosophy. In competitive pickleball, the player who controls the kitchen line controls the game. Whether you're a 3.5 player looking to break through or a 5.0 tournament competitor, your dink game is the foundation everything else is built upon.</p><h2>Why the Dink Matters</h2><p>At the highest levels, rallies are won and lost at the non-volley zone. The ability to place soft, precise shots just over the net forces your opponents into uncomfortable positions, creating openings for put-away volleys and erne opportunities.</p><p>Think of the dink as a chess move — each shot should have purpose and intention. You're not just keeping the ball in play; you're manipulating your opponent's positioning, balance, and timing.</p><h2>The Perfect Dink Technique</h2><p>Start with a continental grip, keeping your wrist firm but relaxed. The power comes from your shoulder, not your wrist. Bend your knees to get low — the lower your center of gravity, the more control you'll have over the ball's trajectory.</p><p>Contact the ball in front of your body, using a gentle lifting motion. The paddle face should be slightly open (tilted upward) at the moment of contact. Follow through toward your target, keeping the motion smooth and controlled.</p><h2>Common Mistakes to Avoid</h2><p>The biggest mistake recreational players make is using too much wrist. This leads to inconsistency and unforced errors. Another common error is standing too upright — you need to be in an athletic stance with knees bent and weight on the balls of your feet.</p><p>Practice dinking cross-court before attempting straight-ahead dinks. Cross-court dinks give you more margin for error because the net is lower in the middle and the distance is longer.</p>`,
+      galleryImages: JSON.stringify([
+        'https://i.ytimg.com/vi/-tCvbHktXMc/sddefault.jpg',
+        'https://img.tennis-warehouse.com/watermark/rsg.php?path=/content_images/Best_Shot_Series/PIC-10.10.23-R-Selkirk-Luxx-Air-Control-10.jpg&nw=780',
+        'https://i.ytimg.com/vi/63yN_-BWc3Q/sddefault.jpg',
+      ]),
+      youtubeUrl: 'https://www.youtube.com/watch?v=R5bFJthuIBI',
+      videoCtaText: 'Watch the full dinking masterclass',
+      videoCtaLink: 'https://www.youtube.com/watch?v=R5bFJthuIBI',
+      status: 'published',
+      language: 'en',
+      metaTitle: 'Master the Kitchen Dink Shot | Pro Pickleball Tips',
+      metaDescription: 'Expert guide to mastering the dink shot in pickleball. Learn proper technique, common mistakes, and drills from pro players.',
+    },
+    {
+      title: 'Doubles Strategy: How to Dominate the Net with Your Partner',
+      slug: 'doubles-strategy-dominate-net',
+      excerpt: 'Discover the key positioning strategies and communication techniques that separate winning doubles teams from the rest.',
+      featuredImage: 'https://www.rockstaracademy.com/lib/images/news/A%20Guide%20for%20Pickleball%20Doubles.jpg',
+      authorId: getAuthorId('lorena-duknic'),
+      publishDate: new Date('2026-03-15'),
+      category: 'strategy',
+      content: `<p>Doubles pickleball is a team sport, and the best teams aren't always made up of the best individual players. What sets championship doubles teams apart is their ability to move as a unit, communicate effectively, and execute a shared game plan.</p><h2>The Stacking Advantage</h2><p>Stacking is one of the most effective strategies in doubles pickleball. By keeping your stronger forehand player in the middle of the court, you maximize your team's offensive potential. When done correctly, stacking can neutralize your opponents' strongest shots and create confusion about who covers which area of the court.</p><p>To execute a basic stack, both players start on the same side of the court. After the serve or return, the non-hitting player slides to their preferred position. Communication is key — use verbal cues like "switch" or "stay" to coordinate movements.</p><h2>The Third Shot Drop vs. Drive Decision</h2><p>One of the most debated topics in doubles strategy is when to drop and when to drive. The answer depends on several factors: your position on the court, your opponents' positioning, the quality of the return, and your team's strengths.</p><p>As a general rule, if the return is deep and your opponents are at the kitchen line, a drop shot is usually the safer play. If the return is short or your opponents are caught in transition, a well-placed drive can be devastating.</p><h2>Communication Systems</h2><p>Develop a simple communication system with your partner. Call "mine" or "yours" on every ball in the middle. Use hand signals behind your back on serve to coordinate poaching. And always, always talk between points about what's working and what needs adjustment.</p>`,
+      galleryImages: JSON.stringify([
+        'https://us-west-2.graphassets.com/cm09r96wy0qax07ln5vscfbra/cm4hi84nq6w5p07n4oi4dlz4j',
+        'https://thumbs.dreamstime.com/b/aerial-view-pickleball-games-suburban-court-players-drone-footage-racket-sports-370842799.jpg',
+      ]),
+      youtubeUrl: 'https://www.youtube.com/watch?v=jBSdLwGJzec',
+      videoCtaText: 'Full doubles strategy breakdown',
+      videoCtaLink: 'https://www.youtube.com/watch?v=jBSdLwGJzec',
+      status: 'published',
+      language: 'en',
+      metaTitle: 'Doubles Strategy Guide for Pickleball | Dink Authority',
+      metaDescription: 'Learn winning doubles pickleball strategies including stacking, third shot decisions, and partner communication from pro players.',
+    },
+    {
+      title: 'The Ultimate Serve Technique: Power, Spin, and Placement',
+      slug: 'ultimate-serve-technique-power-spin',
+      excerpt: 'Break down the mechanics of a devastating serve that combines power, spin, and strategic placement to start every point with an advantage.',
+      featuredImage: 'https://i.ytimg.com/vi/n1i9r64JjL0/maxresdefault.jpg',
+      authorId: getAuthorId('dalia-garza'),
+      publishDate: new Date('2026-03-10'),
+      category: 'technique',
+      content: `<p>The serve is the only shot in pickleball where you have complete control over the ball. Yet many players treat it as an afterthought, content with simply getting the ball over the net and into play. A well-crafted serve can give you an immediate tactical advantage.</p><h2>The Three Types of Serves</h2><p><strong>The Power Serve:</strong> Hit with a full arm swing and follow-through, the power serve aims to push your opponent deep behind the baseline. The key is to contact the ball at the lowest legal point (below the waist) and drive upward through the ball with maximum paddle speed.</p><p><strong>The Spin Serve:</strong> While the rules have evolved regarding pre-spin serves, you can still generate significant topspin and sidespin through your paddle motion at contact. A topspin serve bounces higher and kicks forward, while a sidespin serve curves laterally, pulling your opponent off-court.</p><p><strong>The Soft Serve:</strong> Don't underestimate the soft, deep serve. Changing pace keeps your opponents guessing and disrupts their return rhythm. A well-placed soft serve to the backhand can be just as effective as a power serve.</p><h2>Placement Over Power</h2><p>The most effective servers don't always hit the hardest. They hit to specific targets: deep to the backhand, short to the forehand, wide to pull opponents off-court, or right at the body to jam the return.</p><p>Practice serving to specific zones on the court. Set up targets (cones, towels, or water bottles) and aim for them during your warm-up. Consistent placement under pressure is what separates good servers from great ones.</p>`,
+      galleryImages: JSON.stringify([
+        'https://media.istockphoto.com/id/1685938138/photo/pickleball-paddle-and-yellow-ball-close-up-woman-playing-pickleball-game-hitting-pickleball.jpg?s=612x612&w=0&k=20&c=PDar2xSNNRJpV84HqpuWq0jNfJJg4v__XwD5Pmk5BQ4=',
+      ]),
+      youtubeUrl: 'https://www.youtube.com/watch?v=n1i9r64JjL0',
+      videoCtaText: 'Watch the complete serve tutorial',
+      videoCtaLink: 'https://www.youtube.com/watch?v=n1i9r64JjL0',
+      status: 'published',
+      language: 'en',
+      metaTitle: 'Ultimate Pickleball Serve Guide | Power, Spin & Placement',
+      metaDescription: 'Master your pickleball serve with this guide covering power, spin, and placement techniques used by professional players.',
+    },
+    {
+      title: 'Footwork Fundamentals: Move Like a Pro on the Court',
+      slug: 'footwork-fundamentals-move-like-pro',
+      excerpt: 'Your feet are the secret weapon most players neglect. Learn the footwork patterns that will transform your movement and court coverage.',
+      featuredImage: 'https://i.ytimg.com/vi/jBSdLwGJzec/maxresdefault.jpg',
+      authorId: getAuthorId('dink-authority-team'),
+      publishDate: new Date('2026-03-05'),
+      category: 'fitness',
+      content: `<p>Ask any professional pickleball player what the most underrated skill in the game is, and most will say footwork. You can have the best hands in the world, but if you can't get into position efficiently, you'll never reach your full potential.</p><h2>The Split Step</h2><p>The split step is the foundation of all good movement in pickleball. Just before your opponent contacts the ball, perform a small hop or split with your feet shoulder-width apart. This loads your muscles like springs, ready to explode in any direction.</p><p>Timing is everything with the split step. Too early and you'll be flat-footed when the ball arrives. Too late and you won't have time to react. Practice by watching your opponent's paddle, not the ball — the paddle tells you where the ball is going before it gets there.</p><h2>Lateral Movement</h2><p>Most movement in pickleball is lateral (side-to-side). Use shuffle steps to move along the kitchen line, keeping your feet wide and your center of gravity low. Never cross your feet — this puts you off-balance and makes it difficult to change direction quickly.</p><p>For longer distances, use a crossover step to cover ground quickly, then finish with shuffle steps to stabilize before hitting the ball.</p><h2>The Transition Zone</h2><p>The area between the baseline and the kitchen line is called the transition zone, and it's where most points are lost. The key to navigating this zone is to move forward in controlled bursts, split-stepping after each shot to maintain balance and readiness.</p><p>Never run through the transition zone in a straight line. Move forward at an angle, always staying balanced and ready to handle whatever your opponent throws at you.</p>`,
+      galleryImages: JSON.stringify([
+        'https://i.ytimg.com/vi/63yN_-BWc3Q/sddefault.jpg',
+        'https://lh3.googleusercontent.com/Vk7DsLYFEOkXS9EgDCu_w4BSPS9MTmxNy2I81PZDbRZyo2sGP4pIpaWgpWG0rmW62KMWJYs7KPc__4ZEuHVklFStEF4lfNg3SZH_zd6eC5Cn0kFgJ4GedqKKUnxN1kD9JFRaNnw4tMhFkWexBTOdKDVmS5jyq0EIRKmWsYXSv8lx4B9-e-jpTX_-sTtXJw',
+        'https://thumbs.dreamstime.com/b/aerial-view-pickleball-games-suburban-court-players-drone-footage-racket-sports-370842799.jpg',
+      ]),
+      youtubeUrl: 'https://www.youtube.com/watch?v=jBSdLwGJzec',
+      videoCtaText: 'Complete footwork training program',
+      videoCtaLink: 'https://www.youtube.com/watch?v=jBSdLwGJzec',
+      status: 'published',
+      language: 'en',
+      metaTitle: 'Pickleball Footwork Fundamentals | Move Like a Pro',
+      metaDescription: 'Transform your court movement with these essential footwork drills and techniques used by professional pickleball players.',
+    },
+  ];
+
+  for (const tip of TIPS) {
+    const { authorId, ...tipData } = tip;
+    const createData: any = { ...tipData };
+    if (authorId) createData.author = { connect: { id: authorId } };
+    await prisma.tip.upsert({
+      where: { slug: tip.slug },
+      update: {},
+      create: createData,
+    });
+  }
+  console.log(`${TIPS.length} demo tips seeded`);
+
   console.log('Seeding complete!');
 }
 

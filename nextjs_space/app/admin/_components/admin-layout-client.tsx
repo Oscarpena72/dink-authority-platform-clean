@@ -6,12 +6,14 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard, FileText, Calendar, Image as ImageIcon,
-  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag
+  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Lightbulb, UserCheck
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Articles', href: '/admin/articles', icon: FileText },
+  { label: 'Tips', href: '/admin/tips', icon: Lightbulb },
+  { label: 'Tip Authors', href: '/admin/tips/authors', icon: UserCheck },
   { label: 'Homepage', href: '/admin/homepage', icon: Home },
   { label: 'Events', href: '/admin/events', icon: Calendar },
   { label: 'Results', href: '/admin/results', icon: Trophy },

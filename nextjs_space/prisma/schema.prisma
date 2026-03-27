@@ -199,6 +199,52 @@ model Product {
   @@index([category])
 }
 
+model TipAuthor {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  photoUrl  String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tips      Tip[]
+
+  @@index([slug])
+}
+
+model Tip {
+  id              String     @id @default(cuid())
+  title           String
+  slug            String     @unique
+  excerpt         String?
+  featuredImage   String?
+  authorId        String
+  author          TipAuthor  @relation(fields: [authorId], references: [id])
+  publishDate     DateTime?
+  category        String?
+  content         String
+  galleryImages   String     @default("[]")
+  banner1Image    String?
+  banner1Link     String?
+  banner2Image    String?
+  banner2Link     String?
+  banner3Image    String?
+  banner3Link     String?
+  youtubeUrl      String?
+  videoCtaText    String?
+  videoCtaLink    String?
+  status          String     @default("draft")
+  language        String     @default("en")
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([authorId])
+  @@index([status, publishDate])
+  @@index([slug])
+}
+
 model MagazineEdition {
   id           String   @id @default(cuid())
   title        String

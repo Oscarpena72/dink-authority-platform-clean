@@ -11,6 +11,7 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.news', href: '/articles?category=news' },
   { labelKey: 'nav.proPlayers', href: '/articles?category=pro-players' },
+  { labelKey: 'nav.tips', href: '/tips' },
   { labelKey: 'nav.enthusiasts', href: '/articles?category=enthusiasts' },
   { labelKey: 'nav.results', href: '/articles?category=results' },
   { labelKey: 'nav.events', href: '/articles?category=events' },
