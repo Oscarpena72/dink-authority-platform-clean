@@ -176,10 +176,16 @@ export default function TipFormClient({ tip }: TipFormProps) {
 
           {/* Banners */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-brand-purple mb-4">📌 Banner Ads (3 slots)</h3>
-            {[1, 2, 3].map((n) => (
+            <h3 className="text-sm font-semibold text-brand-purple mb-4">📌 Banners (3 slots within article)</h3>
+            {/* Banner 1: Fixed — latest magazine edition (automatic) */}
+            <div className="mb-4 p-3 bg-brand-purple/5 rounded-lg border border-brand-purple/10">
+              <p className="text-xs font-semibold text-brand-purple mb-1">Banner 1 — Latest Edition (fixed)</p>
+              <p className="text-[11px] text-gray-500">This banner is generated automatically from the current magazine edition. It cannot be edited per tip.</p>
+            </div>
+            {/* Banner 2 and 3: Editable */}
+            {[2, 3].map((n) => (
               <div key={n} className="mb-4 last:mb-0">
-                <p className="text-xs text-gray-500 font-semibold mb-2">Banner {n}</p>
+                <p className="text-xs text-gray-500 font-semibold mb-2">Banner {n} — Editable</p>
                 <div className="grid grid-cols-2 gap-3">
                   <input name={`banner${n}Image`} value={(form as any)[`banner${n}Image`]} onChange={handleChange} className="px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="Banner image URL" />
                   <input name={`banner${n}Link`} value={(form as any)[`banner${n}Link`]} onChange={handleChange} className="px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="Click-through URL" />

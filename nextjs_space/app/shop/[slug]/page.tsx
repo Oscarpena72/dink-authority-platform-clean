@@ -22,11 +22,32 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const product = await prisma.product.findUnique({ where: { slug: params.slug } });
   if (!product || !product.isActive) return notFound();
 
-  const relatedProducts = await prisma.product.findMany({
-    where: { isActive: true, category: product.category, NOT: { id: product.id } },
-    take: 4,
-    orderBy: { createdAt: 'desc' },
-  });
+  const [relatedProducts, settingsRows] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true, category: product.category, NOT: { id: product.id } },
+      take: 4,
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.siteSetting.findMany({
+      where: { key: { in: [
+        'sticky_banner_active', 'sticky_banner_image_desktop', 'sticky_banner_image_mobile',
+        'sticky_banner_link', 'sticky_banner_newtab', 'sticky_banner_close_enabled',
+      ] } },
+    }).catch(() => []),
+  ]);
 
-  return <ProductDetailClient product={JSON.parse(JSON.stringify(product))} relatedProducts={JSON.parse(JSON.stringify(relatedProducts))} />;
+  let bannerData: any = null;
+  const s: Record<string, string> = {};
+  for (const row of settingsRows ?? []) { s[row?.key ?? ''] = row?.value ?? ''; }
+  if (s.sticky_banner_active === 'true' && (s.sticky_banner_image_desktop || s.sticky_banner_image_mobile)) {
+    bannerData = {
+      desktopImage: s.sticky_banner_image_desktop ?? '',
+      mobileImage: s.sticky_banner_image_mobile ?? '',
+      link: s.sticky_banner_link ?? '',
+      newTab: s.sticky_banner_newtab === 'true',
+      closeEnabled: s.sticky_banner_close_enabled !== 'false',
+    };
+  }
+
+  return <ProductDetailClient product={JSON.parse(JSON.stringify(product))} relatedProducts={JSON.parse(JSON.stringify(relatedProducts))} bannerData={bannerData} />;
 }

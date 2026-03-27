@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Star, ChevronLeft, ChevronRight, ExternalLink, Home, Check, Clock, XCircle } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
+import StickyBanner from '@/app/_components/sticky-banner';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 const INVENTORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
@@ -14,7 +15,7 @@ const INVENTORY_CONFIG: Record<string, { label: string; icon: React.ElementType;
   coming_soon: { label: 'Coming Soon', icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50' },
 };
 
-export default function ProductDetailClient({ product, relatedProducts }: { product: any; relatedProducts: any[] }) {
+export default function ProductDetailClient({ product, relatedProducts, bannerData }: { product: any; relatedProducts: any[]; bannerData?: any }) {
   const { t } = useLanguage();
   const [selectedImage, setSelectedImage] = useState(0);
   const images = product.images?.length > 0 ? product.images : [];
@@ -158,6 +159,19 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
           </section>
         )}
       </main>
+
+      {/* Sticky bottom banner spacer + component */}
+      {bannerData && <div className="h-[100px] md:h-[90px]" />}
+      {bannerData && (
+        <StickyBanner
+          desktopImage={bannerData.desktopImage}
+          mobileImage={bannerData.mobileImage}
+          link={bannerData.link}
+          newTab={bannerData.newTab}
+          closeEnabled={bannerData.closeEnabled}
+        />
+      )}
+
       <Footer />
     </div>
   );

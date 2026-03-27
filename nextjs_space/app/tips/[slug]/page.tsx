@@ -44,6 +44,42 @@ export default async function TipPage({ params }: { params: { slug: string } }) 
     });
   } catch {}
 
+  // Fetch latest edition (for fixed banner 1) + sticky banner settings
+  let latestEdition: any = null;
+  let bannerData: any = null;
+  try {
+    const [edition, settingsRows] = await Promise.all([
+      prisma.magazineEdition.findFirst({
+        where: { isCurrent: true },
+        select: { title: true, coverUrl: true, slug: true, externalUrl: true },
+      }).catch(() => null),
+      prisma.siteSetting.findMany({
+        where: { key: { in: [
+          'sticky_banner_active', 'sticky_banner_image_desktop', 'sticky_banner_image_mobile',
+          'sticky_banner_link', 'sticky_banner_newtab', 'sticky_banner_close_enabled',
+        ] } },
+      }).catch(() => []),
+    ]);
+    if (edition) {
+      latestEdition = {
+        title: edition.title ?? '',
+        coverUrl: edition.coverUrl ?? '',
+        link: edition.slug ? `/magazine/${edition.slug}` : (edition.externalUrl ?? ''),
+      };
+    }
+    const s: Record<string, string> = {};
+    for (const row of settingsRows ?? []) { s[row?.key ?? ''] = row?.value ?? ''; }
+    if (s.sticky_banner_active === 'true' && (s.sticky_banner_image_desktop || s.sticky_banner_image_mobile)) {
+      bannerData = {
+        desktopImage: s.sticky_banner_image_desktop ?? '',
+        mobileImage: s.sticky_banner_image_mobile ?? '',
+        link: s.sticky_banner_link ?? '',
+        newTab: s.sticky_banner_newtab === 'true',
+        closeEnabled: s.sticky_banner_close_enabled !== 'false',
+      };
+    }
+  } catch {}
+
   const serialized = {
     ...tip,
     publishDate: tip?.publishDate?.toISOString?.() ?? null,
@@ -78,7 +114,7 @@ export default async function TipPage({ params }: { params: { slug: string } }) 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <TipDetailClient tip={serialized} related={serializedRelated} />
+      <TipDetailClient tip={serialized} related={serializedRelated} latestEdition={latestEdition} bannerData={bannerData} />
     </>
   );
 }

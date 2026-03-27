@@ -5,6 +5,9 @@ import Image from 'next/image';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { motion } from 'framer-motion';
 import { Calendar, User, ArrowRight } from 'lucide-react';
+import Header from '@/app/_components/header';
+import Footer from '@/app/_components/footer';
+import StickyBanner from '@/app/_components/sticky-banner';
 
 const CATEGORIES = [
   { value: '', label: 'All Tips' },
@@ -15,7 +18,7 @@ const CATEGORIES = [
   { value: 'equipment', label: 'Equipment' },
 ];
 
-export default function TipsPageClient({ tips, category }: { tips: any[]; category: string }) {
+export default function TipsPageClient({ tips, category, bannerData }: { tips: any[]; category: string; bannerData?: any }) {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState(category || '');
 
@@ -24,7 +27,9 @@ export default function TipsPageClient({ tips, category }: { tips: any[]; catego
     : tips ?? [];
 
   return (
-    <main className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main>
       {/* Hero Banner */}
       <section className="relative bg-brand-purple overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -124,7 +129,7 @@ export default function TipsPageClient({ tips, category }: { tips: any[]; catego
                         </span>
                       )}
                     </div>
-                    <span className="inline-flex items-center gap-1 text-brand-neon text-sm font-semibold pt-2 group-hover:gap-2 transition-all">
+                    <span className="inline-flex items-center gap-1 text-brand-purple text-sm font-semibold pt-2 group-hover:gap-2 group-hover:text-brand-purple-light transition-all">
                       {t('tips.readTip')} <ArrowRight size={14} />
                     </span>
                   </div>
@@ -134,6 +139,21 @@ export default function TipsPageClient({ tips, category }: { tips: any[]; catego
           </div>
         )}
       </section>
-    </main>
+      </main>
+
+      {/* Sticky bottom banner spacer + component */}
+      {bannerData && <div className="h-[100px] md:h-[90px]" />}
+      {bannerData && (
+        <StickyBanner
+          desktopImage={bannerData.desktopImage}
+          mobileImage={bannerData.mobileImage}
+          link={bannerData.link}
+          newTab={bannerData.newTab}
+          closeEnabled={bannerData.closeEnabled}
+        />
+      )}
+
+      <Footer />
+    </div>
   );
 }

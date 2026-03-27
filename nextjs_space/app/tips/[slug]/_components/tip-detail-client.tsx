@@ -8,6 +8,9 @@ import {
   Calendar, User, ArrowLeft, ArrowRight, Share2, Facebook, Linkedin, Mail, Link2, Copy, Check,
   X as XIcon, ChevronLeft, ChevronRight, Play, ExternalLink, Instagram
 } from 'lucide-react';
+import Header from '@/app/_components/header';
+import Footer from '@/app/_components/footer';
+import StickyBanner from '@/app/_components/sticky-banner';
 
 function getYouTubeId(url: string): string | null {
   if (!url) return null;
@@ -152,18 +155,46 @@ function ImageGallery({ images }: { images: string[] }) {
   );
 }
 
-function BannerAd({ image, link }: { image?: string | null; link?: string | null }) {
+function BannerAd({ image, link, label }: { image?: string | null; link?: string | null; label?: string }) {
   if (!image) return null;
   const Wrapper = link ? 'a' : 'div';
   const props = link ? { href: link, target: '_blank', rel: 'noopener noreferrer sponsored' } : {};
   return (
-    <Wrapper {...(props as any)} className="block my-8 rounded-xl overflow-hidden bg-gray-100 relative aspect-[4/1] md:aspect-[6/1]">
-      <Image src={image} alt="Sponsored" fill className="object-cover" sizes="100vw" />
+    <Wrapper {...(props as any)} className="block my-8 rounded-xl overflow-hidden bg-gray-100 relative aspect-[4/1] md:aspect-[6/1] group">
+      <Image src={image} alt={label || 'Sponsored'} fill className="object-cover" sizes="100vw" />
+      {label && (
+        <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/50 text-white text-[10px] uppercase tracking-wider rounded">
+          {label}
+        </span>
+      )}
     </Wrapper>
   );
 }
 
-export default function TipDetailClient({ tip, related }: { tip: any; related: any[] }) {
+/** Fixed banner for the latest magazine edition — always shows if available */
+function LatestEditionBanner({ edition }: { edition: any }) {
+  if (!edition?.coverUrl) return null;
+  return (
+    <div className="my-8">
+      <Link href={edition.link || '/articles?category=magazine'} className="block rounded-xl overflow-hidden border border-brand-purple/10 bg-gradient-to-r from-brand-purple/5 to-transparent hover:shadow-lg transition-shadow">
+        <div className="flex items-center gap-4 p-4 md:p-5">
+          <div className="relative w-20 h-28 md:w-24 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 shadow-md">
+            <Image src={edition.coverUrl} alt={edition.title || 'Latest Edition'} fill className="object-cover" sizes="96px" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-brand-neon">Latest Edition</span>
+            <h4 className="text-base md:text-lg font-heading font-bold text-brand-purple mt-1 line-clamp-2">{edition.title}</h4>
+            <span className="inline-flex items-center gap-1 text-sm text-brand-purple font-semibold mt-2 hover:gap-2 transition-all">
+              Read Now <ArrowRight size={14} />
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+export default function TipDetailClient({ tip, related, latestEdition, bannerData }: { tip: any; related: any[]; latestEdition?: any; bannerData?: any }) {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   React.useEffect(() => setMounted(true), []);
@@ -182,25 +213,27 @@ export default function TipDetailClient({ tip, related }: { tip: any; related: a
   const contentParts = splitContent(fullContent, 3);
 
   return (
-    <main className="min-h-screen bg-white">
-      {/* Hero */}
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main>
+      {/* Hero — responsive: aspect ratio instead of fixed vh to prevent stretching on mobile */}
       <section className="relative">
         {tip?.featuredImage && (
-          <div className="relative w-full h-[50vh] md:h-[60vh]">
+          <div className="relative w-full aspect-[16/10] sm:aspect-[16/8] md:aspect-[16/7] max-h-[65vh] overflow-hidden">
             <Image src={tip.featuredImage} alt={tip?.title ?? ''} fill className="object-cover" priority sizes="100vw" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           </div>
         )}
-        <div className={`${tip?.featuredImage ? 'absolute bottom-0 left-0 right-0' : 'bg-brand-purple'} px-4 py-8 md:py-12`}>
+        <div className={`${tip?.featuredImage ? 'absolute bottom-0 left-0 right-0' : 'bg-brand-purple'} px-4 py-6 md:py-12`}>
           <div className="max-w-4xl mx-auto">
             <span className="inline-block px-3 py-1 bg-brand-neon text-brand-purple text-xs font-bold uppercase rounded-full mb-3">
               {tip?.category ?? 'tip'}
             </span>
-            <h1 className="text-3xl md:text-5xl font-heading font-black text-white mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-heading font-black text-white mb-3 md:mb-4 leading-tight">
               {tip?.title ?? ''}
             </h1>
             {tip?.excerpt && (
-              <p className="text-white/80 text-lg md:text-xl max-w-3xl">{tip.excerpt}</p>
+              <p className="text-white/80 text-base md:text-xl max-w-3xl line-clamp-3 md:line-clamp-none">{tip.excerpt}</p>
             )}
           </div>
         </div>
@@ -240,19 +273,22 @@ export default function TipDetailClient({ tip, related }: { tip: any; related: a
           <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[0] }} />
         )}
 
-        <BannerAd image={tip?.banner1Image} link={tip?.banner1Link} />
+        {/* Banner 1: Fixed — Latest Magazine Edition (inamovible) */}
+        <LatestEditionBanner edition={latestEdition} />
 
         {contentParts[1] && (
           <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[1] }} />
         )}
 
-        <BannerAd image={tip?.banner2Image} link={tip?.banner2Link} />
+        {/* Banner 2: Editable from admin */}
+        <BannerAd image={tip?.banner2Image} link={tip?.banner2Link} label="Sponsored" />
 
         {contentParts[2] && (
           <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[2] }} />
         )}
 
-        <BannerAd image={tip?.banner3Image} link={tip?.banner3Link} />
+        {/* Banner 3: Editable from admin */}
+        <BannerAd image={tip?.banner3Image} link={tip?.banner3Link} label="Sponsored" />
 
         {/* YouTube Embed */}
         {videoId && (
@@ -319,7 +355,22 @@ export default function TipDetailClient({ tip, related }: { tip: any; related: a
           Back to Tips
         </Link>
       </div>
-    </main>
+      </main>
+
+      {/* Sticky bottom banner spacer + component */}
+      {bannerData && <div className="h-[100px] md:h-[90px]" />}
+      {bannerData && (
+        <StickyBanner
+          desktopImage={bannerData.desktopImage}
+          mobileImage={bannerData.mobileImage}
+          link={bannerData.link}
+          newTab={bannerData.newTab}
+          closeEnabled={bannerData.closeEnabled}
+        />
+      )}
+
+      <Footer />
+    </div>
   );
 }
 

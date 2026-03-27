@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Star, Filter } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
+import StickyBanner from '@/app/_components/sticky-banner';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 const INVENTORY_LABELS: Record<string, { label: string; color: string }> = {
@@ -23,7 +24,7 @@ const CATEGORIES = [
   { value: 'merchandise', label: 'Merchandise' },
 ];
 
-export default function ShopPageClient({ products }: { products: any[] }) {
+export default function ShopPageClient({ products, bannerData }: { products: any[]; bannerData?: any }) {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('');
 
@@ -130,6 +131,19 @@ export default function ShopPageClient({ products }: { products: any[] }) {
           )}
         </section>
       </main>
+
+      {/* Sticky bottom banner spacer + component */}
+      {bannerData && <div className="h-[100px] md:h-[90px]" />}
+      {bannerData && (
+        <StickyBanner
+          desktopImage={bannerData.desktopImage}
+          mobileImage={bannerData.mobileImage}
+          link={bannerData.link}
+          newTab={bannerData.newTab}
+          closeEnabled={bannerData.closeEnabled}
+        />
+      )}
+
       <Footer />
     </div>
   );
