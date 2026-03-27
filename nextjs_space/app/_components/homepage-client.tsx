@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useMemo } from 'react';
 import Header from './header';
 import AdBanner from './ad-banner';
 import HeroStory from './hero-story';
@@ -12,6 +12,7 @@ import NewsletterSignup from './newsletter-signup';
 import Footer from './footer';
 import WhatsAppButton from './whatsapp-button';
 import CookieBanner from './cookie-banner';
+import StickyBanner from './sticky-banner';
 
 interface HomeData {
   heroArticle: any;
@@ -25,6 +26,22 @@ interface HomeData {
 
 export default function HomePageClient({ data }: { data: HomeData }) {
   const { heroArticle, latestArticles, featuredArticles, events, results, editions, settings } = data ?? {} as HomeData;
+
+  // Extract sticky banner configuration from site settings
+  const bannerData = useMemo(() => {
+    if (!settings) return null;
+    const active = settings.sticky_banner_active === 'true';
+    const desktopImage = settings.sticky_banner_image_desktop ?? '';
+    const mobileImage = settings.sticky_banner_image_mobile ?? '';
+    if (!active || (!desktopImage && !mobileImage)) return null;
+    return {
+      desktopImage,
+      mobileImage,
+      link: settings.sticky_banner_link ?? '',
+      newTab: settings.sticky_banner_newtab === 'true',
+      closeEnabled: settings.sticky_banner_close_enabled !== 'false',
+    };
+  }, [settings]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -55,6 +72,17 @@ export default function HomePageClient({ data }: { data: HomeData }) {
         <NewsletterSignup />
       </main>
       <Footer />
+      {/* Sticky bottom banner spacer + component */}
+      {bannerData && <div className="h-[100px] md:h-[90px]" />}
+      {bannerData && (
+        <StickyBanner
+          desktopImage={bannerData.desktopImage}
+          mobileImage={bannerData.mobileImage}
+          link={bannerData.link}
+          newTab={bannerData.newTab}
+          closeEnabled={bannerData.closeEnabled}
+        />
+      )}
       <WhatsAppButton phoneNumber={settings?.whatsapp_number ?? null} />
       <CookieBanner />
     </div>

@@ -41,7 +41,8 @@ export default function HeroStory({ article }: HeroStoryProps) {
           className="relative group"
         >
           <Link href={`/articles/${article?.slug ?? ''}`}>
-            <div className="relative aspect-[16/9] bg-brand-purple-light">
+            {/* Taller aspect on mobile (4:5) to accommodate longer translated titles in ES/PT; 16:9 on md+ */}
+            <div className="relative aspect-[4/5] sm:aspect-[4/3] md:aspect-[16/9] bg-brand-purple-light">
               {article?.imageUrl && (
                 <Image
                   src={article.imageUrl}
@@ -54,7 +55,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                 />
               )}
               {/* Multi-layer gradient for depth */}
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-dark via-brand-purple-dark/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-purple-dark via-brand-purple-dark/60 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-brand-purple-dark/70 via-transparent to-transparent" />
               
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 lg:p-16">
@@ -73,7 +74,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
-                    className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold text-white leading-[1.05] mb-4 drop-shadow-lg"
+                    className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-heading font-bold text-white leading-[1.1] mb-3 md:mb-4 drop-shadow-lg"
                   >
                     {displayArticle?.title ?? 'Featured Story'}
                   </motion.h1>
@@ -82,7 +83,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.6, duration: 0.5 }}
-                      className="text-white/75 text-sm md:text-lg lg:text-xl max-w-2xl line-clamp-2 mb-6 leading-relaxed"
+                      className="text-white/75 text-sm md:text-lg lg:text-xl max-w-2xl line-clamp-3 md:line-clamp-2 mb-4 md:mb-6 leading-relaxed"
                     >
                       {displayArticle.excerpt}
                     </motion.p>
@@ -91,9 +92,9 @@ export default function HeroStory({ article }: HeroStoryProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7, duration: 0.5 }}
-                    className="flex items-center gap-5"
+                    className="flex flex-wrap items-center gap-3 md:gap-5"
                   >
-                    <span className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg shadow-brand-neon/30 group-hover:shadow-brand-neon/50">
+                    <span className="inline-flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg shadow-brand-neon/30 group-hover:shadow-brand-neon/50">
                       {t('hero.readFullStory')} <ArrowRight size={16} />
                     </span>
                     {article?.authorName && (
