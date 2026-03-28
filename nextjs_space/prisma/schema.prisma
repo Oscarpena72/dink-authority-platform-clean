@@ -273,6 +273,27 @@ model Junior {
   @@index([slug])
 }
 
+model CommunityCorrespondent {
+  id            String   @id @default(cuid())
+  firstName     String
+  lastName      String
+  city          String
+  state         String
+  address       String?
+  zipCode       String?
+  phone         String?
+  email         String
+  facebookUrl   String?
+  instagramUrl  String?
+  tiktokUrl     String?
+  message       String?
+  status        String   @default("new")
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email])
+}
+
 model MagazineEdition {
   id           String   @id @default(cuid())
   title        String

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard, FileText, Calendar, Image as ImageIcon,
-  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Lightbulb, UserCheck
+  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Lightbulb, UserCheck, Megaphone
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'Tips', href: '/admin/tips', icon: Lightbulb },
   { label: 'Tip Authors', href: '/admin/tips/authors', icon: UserCheck },
   { label: 'Juniors', href: '/admin/juniors', icon: Users },
+  { label: 'Community', href: '/admin/community', icon: Megaphone },
   { label: 'Homepage', href: '/admin/homepage', icon: Home },
   { label: 'Events', href: '/admin/events', icon: Calendar },
   { label: 'Results', href: '/admin/results', icon: Trophy },
