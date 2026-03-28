@@ -508,6 +508,132 @@ async function main() {
   }
   console.log(`${TIPS.length} demo tips seeded`);
 
+  // ── Juniors ──
+  const JUNIORS = [
+    {
+      name: 'Rex Thais',
+      title: 'The Rising Star of Junior Pickleball',
+      slug: 'rex-thais-rising-star',
+      excerpt: 'At just 15 years old, Rex Thais is dominating the junior circuit and turning heads in the pro ranks. Here is his story.',
+      country: 'United States',
+      age: 15,
+      featuredImage: '/images/juniors/rex_thais.jpg',
+      content: `<p>Rex Thais is not your average teenager. While most 15-year-olds spend their weekends gaming or scrolling social media, Rex is on the pickleball court grinding out victories against players twice his age.</p><p>Born and raised in Austin, Texas, Rex discovered pickleball at the age of 9 when his father introduced him to the sport at a local community center. Within months, he was beating adults in recreational play, and by 11, he entered his first sanctioned tournament.</p><p>"I fell in love with the strategy," Rex says. "It's not just about hitting the ball hard. You have to think three shots ahead, like chess but on a court."</p><p>His coach, former pro player Mark Sullivan, recognized Rex's talent immediately. "Rex has something you can't teach — court IQ. He reads the game better than players with 20 years more experience."</p><p>In 2025, Rex won the National Junior Championship in the U-17 division, becoming the youngest player to claim the title in the tournament's history. His aggressive yet calculated style has drawn comparisons to Ben Johns.</p><p>Off the court, Rex maintains a 3.8 GPA and dreams of attending Stanford University, where he hopes to continue developing both his academic and athletic career. "Pickleball has taught me discipline," he reflects. "What you put in is what you get out."</p>`,
+      galleryImages: JSON.stringify([
+        '/images/juniors/gallery/gallery_action_1.jpg',
+        '/images/juniors/gallery/gallery_training_1.jpg',
+        '/images/juniors/gallery/gallery_celebration_1.jpg',
+        '/images/juniors/gallery/gallery_court_1.jpg',
+        '/images/juniors/gallery/gallery_action_2.jpg',
+      ]),
+      instagramVideoUrl: 'https://www.instagram.com/reel/C1234example/',
+      banner2Image: 'https://cdn.abacus.ai/images/c2a107da-2d07-45a5-b6aa-9bf2f5681291.png',
+      banner2Link: 'https://www.selkirk.com/',
+      banner3Image: 'https://cdn.abacus.ai/images/46f64161-a8ac-4d72-a82f-b41d47920971.png',
+      banner3Link: 'https://www.ppatour.com/',
+      status: 'published',
+      language: 'en',
+      publishDate: new Date('2026-03-15'),
+      metaTitle: 'Rex Thais — The Rising Star of Junior Pickleball | Dink Authority',
+      metaDescription: 'Meet Rex Thais, the 15-year-old phenom dominating junior pickleball and turning heads in the pro ranks.',
+    },
+    {
+      name: 'Sofia Martinez',
+      title: 'Breaking Barriers on the Pickleball Court',
+      slug: 'sofia-martinez-breaking-barriers',
+      excerpt: 'Sofia Martinez, 13, from Miami is proving that age is just a number in competitive pickleball, inspiring a new generation of Latina athletes.',
+      country: 'United States',
+      age: 13,
+      featuredImage: '/images/juniors/sofia_martinez.jpg',
+      content: `<p>When Sofia Martinez steps onto the pickleball court, opponents quickly learn that underestimating her is a costly mistake. At 13, Sofia has already amassed an impressive collection of tournament wins and is considered one of the brightest prospects in junior pickleball.</p><p>Growing up in Miami's vibrant sports culture, Sofia was exposed to tennis, padel, and eventually pickleball. "My abuela played pickleball at the park," Sofia laughs. "She challenged me one day, and I got hooked."</p><p>What started as family fun quickly evolved into serious competition. Sofia's explosive athleticism, combined with a soft touch at the kitchen line, makes her a nightmare for opponents in any age bracket.</p><p>Her mother, Carmen Martinez, has been her biggest supporter. "We drive two hours each way for training three times a week. But seeing Sofia's dedication makes every mile worth it."</p><p>Sofia recently earned a sponsorship from Joola and has been invited to participate in exhibition matches alongside professional players. "I want to show other Latina girls that you can excel in any sport if you put your heart into it," she says with determination.</p><p>With the 2026 junior season underway, Sofia has her sights set on the world rankings. Watch this space.</p>`,
+      galleryImages: JSON.stringify([
+        '/images/juniors/gallery/gallery_celebration_2.jpg',
+        '/images/juniors/gallery/gallery_training_2.jpg',
+        '/images/juniors/gallery/gallery_action_1.jpg',
+        '/images/juniors/gallery/gallery_court_2.jpg',
+        '/images/juniors/gallery/gallery_celebration_1.jpg',
+      ]),
+      instagramVideoUrl: 'https://www.instagram.com/reel/C5678example/',
+      banner2Image: 'https://cdn.abacus.ai/images/c2a107da-2d07-45a5-b6aa-9bf2f5681291.png',
+      banner2Link: 'https://www.selkirk.com/',
+      banner3Image: 'https://cdn.abacus.ai/images/46f64161-a8ac-4d72-a82f-b41d47920971.png',
+      banner3Link: 'https://www.ppatour.com/',
+      status: 'published',
+      language: 'en',
+      publishDate: new Date('2026-03-10'),
+      metaTitle: 'Sofia Martinez — Breaking Barriers in Junior Pickleball',
+      metaDescription: 'Meet Sofia Martinez, the 13-year-old from Miami inspiring Latina athletes and dominating the junior pickleball circuit.',
+    },
+    {
+      name: 'Kai Tanaka',
+      title: 'From Tokyo to the Top of Junior Pickleball',
+      slug: 'kai-tanaka-tokyo-to-top',
+      excerpt: 'Kai Tanaka moved from Japan to California at age 10 and discovered pickleball. Now at 16, he is one of the top-ranked junior players in the country.',
+      country: 'Japan / United States',
+      age: 16,
+      featuredImage: '/images/juniors/kai_tanaka.jpg',
+      content: `<p>Kai Tanaka's journey to pickleball stardom is as unique as his playing style. Born in Tokyo, Kai moved to San Diego with his family when he was 10. Struggling to fit in at his new school, he found his community on the pickleball courts.</p><p>"In Japan, I played table tennis competitively," Kai explains. "When I tried pickleball, the hand-eye coordination transferred perfectly. The dinking game felt natural."</p><p>Kai's table tennis background gives him an unusual advantage: his wrist work and spin game are considered among the best in the junior division. His signature move — a cross-court dink with wicked topspin — has become almost impossible to counter.</p><p>Coach Lisa Chen, who trains Kai at the San Diego Pickleball Academy, sees limitless potential. "Kai's discipline is extraordinary. He arrives first, leaves last, and never complains. That Japanese work ethic combined with his natural talent is a powerful combination."</p><p>In 2025, Kai represented the United States at the International Junior Pickleball Championship in Cancún, where he won gold in singles and silver in doubles. The experience cemented his goal: to become the first Japanese-American player to reach the PPA Tour top 10.</p><p>"I want to be a bridge between pickleball in Asia and America," Kai says. "This sport can unite people across cultures."</p>`,
+      galleryImages: JSON.stringify([
+        '/images/juniors/gallery/gallery_court_1.jpg',
+        '/images/juniors/gallery/gallery_action_2.jpg',
+        '/images/juniors/gallery/gallery_training_1.jpg',
+        '/images/juniors/gallery/gallery_celebration_2.jpg',
+        '/images/juniors/gallery/gallery_court_2.jpg',
+      ]),
+      instagramVideoUrl: 'https://www.instagram.com/reel/C9012example/',
+      banner2Image: 'https://cdn.abacus.ai/images/c2a107da-2d07-45a5-b6aa-9bf2f5681291.png',
+      banner2Link: 'https://www.selkirk.com/',
+      banner3Image: 'https://cdn.abacus.ai/images/46f64161-a8ac-4d72-a82f-b41d47920971.png',
+      banner3Link: 'https://www.ppatour.com/',
+      status: 'published',
+      language: 'en',
+      publishDate: new Date('2026-03-05'),
+      metaTitle: 'Kai Tanaka — From Tokyo to the Top of Junior Pickleball',
+      metaDescription: 'Discover how Kai Tanaka went from table tennis in Tokyo to becoming one of America\'s top junior pickleball players.',
+    },
+    {
+      name: 'Emma Richardson',
+      title: 'The Fierce Competitor Redefining Junior Doubles',
+      slug: 'emma-richardson-fierce-competitor',
+      excerpt: 'Emma Richardson, 14, from Colorado has become the most feared doubles partner in junior pickleball with her intense net play and strategic brilliance.',
+      country: 'United States',
+      age: 14,
+      featuredImage: '/images/juniors/emma_richardson.jpg',
+      content: `<p>If there is one word that defines Emma Richardson's pickleball game, it is "intensity." The 14-year-old from Boulder, Colorado, plays every point like it is match point, and that relentless fire has made her the most sought-after doubles partner in junior pickleball.</p><p>"I hate losing more than I love winning," Emma admits with a laugh. "My family says I got that from my mom, who was a collegiate volleyball player."</p><p>Emma's volleyball lineage shows in her game. Her reflexes at the kitchen line are lightning fast, and her overhead smashes carry the authority of someone much older. But it is her doubles IQ that truly sets her apart.</p><p>"Emma sees the court differently," says her partner, 15-year-old Lily Chen. "She knows where to put the ball before the opponents even finish their swing. Playing with her is like having a cheat code."</p><p>Together, Emma and Lily have won three consecutive National Junior Doubles titles, and their partnership has become the gold standard in youth pickleball. Their success has even attracted the attention of senior pro teams looking for the next generation of mixed doubles stars.</p><p>When she is not competing, Emma runs a free pickleball clinic for underprivileged kids in her community. "Everyone deserves to play," she says simply. "Pickleball changed my life. I want it to change theirs too."</p>`,
+      galleryImages: JSON.stringify([
+        '/images/juniors/gallery/gallery_training_2.jpg',
+        '/images/juniors/gallery/gallery_celebration_1.jpg',
+        '/images/juniors/gallery/gallery_court_1.jpg',
+        '/images/juniors/gallery/gallery_action_1.jpg',
+        '/images/juniors/gallery/gallery_training_1.jpg',
+      ]),
+      instagramVideoUrl: 'https://www.instagram.com/reel/C3456example/',
+      banner2Image: 'https://cdn.abacus.ai/images/c2a107da-2d07-45a5-b6aa-9bf2f5681291.png',
+      banner2Link: 'https://www.selkirk.com/',
+      banner3Image: 'https://cdn.abacus.ai/images/46f64161-a8ac-4d72-a82f-b41d47920971.png',
+      banner3Link: 'https://www.ppatour.com/',
+      status: 'published',
+      language: 'en',
+      publishDate: new Date('2026-02-28'),
+      metaTitle: 'Emma Richardson — The Fierce Competitor Redefining Junior Doubles',
+      metaDescription: 'Meet Emma Richardson, the 14-year-old doubles phenom from Colorado redefining junior pickleball with intensity and heart.',
+    },
+  ];
+
+  for (const junior of JUNIORS) {
+    await prisma.junior.upsert({
+      where: { slug: junior.slug },
+      update: {
+        banner2Image: junior.banner2Image ?? null,
+        banner2Link: junior.banner2Link ?? null,
+        banner3Image: junior.banner3Image ?? null,
+        banner3Link: junior.banner3Link ?? null,
+      },
+      create: junior,
+    });
+  }
+  console.log(`${JUNIORS.length} demo juniors seeded`);
+
   console.log('Seeding complete!');
 }
 

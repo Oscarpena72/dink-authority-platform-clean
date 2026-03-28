@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Articles', href: '/admin/articles', icon: FileText },
   { label: 'Tips', href: '/admin/tips', icon: Lightbulb },
   { label: 'Tip Authors', href: '/admin/tips/authors', icon: UserCheck },
+  { label: 'Juniors', href: '/admin/juniors', icon: Users },
   { label: 'Homepage', href: '/admin/homepage', icon: Home },
   { label: 'Events', href: '/admin/events', icon: Calendar },
   { label: 'Results', href: '/admin/results', icon: Trophy },

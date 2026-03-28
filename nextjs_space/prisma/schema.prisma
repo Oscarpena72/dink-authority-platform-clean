@@ -245,6 +245,34 @@ model Tip {
   @@index([slug])
 }
 
+model Junior {
+  id                String     @id @default(cuid())
+  name              String
+  title             String
+  slug              String     @unique
+  excerpt           String?
+  country           String?
+  age               Int?
+  featuredImage     String?
+  content           String
+  galleryImages     String     @default("[]")
+  banner2Image      String?
+  banner2Link       String?
+  banner3Image      String?
+  banner3Link       String?
+  instagramVideoUrl String?
+  status            String     @default("draft")
+  language          String     @default("en")
+  publishDate       DateTime?
+  metaTitle         String?
+  metaDescription   String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([status, publishDate])
+  @@index([slug])
+}
+
 model MagazineEdition {
   id           String   @id @default(cuid())
   title        String
