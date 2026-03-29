@@ -12,6 +12,7 @@ import {
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
+import UniversalVideoModule from '@/components/universal-video-module';
 
 function ShareButtons({ url, title }: { url: string; title: string }) {
   const { t } = useLanguage();
@@ -147,86 +148,7 @@ function TranslationBanner({ isTranslating, isTranslated, translationError, show
   );
 }
 
-function InstagramVideoModule({ url, coverImage, name, t }: { url: string; coverImage?: string; name?: string; t: (key: any) => string }) {
-  if (!url) return null;
-
-  return (
-    <div className="my-10">
-      <h3 className="text-lg font-heading font-bold text-brand-purple mb-4 flex items-center gap-2">
-        <Instagram size={20} className="text-pink-500" /> {t('juniors.watchVideo')}
-      </h3>
-
-      <div className="flex flex-col items-center">
-        {/* Editorial Instagram Reel card — 9:16 vertical, centred */}
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative block w-full max-w-[340px] md:max-w-[380px] rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
-        >
-          {/* Gradient border */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 p-[3px] pointer-events-none z-10" style={{ WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', WebkitMaskComposite: 'xor', maskComposite: 'exclude' }} />
-
-          {/* Card content with cover image */}
-          <div className="relative bg-gray-900 overflow-hidden" style={{ aspectRatio: '9/16' }}>
-            {coverImage ? (
-              <Image src={coverImage} alt={name || 'Instagram Reel'} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-orange-700" />
-            )}
-
-            {/* Dark overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
-
-            {/* Instagram header bar */}
-            <div className="absolute top-0 left-0 right-0 z-20 px-4 py-3 flex items-center gap-2.5 bg-gradient-to-b from-black/60 to-transparent">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center flex-shrink-0">
-                <Instagram size={16} className="text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white text-xs font-bold truncate">dink_authority_magazine</p>
-                <p className="text-white/60 text-[10px]">Instagram Reel</p>
-              </div>
-              <div className="text-white/70">
-                <ExternalLink size={14} />
-              </div>
-            </div>
-
-            {/* Play button center */}
-            <div className="absolute inset-0 flex items-center justify-center z-20">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300 border border-white/30">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" className="ml-1">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Bottom info */}
-            <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-4 pt-12 bg-gradient-to-t from-black/90 to-transparent">
-              {name && <p className="text-white font-bold text-sm mb-1">{name}</p>}
-              <p className="text-white/70 text-xs flex items-center gap-1.5">
-                <Instagram size={12} /> {t('juniors.watchOnInstagram')}
-              </p>
-            </div>
-
-            {/* Reels icon top-right */}
-            <div className="absolute top-3 right-3 z-20">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="white" fillOpacity="0.8">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-              </svg>
-            </div>
-          </div>
-        </a>
-
-        {/* CTA button below card */}
-        <a href={url} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 mt-5 px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-bold text-sm rounded-full hover:brightness-110 hover:scale-105 transition-all duration-200 shadow-lg">
-          <Instagram size={16} /> {t('juniors.watchOnInstagram')} <ExternalLink size={14} />
-        </a>
-      </div>
-    </div>
-  );
-}
+/* Old InstagramVideoModule removed — replaced by UniversalVideoModule */
 
 export default function JuniorDetailClient({ junior, related, latestEdition, bannerData }: { junior: any; related: any[]; latestEdition?: any; bannerData?: any }) {
   const { locale, t } = useLanguage();
@@ -362,7 +284,7 @@ export default function JuniorDetailClient({ junior, related, latestEdition, ban
           <BannerAd image={junior?.banner3Image} link={junior?.banner3Link} label={t('common.ad')} />
 
           {/* Instagram Video Module */}
-          <InstagramVideoModule url={junior?.instagramVideoUrl ?? ''} coverImage={junior?.coverImage} name={displayTitle} t={t} />
+          <UniversalVideoModule videoUrl={junior?.videoUrl ?? junior?.instagramVideoUrl ?? ''} posterImage={junior?.featuredImage} title={displayTitle} />
 
           {/* Gallery */}
           <ImageGallery images={gallery} />

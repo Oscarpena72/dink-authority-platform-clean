@@ -277,6 +277,11 @@ const translations = {
   'common.by': { en: 'By', es: 'Por', pt: 'Por' },
   'common.readTime': { en: 'min read', es: 'min de lectura', pt: 'min de leitura' },
   'common.ad': { en: 'Sponsored', es: 'Patrocinado', pt: 'Patrocinado' },
+
+  // Universal Video Module
+  'video.sectionTitle': { en: 'Watch Video', es: 'Ver Video', pt: 'Assistir Vídeo' },
+  'video.play': { en: 'Play video', es: 'Reproducir video', pt: 'Reproduzir vídeo' },
+  'video.watchOn': { en: 'Watch on {platform}', es: 'Ver en {platform}', pt: 'Ver no {platform}' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

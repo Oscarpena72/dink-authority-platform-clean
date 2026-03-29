@@ -12,12 +12,7 @@ import {
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
-
-function getYouTubeId(url: string): string | null {
-  if (!url) return null;
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?#]+)/);
-  return m?.[1] ?? null;
-}
+import UniversalVideoModule from '@/components/universal-video-module';
 
 function ShareButtons({ url, title }: { url: string; title: string }) {
   const { t } = useLanguage();
@@ -249,7 +244,7 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
   React.useEffect(() => setMounted(true), []);
 
   const currentUrl = mounted ? window.location.href : '';
-  const videoId = getYouTubeId(tip?.youtubeUrl ?? '');
+  const effectiveVideoUrl = tip?.videoUrl ?? tip?.youtubeUrl ?? '';
   let gallery: string[] = [];
   try {
     gallery = JSON.parse(tip?.galleryImages ?? '[]');
@@ -442,35 +437,14 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
         {/* Banner 3: Editable from admin */}
         <BannerAd image={tip?.banner3Image} link={tip?.banner3Link} label={t('common.ad')} />
 
-        {/* YouTube Embed */}
-        {videoId && (
-          <div className="my-10">
-            <h3 className="text-lg font-heading font-bold text-brand-purple mb-4 flex items-center gap-2">
-              <Play size={20} className="text-brand-neon" />
-              {t('tips.watchMore')}
-            </h3>
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}`}
-                title="Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              />
-            </div>
-            {tip?.videoCtaText && (
-              <div className="mt-4 text-center">
-                {tip.videoCtaLink ? (
-                  <a href={tip.videoCtaLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple font-bold rounded-full hover:brightness-110 transition">
-                    {tip.videoCtaText} <ExternalLink size={16} />
-                  </a>
-                ) : (
-                  <p className="text-gray-600 font-medium">{tip.videoCtaText}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        {/* Universal Video Module */}
+        <UniversalVideoModule
+          videoUrl={effectiveVideoUrl}
+          posterImage={tip?.featuredImage}
+          title={displayTitle}
+          ctaText={tip?.videoCtaText}
+          ctaLink={tip?.videoCtaLink}
+        />
 
         {/* Gallery */}
         <ImageGallery images={gallery} />

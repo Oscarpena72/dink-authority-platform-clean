@@ -8,6 +8,7 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
 import StickyBanner from '@/app/_components/sticky-banner';
+import UniversalVideoModule from '@/components/universal-video-module';
 import SubscribeForm from '@/app/_components/subscribe-form';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -438,6 +439,9 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                   </div>
                 );
               })()}
+
+              {/* Universal Video Module */}
+              <UniversalVideoModule videoUrl={article?.videoUrl ?? ''} posterImage={article?.imageUrl} title={displayTitle} />
 
               <ShareButtons title={article?.title ?? ''} />
             </motion.div>

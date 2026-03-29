@@ -73,6 +73,7 @@ model Article {
   isHeroStory  Boolean   @default(false)
   authorId     String?
   authorName   String?
+  videoUrl     String?
   publishedAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -231,6 +232,7 @@ model Tip {
   banner3Image    String?
   banner3Link     String?
   youtubeUrl      String?
+  videoUrl        String?
   videoCtaText    String?
   videoCtaLink    String?
   status          String     @default("draft")
@@ -261,6 +263,7 @@ model Junior {
   banner3Image      String?
   banner3Link       String?
   instagramVideoUrl String?
+  videoUrl          String?
   status            String     @default("draft")
   language          String     @default("en")
   publishDate       DateTime?

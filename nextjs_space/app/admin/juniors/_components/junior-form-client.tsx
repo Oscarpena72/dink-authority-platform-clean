@@ -24,6 +24,7 @@ export default function JuniorFormClient({ junior }: JuniorFormProps) {
     banner3Image: junior?.banner3Image ?? '',
     banner3Link: junior?.banner3Link ?? '',
     instagramVideoUrl: junior?.instagramVideoUrl ?? '',
+    videoUrl: junior?.videoUrl ?? '',
     status: junior?.status ?? 'draft',
     language: junior?.language ?? 'en',
     metaTitle: junior?.metaTitle ?? '',
@@ -102,12 +103,13 @@ export default function JuniorFormClient({ junior }: JuniorFormProps) {
             <textarea name="content" value={form.content} onChange={handleChange} rows={20} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple outline-none font-mono text-sm" placeholder="Write the story/interview content... HTML tags are supported." />
           </div>
 
-          {/* Instagram Video */}
+          {/* Video */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-brand-purple mb-4">📷 Instagram Video</h3>
+            <h3 className="text-sm font-semibold text-brand-purple mb-4">🎥 Video</h3>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Instagram Video URL</label>
-              <input name="instagramVideoUrl" value={form.instagramVideoUrl} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://www.instagram.com/reel/..." />
+              <label className="block text-xs text-gray-500 mb-1">Video URL <span className="text-gray-400">(YouTube, Instagram, TikTok, Facebook)</span></label>
+              <input name="videoUrl" value={form.videoUrl} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..." />
+              <p className="text-[10px] text-gray-400 mt-1">Platform is auto-detected from the URL</p>
             </div>
           </div>
 

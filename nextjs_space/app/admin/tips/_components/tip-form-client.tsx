@@ -29,6 +29,7 @@ export default function TipFormClient({ tip }: TipFormProps) {
     banner3Image: tip?.banner3Image ?? '',
     banner3Link: tip?.banner3Link ?? '',
     youtubeUrl: tip?.youtubeUrl ?? '',
+    videoUrl: tip?.videoUrl ?? '',
     videoCtaText: tip?.videoCtaText ?? '',
     videoCtaLink: tip?.videoCtaLink ?? '',
     status: tip?.status ?? 'draft',
@@ -131,13 +132,14 @@ export default function TipFormClient({ tip }: TipFormProps) {
             <textarea name="content" value={form.content} onChange={handleChange} rows={20} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple outline-none font-mono text-sm" placeholder="Write your tip content... HTML tags are supported." />
           </div>
 
-          {/* YouTube */}
+          {/* Video */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h3 className="text-sm font-semibold text-brand-purple mb-4">🎥 Video</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">YouTube URL</label>
-                <input name="youtubeUrl" value={form.youtubeUrl} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://youtube.com/watch?v=..." />
+                <label className="block text-xs text-gray-500 mb-1">Video URL <span className="text-gray-400">(YouTube, Instagram, TikTok, Facebook)</span></label>
+                <input name="videoUrl" value={form.videoUrl} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..." />
+                <p className="text-[10px] text-gray-400 mt-1">Platform is auto-detected from the URL</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
