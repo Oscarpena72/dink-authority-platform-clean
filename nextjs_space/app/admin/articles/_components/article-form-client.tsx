@@ -25,6 +25,7 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
     isHeroStory: article?.isHeroStory ?? false,
     authorName: article?.authorName ?? '',
     videoUrl: article?.videoUrl ?? '',
+    videoPosterImage: article?.videoPosterImage ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -116,6 +117,8 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
               <div>
                 <label className="block text-sm font-semibold text-brand-purple mb-2">🎥 Video URL <span className="text-gray-400 text-xs font-normal">(YouTube, Instagram, TikTok, Facebook)</span></label>
                 <input name="videoUrl" value={form?.videoUrl ?? ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..." />
+                <label className="block text-sm font-semibold text-brand-purple mb-2 mt-4">🖼️ Video Poster Image <span className="text-gray-400 text-xs font-normal">(opcional — si vacío usa imagen principal)</span></label>
+                <input name="videoPosterImage" value={form?.videoPosterImage ?? ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="https://i.ytimg.com/vi/2IMq4E2hoDo/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDljpnRGZt1F_PejpVEaroMef77dQ" />
                 <p className="text-[10px] text-gray-400 mt-1">Platform is auto-detected from the URL</p>
               </div>
 

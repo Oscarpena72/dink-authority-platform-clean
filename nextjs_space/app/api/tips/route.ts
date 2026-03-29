@@ -51,6 +51,7 @@ export async function POST(request: Request) {
         banner3Link: body?.banner3Link ?? null,
         youtubeUrl: body?.youtubeUrl ?? null,
         videoUrl: body?.videoUrl ?? null,
+        videoPosterImage: body?.videoPosterImage ?? null,
         videoCtaText: body?.videoCtaText ?? null,
         videoCtaLink: body?.videoCtaLink ?? null,
         status: body?.status ?? 'draft',

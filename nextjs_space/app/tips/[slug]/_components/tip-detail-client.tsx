@@ -440,7 +440,7 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
         {/* Universal Video Module */}
         <UniversalVideoModule
           videoUrl={effectiveVideoUrl}
-          posterImage={tip?.featuredImage}
+          posterImage={tip?.videoPosterImage || tip?.featuredImage}
           title={displayTitle}
           ctaText={tip?.videoCtaText}
           ctaLink={tip?.videoCtaLink}

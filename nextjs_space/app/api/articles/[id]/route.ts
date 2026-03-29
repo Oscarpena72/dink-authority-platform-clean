@@ -38,6 +38,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         isHeroStory: body?.isHeroStory ?? existing?.isHeroStory,
         authorName: body?.authorName ?? existing?.authorName,
         videoUrl: body?.videoUrl ?? existing?.videoUrl,
+        videoPosterImage: body?.videoPosterImage ?? existing?.videoPosterImage,
         focalPointX: typeof body?.focalPointX === 'number' ? body.focalPointX : existing?.focalPointX,
         focalPointY: typeof body?.focalPointY === 'number' ? body.focalPointY : existing?.focalPointY,
         publishedAt: body?.status === 'published' && !existing?.publishedAt ? new Date() : existing?.publishedAt,

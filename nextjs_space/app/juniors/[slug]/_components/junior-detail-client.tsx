@@ -284,7 +284,7 @@ export default function JuniorDetailClient({ junior, related, latestEdition, ban
           <BannerAd image={junior?.banner3Image} link={junior?.banner3Link} label={t('common.ad')} />
 
           {/* Instagram Video Module */}
-          <UniversalVideoModule videoUrl={junior?.videoUrl ?? junior?.instagramVideoUrl ?? ''} posterImage={junior?.featuredImage} title={displayTitle} />
+          <UniversalVideoModule videoUrl={junior?.videoUrl ?? junior?.instagramVideoUrl ?? ''} posterImage={junior?.videoPosterImage || junior?.featuredImage} title={displayTitle} />
 
           {/* Gallery */}
           <ImageGallery images={gallery} />

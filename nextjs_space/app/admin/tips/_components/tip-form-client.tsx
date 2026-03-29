@@ -30,6 +30,7 @@ export default function TipFormClient({ tip }: TipFormProps) {
     banner3Link: tip?.banner3Link ?? '',
     youtubeUrl: tip?.youtubeUrl ?? '',
     videoUrl: tip?.videoUrl ?? '',
+    videoPosterImage: tip?.videoPosterImage ?? '',
     videoCtaText: tip?.videoCtaText ?? '',
     videoCtaLink: tip?.videoCtaLink ?? '',
     status: tip?.status ?? 'draft',
@@ -139,6 +140,8 @@ export default function TipFormClient({ tip }: TipFormProps) {
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Video URL <span className="text-gray-400">(YouTube, Instagram, TikTok, Facebook)</span></label>
                 <input name="videoUrl" value={form.videoUrl} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..." />
+                <label className="block text-xs text-gray-500 mb-1 mt-3">Video Poster Image <span className="text-gray-400">(opcional — si vacío usa imagen principal)</span></label>
+                <input name="videoPosterImage" value={form.videoPosterImage} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://i.ytimg.com/vi/UrZMFFUsnzU/maxresdefault.jpg" />
                 <p className="text-[10px] text-gray-400 mt-1">Platform is auto-detected from the URL</p>
               </div>
               <div className="grid grid-cols-2 gap-3">

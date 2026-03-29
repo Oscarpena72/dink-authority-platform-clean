@@ -54,6 +54,7 @@ export async function POST(request: Request) {
         authorId: (session.user as any)?.id ?? null,
         authorName: body?.authorName ?? session.user?.name ?? 'Staff',
         videoUrl: body?.videoUrl ?? null,
+        videoPosterImage: body?.videoPosterImage ?? null,
         publishedAt: body?.status === 'published' ? new Date() : null,
       },
     });

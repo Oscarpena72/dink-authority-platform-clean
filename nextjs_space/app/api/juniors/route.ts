@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         banner3Link: body?.banner3Link ?? null,
         instagramVideoUrl: body?.instagramVideoUrl ?? null,
         videoUrl: body?.videoUrl ?? null,
+        videoPosterImage: body?.videoPosterImage ?? null,
         status: body?.status ?? 'draft',
         language: body?.language ?? 'en',
         publishDate: body?.publishDate ? new Date(body.publishDate) : new Date(),

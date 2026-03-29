@@ -40,6 +40,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         banner3Link: body?.banner3Link ?? existing.banner3Link,
         youtubeUrl: body?.youtubeUrl ?? existing.youtubeUrl,
         videoUrl: body?.videoUrl ?? existing.videoUrl,
+        videoPosterImage: body?.videoPosterImage ?? existing.videoPosterImage,
         videoCtaText: body?.videoCtaText ?? existing.videoCtaText,
         videoCtaLink: body?.videoCtaLink ?? existing.videoCtaLink,
         status: body?.status ?? existing.status,

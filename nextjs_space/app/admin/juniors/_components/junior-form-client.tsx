@@ -25,6 +25,7 @@ export default function JuniorFormClient({ junior }: JuniorFormProps) {
     banner3Link: junior?.banner3Link ?? '',
     instagramVideoUrl: junior?.instagramVideoUrl ?? '',
     videoUrl: junior?.videoUrl ?? '',
+    videoPosterImage: junior?.videoPosterImage ?? '',
     status: junior?.status ?? 'draft',
     language: junior?.language ?? 'en',
     metaTitle: junior?.metaTitle ?? '',
@@ -109,6 +110,8 @@ export default function JuniorFormClient({ junior }: JuniorFormProps) {
             <div>
               <label className="block text-xs text-gray-500 mb-1">Video URL <span className="text-gray-400">(YouTube, Instagram, TikTok, Facebook)</span></label>
               <input name="videoUrl" value={form.videoUrl} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..." />
+              <label className="block text-xs text-gray-500 mb-1 mt-3">Video Poster Image <span className="text-gray-400">(opcional — si vacío usa imagen principal)</span></label>
+              <input name="videoPosterImage" value={form.videoPosterImage} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://i.ytimg.com/vi/2IMq4E2hoDo/maxresdefault.jpg" />
               <p className="text-[10px] text-gray-400 mt-1">Platform is auto-detected from the URL</p>
             </div>
           </div>

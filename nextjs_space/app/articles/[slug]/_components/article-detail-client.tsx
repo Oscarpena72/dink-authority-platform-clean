@@ -441,7 +441,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
               })()}
 
               {/* Universal Video Module */}
-              <UniversalVideoModule videoUrl={article?.videoUrl ?? ''} posterImage={article?.imageUrl} title={displayTitle} />
+              <UniversalVideoModule videoUrl={article?.videoUrl ?? ''} posterImage={article?.videoPosterImage || article?.imageUrl} title={displayTitle} />
 
               <ShareButtons title={article?.title ?? ''} />
             </motion.div>
