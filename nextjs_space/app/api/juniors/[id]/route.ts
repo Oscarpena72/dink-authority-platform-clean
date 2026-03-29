@@ -37,6 +37,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         banner3Image: body?.banner3Image ?? existing.banner3Image,
         banner3Link: body?.banner3Link ?? existing.banner3Link,
         instagramVideoUrl: body?.instagramVideoUrl ?? existing.instagramVideoUrl,
+        videoUrl: body?.videoUrl ?? existing.videoUrl,
         status: body?.status ?? existing.status,
         language: body?.language ?? existing.language,
         publishDate: body?.publishDate ? new Date(body.publishDate) : existing.publishDate,

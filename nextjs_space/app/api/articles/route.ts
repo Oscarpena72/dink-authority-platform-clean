@@ -53,6 +53,7 @@ export async function POST(request: Request) {
         isHeroStory: body?.isHeroStory ?? false,
         authorId: (session.user as any)?.id ?? null,
         authorName: body?.authorName ?? session.user?.name ?? 'Staff',
+        videoUrl: body?.videoUrl ?? null,
         publishedAt: body?.status === 'published' ? new Date() : null,
       },
     });

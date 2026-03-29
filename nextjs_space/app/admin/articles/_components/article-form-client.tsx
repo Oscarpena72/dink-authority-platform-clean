@@ -24,6 +24,7 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
     isFeatured: article?.isFeatured ?? false,
     isHeroStory: article?.isHeroStory ?? false,
     authorName: article?.authorName ?? '',
+    videoUrl: article?.videoUrl ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -110,6 +111,12 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
               <div>
                 <label className="block text-sm font-semibold text-brand-purple mb-2">Author Name</label>
                 <input name="authorName" value={form?.authorName ?? ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="Author name" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-brand-purple mb-2">🎥 Video URL <span className="text-gray-400 text-xs font-normal">(YouTube, Instagram, TikTok, Facebook)</span></label>
+                <input name="videoUrl" value={form?.videoUrl ?? ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="https://youtube.com/watch?v=... or https://instagram.com/reel/..." />
+                <p className="text-[10px] text-gray-400 mt-1">Platform is auto-detected from the URL</p>
               </div>
 
               <div className="flex items-center gap-2">
