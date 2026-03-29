@@ -318,3 +318,51 @@ model MagazineEdition {
 
   @@index([publishDate])
 }
+
+model Country {
+  id                    String   @id @default(cuid())
+  name                  String
+  slug                  String   @unique
+  code                  String   @unique
+  flagEmoji             String   @default("")
+  isActive              Boolean  @default(true)
+  sortOrder             Int      @default(0)
+
+  // SEO
+  metaTitle             String?
+  metaDescription       String?
+  ogImage               String?
+
+  // Magazine
+  magazineCover         String?
+  magazineTitle         String?
+  magazineLink          String?
+  magazinePdfUrl        String?
+
+  // Content boxes — JSON arrays of path strings e.g. ["/articles/slug","/tips/slug"]
+  newsBox               String   @default("[]")
+  proPlayersBox         String   @default("[]")
+  enthusiastsBox        String   @default("[]")
+  juniorsBox            String   @default("[]")
+  tipsBox               String   @default("[]")
+
+  // Banners
+  bannerTopImage        String?
+  bannerTopLink         String?
+  bannerMidImage        String?
+  bannerMidLink         String?
+  bannerBottomImage     String?
+  bannerBottomLink      String?
+  stickyBannerImage     String?
+  stickyBannerMobileImage String?
+  stickyBannerLink      String?
+
+  // Social media — JSON object
+  socialMedia           String   @default("{}")
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive, sortOrder])
+}

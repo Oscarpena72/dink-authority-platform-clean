@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Menu, X, Globe, Instagram, Facebook, Twitter, Youtube, ChevronRight } from 'lucide-react';
+import { Search, Menu, X, Globe, Instagram, Facebook, Twitter, Youtube, ChevronRight, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LOCALE_LABELS, LOCALE_NAMES, Locale } from '@/lib/i18n/translations';
@@ -18,8 +18,13 @@ const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.events', href: '/articles?category=events' },
   { labelKey: 'nav.gear', href: '/articles?category=gear' },
   { labelKey: 'nav.magazine', href: '/articles?category=magazine' },
-  { labelKey: 'nav.latam', href: '/articles?category=latam' },
   { labelKey: 'nav.shop', href: '/shop' },
+];
+
+const WORLD_COUNTRIES = [
+  { name: 'Colombia', slug: 'colombia', flag: '🇨🇴' },
+  { name: 'Canada', slug: 'canada', flag: '🇨🇦' },
+  { name: 'Mexico', slug: 'mexico', flag: '🇲🇽' },
 ];
 
 const SOCIAL_LINKS = [
@@ -36,7 +41,9 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [langOpen, setLangOpen] = useState(false);
+  const [worldOpen, setWorldOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const worldRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { locale, setLocale, t } = useLanguage();
 
@@ -57,6 +64,16 @@ export default function Header() {
       document.removeEventListener('click', handler);
     };
   }, [langOpen]);
+
+  // Close world dropdown on outside click
+  useEffect(() => {
+    if (!worldOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (worldRef.current && !worldRef.current.contains(e.target as Node)) setWorldOpen(false);
+    };
+    const id = setTimeout(() => { document.addEventListener('click', handler); }, 0);
+    return () => { clearTimeout(id); document.removeEventListener('click', handler); };
+  }, [worldOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,6 +164,32 @@ export default function Header() {
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </Link>
               ))}
+              {/* Dink Authority World dropdown */}
+              <div className="relative" ref={worldRef}>
+                <button
+                  onClick={() => setWorldOpen(!worldOpen)}
+                  className="relative px-4 py-3 text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group flex items-center gap-1"
+                >
+                  <span className="leading-tight text-center">Dink Authority<br />World</span>
+                  <ChevronDown size={12} className={`transition-transform ${worldOpen ? 'rotate-180' : ''}`} />
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+                </button>
+                {worldOpen && (
+                  <div className="absolute right-0 mt-0 w-52 bg-brand-purple-light rounded-lg shadow-2xl z-[9999] border border-white/10 overflow-hidden">
+                    {WORLD_COUNTRIES.map((c) => (
+                      <Link
+                        key={c.slug}
+                        href={`/${c.slug}`}
+                        onClick={() => setWorldOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white hover:bg-white/10 hover:text-brand-neon transition-colors"
+                      >
+                        <span className="text-lg">{c.flag}</span>
+                        {c.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </nav>
         </div>
@@ -185,6 +228,22 @@ export default function Header() {
                   <ChevronRight size={16} className="text-white/30" />
                 </Link>
               ))}
+              {/* Dink Authority World - Mobile */}
+              <div className="mt-2 pt-2 border-t border-white/10">
+                <span className="px-4 py-2 text-[11px] text-white/40 uppercase tracking-widest font-bold block">Dink Authority World</span>
+                {WORLD_COUNTRIES.map((c) => (
+                  <Link
+                    key={c.slug}
+                    href={`/${c.slug}`}
+                    onClick={() => setMobileOpen(false)}
+                    className="px-4 py-3 text-white hover:text-brand-neon hover:bg-white/5 rounded-lg transition-all font-heading text-sm font-bold tracking-wide flex items-center gap-3"
+                  >
+                    <span className="text-lg">{c.flag}</span>
+                    {c.name}
+                    <ChevronRight size={16} className="text-white/30 ml-auto" />
+                  </Link>
+                ))}
+              </div>
             </div>
           </nav>
         )}
