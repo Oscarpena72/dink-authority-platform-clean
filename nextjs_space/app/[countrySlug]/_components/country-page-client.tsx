@@ -128,50 +128,69 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      {/* Hero: Country Branding + Magazine */}
-      <section className="bg-gradient-to-br from-brand-purple via-brand-purple-dark to-brand-purple-light relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-10 text-[200px] leading-none">{country.flagEmoji}</div>
-        </div>
-        <div className="max-w-[1400px] mx-auto px-4 py-12 md:py-16 relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-            {/* Magazine Cover */}
-            {country.magazineCover ? (
-              <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="flex-shrink-0">
-                <div className="relative w-[220px] h-[300px] md:w-[280px] md:h-[380px] rounded-xl overflow-hidden shadow-2xl shadow-black/40 border-2 border-white/20">
-                  <Image src={country.magazineCover} alt={country.magazineTitle || 'Magazine'} fill className="object-cover" />
-                </div>
-              </motion.div>
-            ) : null}
-
-            {/* Country Title + Magazine Info */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center md:text-left">
-              <div className="flex items-center gap-3 justify-center md:justify-start mb-3">
-                <span className="text-4xl">{country.flagEmoji}</span>
-                <span className="text-brand-neon text-xs uppercase tracking-widest font-bold">Dink Authority World</span>
-              </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-black text-white leading-tight">
-                Dink Authority<br /><span className="text-brand-neon">{country.name}</span>
-              </h1>
-              {country.magazineTitle && (
-                <p className="text-white/70 text-lg mt-4">{country.magazineTitle}</p>
-              )}
-              <div className="flex flex-wrap items-center gap-3 mt-6 justify-center md:justify-start">
-                {country.magazineLink && (
-                  <a href={country.magazineLink} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all shadow-lg">
-                    <BookOpen size={18} /> Read Digital Edition
-                  </a>
-                )}
-                {country.magazinePdfUrl && (
-                  <a href={country.magazinePdfUrl} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 border-2 border-white/30 text-white font-bold rounded-lg hover:border-brand-neon hover:text-brand-neon transition-all">
-                    <ExternalLink size={18} /> Download PDF
-                  </a>
-                )}
-              </div>
-            </motion.div>
+      {/* Magazine Hero — same system as homepage MagazineSection */}
+      <section className="py-14 bg-white">
+        <div className="max-w-[1400px] mx-auto px-4">
+          {/* Section header */}
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 rounded-lg bg-brand-neon/10 flex items-center justify-center">
+              <BookOpen size={20} className="text-brand-neon" />
+            </div>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">
+                {country.flagEmoji} Dink Authority {country.name}
+              </h2>
+              <p className="text-brand-gray-dark text-sm mt-0.5">Digital Edition – Dink Authority World</p>
+            </div>
           </div>
+
+          {/* Magazine card — mirrors homepage current-edition layout */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="bg-brand-gray rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                {/* Cover image */}
+                <div className="relative aspect-[3/4] bg-brand-purple-light">
+                  {country.magazineCover ? (
+                    <Image src={country.magazineCover} alt={country.magazineTitle || `Dink Authority ${country.name}`} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-brand-purple">
+                      <BookOpen size={64} className="text-white/30" />
+                    </div>
+                  )}
+                  <div className="absolute top-4 left-4">
+                    <span className="px-3 py-1.5 bg-brand-neon text-brand-purple-dark text-[11px] font-bold uppercase tracking-widest rounded shadow-lg">
+                      {country.flagEmoji} Current Issue
+                    </span>
+                  </div>
+                </div>
+
+                {/* Info panel */}
+                <div className="p-8 md:p-10 flex flex-col justify-center">
+                  <span className="text-brand-purple text-xs font-bold uppercase tracking-widest mb-2">Dink Authority World</span>
+                  <h1 className="font-heading font-black text-3xl md:text-4xl text-brand-purple mb-3 leading-tight">
+                    Dink Authority<br /><span className="text-brand-neon">{country.name}</span>
+                  </h1>
+                  {country.magazineTitle && (
+                    <p className="text-brand-gray-dark text-base leading-relaxed mb-6">{country.magazineTitle}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-3">
+                    {country.magazineLink && (
+                      <a href={country.magazineLink} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
+                        <BookOpen size={16} /> Read Digital Edition
+                      </a>
+                    )}
+                    {country.magazinePdfUrl && (
+                      <a href={country.magazinePdfUrl} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-purple/30 text-brand-purple font-bold rounded-lg hover:border-brand-neon hover:text-brand-neon transition-all text-sm uppercase tracking-wider">
+                        <ExternalLink size={16} /> Download PDF
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -205,7 +224,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
                 return (
                   <a key={platform} href={url} target="_blank" rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-white/10 hover:bg-brand-neon/20 flex items-center justify-center text-white hover:text-brand-neon transition-all">
-                    {typeof IconComp === 'function' && IconComp.toString().includes('svg') ? <IconComp /> : <IconComp size={22} />}
+                    {platform === 'tiktok' ? <IconComp /> : <IconComp size={22} />}
                   </a>
                 );
               })}
