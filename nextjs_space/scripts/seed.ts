@@ -167,6 +167,11 @@ const SETTINGS: Record<string, string> = {
   social_youtube: 'https://youtube.com/@dinkauthority',
   ad_banner_image: '/images/ad-banner.jpg',
   ad_banner_link: '',
+  magazine_banner_image: 'https://static.wixstatic.com/media/8387f2_87a03f0c5ee94ca8b39bb3dbe1479430~mv2.png/v1/fill/w_2474,h_881,al_c/8387f2_87a03f0c5ee94ca8b39bb3dbe1479430~mv2.png',
+  magazine_banner_title: 'Subscribe to Dink Authority Magazine',
+  magazine_banner_subtitle: 'Get every edition delivered. Never miss a story from the world of pickleball.',
+  magazine_banner_button_text: 'Subscribe Now',
+  magazine_banner_button_link: '#',
 };
 
 async function main() {
