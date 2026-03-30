@@ -44,6 +44,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         externalUrl: body?.externalUrl ?? null,
         isCurrent: body?.isCurrent,
         publishDate: body?.publishDate ? new Date(body.publishDate) : undefined,
+        countries: body?.countries ? JSON.stringify(body.countries) : undefined,
       },
     });
     return NextResponse.json(edition);

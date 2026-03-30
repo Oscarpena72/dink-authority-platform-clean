@@ -315,6 +315,7 @@ model MagazineEdition {
   pdfCloudPath String?
   pdfPageCount Int?
   slug         String?  @unique
+  countries    String   @default("[\"central\"]")
 
   @@index([publishDate])
 }

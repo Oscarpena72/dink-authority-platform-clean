@@ -7,6 +7,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get('slug');
+    const country = searchParams.get('country'); // 'central', 'colombia', etc.
 
     if (slug) {
       const edition = await prisma.magazineEdition.findFirst({ where: { slug } });
@@ -17,7 +18,19 @@ export async function GET(req: Request) {
     const editions = await prisma.magazineEdition.findMany({
       orderBy: { publishDate: 'desc' },
     });
-    return NextResponse.json(editions ?? []);
+
+    // Filter by country if specified
+    let filtered = editions ?? [];
+    if (country) {
+      filtered = filtered.filter((e: any) => {
+        try {
+          const countries: string[] = JSON.parse(e.countries || '[]');
+          return countries.includes(country);
+        } catch { return false; }
+      });
+    }
+
+    return NextResponse.json(filtered);
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? 'Failed to fetch editions' }, { status: 500 });
   }
@@ -51,6 +64,7 @@ export async function POST(req: Request) {
         externalUrl: body?.externalUrl ?? null,
         isCurrent: body?.isCurrent ?? false,
         publishDate: new Date(body?.publishDate ?? new Date()),
+        countries: body?.countries ? JSON.stringify(body.countries) : '["central"]',
       },
     });
     return NextResponse.json(edition);
