@@ -109,20 +109,25 @@ function ContentCard({ item }: { item: ContentItem }) {
 }
 
 /* ─── Content Section with icon + "View All" link ─── */
-function ContentSection({ title, items, icon, viewAllHref, viewAllLabel }: {
-  title: string; items: ContentItem[]; icon: React.ReactNode;
-  viewAllHref?: string; viewAllLabel?: string;
+function ContentSection({ title, subtitle, items, icon, viewAllHref, viewAllLabel, bg = 'bg-brand-gray' }: {
+  title: string; subtitle?: string; items: ContentItem[]; icon: React.ReactNode;
+  viewAllHref?: string; viewAllLabel?: string; bg?: string;
 }) {
   if (!items.length) return null;
+  /* Adaptive grid: ≤3 items → max 3 cols (fills row); 4+ → 4 cols */
+  const gridCols = items.length <= 3
+    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
   return (
-    <section className="py-14 bg-brand-gray">
+    <section className={`py-14 ${bg}`}>
       <div className="max-w-[1400px] mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-brand-neon/10 flex items-center justify-center flex-shrink-0">
-              {icon}
+            <div className="w-1.5 h-10 bg-brand-neon rounded-full" />
+            <div>
+              <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">{title}</h2>
+              {subtitle && <p className="text-brand-gray-dark text-sm mt-0.5">{subtitle}</p>}
             </div>
-            <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">{title}</h2>
           </div>
           {viewAllHref && (
             <Link href={viewAllHref} className="flex items-center gap-1.5 text-sm font-bold text-brand-purple hover:text-brand-purple-light transition-colors uppercase tracking-wider">
@@ -130,7 +135,7 @@ function ContentSection({ title, items, icon, viewAllHref, viewAllLabel }: {
             </Link>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+        <div className={`grid ${gridCols} gap-7`}>
           {items.map((item) => <ContentCard key={item.id} item={item} />)}
         </div>
       </div>
@@ -237,14 +242,16 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
         <AdBanner image={country.bannerTopImage} link={country.bannerTopLink} />
 
         {/* ╔══════════════════════════════════════╗
-            ║  3. NEWS (with View All + 4-col grid)║
+            ║  3. NEWS                             ║
             ╚══════════════════════════════════════╝ */}
         <ContentSection
           title={t('nav.news')}
+          subtitle={`${t('latestNews.subtitle')}`}
           items={newsItems}
           icon={<Newspaper size={20} className="text-brand-neon" />}
           viewAllHref="/articles"
           viewAllLabel={t('latestNews.viewAll')}
+          bg="bg-brand-gray"
         />
 
         {/* ╔══════════════════════════════════════╗
@@ -253,9 +260,15 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
         <FeaturedArticles articles={featuredArticles} />
 
         {/* ╔══════════════════════════════════════╗
-            ║  5. PRO PLAYERS (4-col grid)         ║
+            ║  5. PRO PLAYERS                      ║
             ╚══════════════════════════════════════╝ */}
-        <ContentSection title={t('nav.proPlayers')} items={proItems} icon={<Trophy size={20} className="text-brand-neon" />} />
+        <ContentSection
+          title={t('nav.proPlayers')}
+          subtitle="Top professional pickleball coverage"
+          items={proItems}
+          icon={<Trophy size={20} className="text-brand-neon" />}
+          bg="bg-brand-gray"
+        />
 
         {/* ╔══════════════════════════════════════╗
             ║  6. MID BANNER                       ║
@@ -263,24 +276,38 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
         <AdBanner image={country.bannerMidImage} link={country.bannerMidLink} />
 
         {/* ╔══════════════════════════════════════╗
-            ║  7. ENTHUSIASTS (4-col grid)         ║
+            ║  7. ENTHUSIASTS                      ║
             ╚══════════════════════════════════════╝ */}
-        <ContentSection title={t('nav.enthusiasts')} items={enthItems} icon={<Heart size={20} className="text-brand-neon" />} />
+        <ContentSection
+          title={t('nav.enthusiasts')}
+          subtitle="Stories from the recreational community"
+          items={enthItems}
+          icon={<Heart size={20} className="text-brand-neon" />}
+          bg="bg-white"
+        />
 
         {/* ╔══════════════════════════════════════╗
-            ║  8. JUNIORS (4-col grid)             ║
+            ║  8. JUNIORS                          ║
             ╚══════════════════════════════════════╝ */}
-        <ContentSection title={t('nav.juniors')} items={juniorItems} icon={<Users size={20} className="text-brand-neon" />} />
+        <ContentSection
+          title={t('nav.juniors')}
+          subtitle="The next generation of pickleball talent"
+          items={juniorItems}
+          icon={<Users size={20} className="text-brand-neon" />}
+          bg="bg-brand-gray"
+        />
 
         {/* ╔══════════════════════════════════════╗
-            ║  9. TIPS (4-col grid)                ║
+            ║  9. TIPS                             ║
             ╚══════════════════════════════════════╝ */}
         <ContentSection
           title={t('nav.tips')}
+          subtitle="Improve your game with expert advice"
           items={tipItems}
           icon={<Lightbulb size={20} className="text-brand-neon" />}
           viewAllHref="/tips"
           viewAllLabel={t('latestNews.viewAll')}
+          bg="bg-white"
         />
 
         {/* ╔══════════════════════════════════════╗
