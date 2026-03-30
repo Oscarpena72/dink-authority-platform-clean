@@ -125,40 +125,31 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Main header with logo */}
+      {/* Main header with logo + nav on ONE row */}
       <header className="sticky top-0 z-50 bg-brand-purple shadow-2xl shadow-black/30">
         {/* Neon accent line at top */}
         <div className="h-[3px] neon-gradient" />
         <div className="max-w-[1400px] mx-auto px-4">
-          {/* Logo + search row */}
-          <div className="flex items-center justify-between py-4 md:py-5">
-            <Link href="/" className="flex-shrink-0 group">
-              <div className="relative h-16 w-[295px] md:h-[83px] md:w-[368px] lg:h-[92px] lg:w-[414px]">
-                <Image src="/images/logo.png" alt="Dink Authority Magazine" fill className="object-contain drop-shadow-[0_0_15px_rgba(57,255,20,0.15)]" priority />
-              </div>
+          <div className="flex items-center py-[14px] gap-4">
+            {/* Logo — responsive height, auto width, no background */}
+            <Link href="/" className="flex-shrink-0">
+              <Image
+                src="/images/dink-authority-logo-white.png"
+                alt="Dink Authority Magazine"
+                width={200}
+                height={42}
+                className="h-[30px] md:h-[36px] lg:h-[42px] w-auto drop-shadow-[0_0_15px_rgba(57,255,20,0.15)]"
+                priority
+              />
             </Link>
 
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSearchOpen(!searchOpen)} className="p-2.5 text-white/80 hover:text-brand-neon transition-colors rounded-lg hover:bg-white/5" aria-label="Search">
-                <Search size={22} />
-              </button>
-              <a href="#newsletter" className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-brand-neon-dim transition-all shadow-lg shadow-brand-neon/20">
-                {t('nav.newsletter')}
-              </a>
-              <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2.5 text-white hover:text-brand-neon transition-colors" aria-label="Menu">
-                {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Navigation bar */}
-          <nav className="hidden lg:block">
-            <div className="flex items-center gap-0">
+            {/* Desktop navigation — same row */}
+            <nav className="hidden lg:flex items-center gap-0 flex-1 min-w-0 justify-center">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.labelKey}
                   href={item.href}
-                  className="relative px-4 py-3 text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group"
+                  className="relative px-3 xl:px-4 py-2 text-[12px] xl:text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group whitespace-nowrap"
                 >
                   {t(item.labelKey)}
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
@@ -168,9 +159,9 @@ export default function Header() {
               <div className="relative" ref={worldRef}>
                 <button
                   onClick={() => setWorldOpen(!worldOpen)}
-                  className="relative px-4 py-3 text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group flex items-center gap-1"
+                  className="relative px-3 xl:px-4 py-2 text-[12px] xl:text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group flex items-center gap-1 whitespace-nowrap"
                 >
-                  <span className="leading-tight text-center">Dink Authority<br />World</span>
+                  DA World
                   <ChevronDown size={12} className={`transition-transform ${worldOpen ? 'rotate-180' : ''}`} />
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </button>
@@ -190,8 +181,21 @@ export default function Header() {
                   </div>
                 )}
               </div>
+            </nav>
+
+            {/* Right actions: search, newsletter, mobile hamburger */}
+            <div className="flex items-center gap-3 flex-shrink-0 ml-auto lg:ml-0">
+              <button onClick={() => setSearchOpen(!searchOpen)} className="p-2 text-white/80 hover:text-brand-neon transition-colors rounded-lg hover:bg-white/5" aria-label="Search">
+                <Search size={20} />
+              </button>
+              <a href="#newsletter" className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-brand-neon text-brand-purple-dark text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-brand-neon-dim transition-all shadow-lg shadow-brand-neon/20">
+                {t('nav.newsletter')}
+              </a>
+              <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 text-white hover:text-brand-neon transition-colors" aria-label="Menu">
+                {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
-          </nav>
+          </div>
         </div>
 
         {/* Search bar */}
