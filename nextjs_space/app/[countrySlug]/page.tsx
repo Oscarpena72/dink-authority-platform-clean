@@ -67,6 +67,38 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
     resolveContentPaths(parseJSON(country.tipsBox)),
   ]);
 
+  // Fetch shared global data (same as homepage)
+  let featuredArticles: any[] = [];
+  let events: any[] = [];
+  let results: any[] = [];
+
+  try {
+    featuredArticles = await prisma.article.findMany({
+      where: { isFeatured: true, status: 'published', isHeroStory: false },
+      orderBy: { publishedAt: 'desc' },
+      take: 4,
+      select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, authorName: true },
+    });
+  } catch { /* empty */ }
+
+  try {
+    events = await prisma.event.findMany({
+      where: { isActive: true },
+      orderBy: { startDate: 'asc' },
+      take: 3,
+      select: { id: true, name: true, location: true, startDate: true, endDate: true, externalUrl: true },
+    });
+  } catch { /* empty */ }
+
+  try {
+    results = await prisma.tournamentResult.findMany({
+      where: { isActive: true },
+      orderBy: { date: 'desc' },
+      take: 6,
+      select: { id: true, tournamentName: true, division: true, winner: true, runnerUp: true, score: true, location: true, date: true, externalUrl: true },
+    });
+  } catch { /* empty */ }
+
   const socialMedia = (() => { try { return JSON.parse(country.socialMedia ?? '{}'); } catch { return {}; } })();
 
   return (
@@ -95,6 +127,9 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
       enthItems={enthItems}
       juniorItems={juniorItems}
       tipItems={tipItems}
+      featuredArticles={(featuredArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null }))}
+      events={(events ?? []).map((e: any) => ({ ...(e ?? {}), startDate: e?.startDate?.toISOString?.() ?? null, endDate: e?.endDate?.toISOString?.() ?? null }))}
+      results={(results ?? []).map((r: any) => ({ ...(r ?? {}), date: r?.date?.toISOString?.() ?? null }))}
     />
   );
 }
