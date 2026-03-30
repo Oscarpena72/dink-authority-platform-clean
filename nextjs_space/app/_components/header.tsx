@@ -138,7 +138,7 @@ export default function Header() {
                 alt="Dink Authority Magazine"
                 width={200}
                 height={42}
-                className="h-[30px] md:h-[36px] lg:h-[42px] w-auto drop-shadow-[0_0_15px_rgba(57,255,20,0.15)]"
+                className="h-[36px] md:h-[43px] lg:h-[50px] w-auto drop-shadow-[0_0_15px_rgba(57,255,20,0.15)]"
                 priority
               />
             </Link>
