@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, Menu, X, Globe, Instagram, Facebook, Twitter, Youtube, ChevronRight, ChevronDown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LOCALE_LABELS, LOCALE_NAMES, Locale } from '@/lib/i18n/translations';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -45,7 +45,21 @@ export default function Header() {
   const langRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
   const { locale, setLocale, t } = useLanguage();
+
+  // Detect country context from URL path (e.g., /colombia/... → colombia)
+  const COUNTRY_SLUGS = ['colombia', 'canada', 'mexico'];
+  const pathSegments = (pathname || '').split('/').filter(Boolean);
+  const currentCountrySlug = pathSegments.length > 0 && COUNTRY_SLUGS.includes(pathSegments[0]) ? pathSegments[0] : null;
+
+  // Build contextual nav items — Magazine link changes based on country context
+  const contextualNavItems = NAV_ITEMS.map((item) => {
+    if (item.labelKey === 'nav.magazine' && currentCountrySlug) {
+      return { ...item, href: `/${currentCountrySlug}/magazine` };
+    }
+    return item;
+  });
 
   // Close lang dropdown on outside click (bubble phase)
   useEffect(() => {
@@ -145,7 +159,7 @@ export default function Header() {
 
             {/* Desktop navigation — same row */}
             <nav className="hidden lg:flex items-center gap-0 flex-1 min-w-0 justify-center">
-              {NAV_ITEMS.map((item) => (
+              {contextualNavItems.map((item) => (
                 <Link
                   key={item.labelKey}
                   href={item.href}
@@ -221,7 +235,7 @@ export default function Header() {
         {mobileOpen && (
           <nav className="lg:hidden bg-brand-purple-dark border-t border-white/10">
             <div className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-0.5 max-h-[calc(100vh-140px)] overflow-y-auto">
-              {NAV_ITEMS.map((item) => (
+              {contextualNavItems.map((item) => (
                 <Link
                   key={item.labelKey}
                   href={item.href}
