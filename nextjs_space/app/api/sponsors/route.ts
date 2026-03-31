@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 
 export const dynamic = 'force-dynamic';
+// Sponsors API with section + region filtering
 
 export async function GET(req: NextRequest) {
   try {
