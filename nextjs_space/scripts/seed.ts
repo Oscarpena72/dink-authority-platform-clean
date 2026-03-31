@@ -641,19 +641,17 @@ async function main() {
 
   // --- Sponsor Banners ---
   const SPONSORS = [
-    { sponsorName: 'Coca-Cola', imageUrl: '/images/sponsors/coca-cola-banner.jpg', link: 'https://www.coca-cola.com', sortOrder: 0 },
-    { sponsorName: 'JOOLA', imageUrl: '/images/sponsors/joola-banner.jpg', link: 'https://www.joola.com', sortOrder: 1 },
-    { sponsorName: 'Gearbox Sports', imageUrl: '/images/sponsors/gearbox-banner.jpg', link: 'https://www.gearboxsports.com', sortOrder: 2 },
-    { sponsorName: 'Hilton', imageUrl: '/images/sponsors/hilton-banner.jpg', link: 'https://www.hilton.com', sortOrder: 3 },
-    { sponsorName: 'Pickleball Central', imageUrl: '/images/sponsors/pickleball-central-banner.jpg', link: 'https://www.pickleballcentral.com', sortOrder: 4 },
+    { sponsorName: 'Coca-Cola', imageUrl: '/images/sponsors/coca-cola-banner.jpg', link: 'https://www.coca-cola.com', sortOrder: 0, countries: '["central"]', sections: '["news"]' },
+    { sponsorName: 'Freskaleche', imageUrl: '/images/sponsors/hilton-banner.jpg', link: 'https://www.freskaleche.com', sortOrder: 1, countries: '["colombia"]', sections: '["shop"]' },
+    { sponsorName: 'Tacos El Güero', imageUrl: '/images/sponsors/gearbox-banner.jpg', link: 'https://www.example.com', sortOrder: 2, countries: '["mexico"]', sections: '["events"]' },
+    { sponsorName: 'Sea-Doo', imageUrl: '/images/sponsors/pickleball-central-banner.jpg', link: 'https://www.sea-doo.com', sortOrder: 3, countries: '["canada"]', sections: '["gear"]' },
+    { sponsorName: 'JOOLA', imageUrl: '/images/sponsors/joola-banner.jpg', link: 'https://www.joola.com', sortOrder: 4, countries: '["central"]', sections: '["enthusiasts"]' },
   ];
 
   for (const s of SPONSORS) {
     const existing = await prisma.sponsorBanner.findFirst({ where: { sponsorName: s.sponsorName } });
     if (!existing) {
-      await prisma.sponsorBanner.create({
-        data: { ...s, isActive: true, countries: JSON.stringify(['central', 'colombia', 'mexico', 'canada']) },
-      });
+      await prisma.sponsorBanner.create({ data: { ...s, isActive: true } });
     }
   }
   console.log(`${SPONSORS.length} sponsor banners seeded`);

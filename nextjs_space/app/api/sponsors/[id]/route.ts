@@ -19,6 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         isActive: body.isActive,
         sortOrder: body.sortOrder,
         countries: body.countries,
+        sections: body.sections,
       },
     });
 

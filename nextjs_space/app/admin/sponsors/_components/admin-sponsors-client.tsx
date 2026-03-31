@@ -10,6 +10,19 @@ const COUNTRY_OPTIONS = [
   { value: 'canada', label: 'Canada' },
 ];
 
+const SECTION_OPTIONS = [
+  { value: 'news', label: 'News' },
+  { value: 'pro-players', label: 'Pro Players' },
+  { value: 'enthusiasts', label: 'Enthusiasts' },
+  { value: 'juniors', label: 'Juniors' },
+  { value: 'tips', label: 'Tips' },
+  { value: 'results', label: 'Results' },
+  { value: 'events', label: 'Events' },
+  { value: 'gear', label: 'Gear' },
+  { value: 'magazine', label: 'Magazine' },
+  { value: 'shop', label: 'Shop' },
+];
+
 interface SponsorBanner {
   id: string;
   sponsorName: string;
@@ -18,6 +31,7 @@ interface SponsorBanner {
   isActive: boolean;
   sortOrder: number;
   countries: string;
+  sections: string;
 }
 
 const emptyForm = {
@@ -27,6 +41,7 @@ const emptyForm = {
   isActive: true,
   sortOrder: 0,
   countries: ['central'] as string[],
+  sections: ['news'] as string[],
 };
 
 export default function AdminSponsorsClient() {
@@ -51,7 +66,9 @@ export default function AdminSponsorsClient() {
   const openEdit = (s: SponsorBanner) => {
     setEditing(s.id);
     let countries: string[] = [];
+    let sections: string[] = [];
     try { countries = JSON.parse(s.countries); } catch { countries = ['central']; }
+    try { sections = JSON.parse(s.sections); } catch { sections = ['news']; }
     setForm({
       sponsorName: s.sponsorName,
       imageUrl: s.imageUrl,
@@ -59,6 +76,7 @@ export default function AdminSponsorsClient() {
       isActive: s.isActive,
       sortOrder: s.sortOrder,
       countries,
+      sections,
     });
     setShowForm(true);
   };
@@ -78,6 +96,15 @@ export default function AdminSponsorsClient() {
     }));
   };
 
+  const toggleSection = (val: string) => {
+    setForm(prev => ({
+      ...prev,
+      sections: prev.sections.includes(val)
+        ? prev.sections.filter(s => s !== val)
+        : [...prev.sections, val],
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const body = {
@@ -87,6 +114,7 @@ export default function AdminSponsorsClient() {
       isActive: form.isActive,
       sortOrder: Number(form.sortOrder),
       countries: JSON.stringify(form.countries),
+      sections: JSON.stringify(form.sections),
     };
 
     try {
@@ -113,7 +141,7 @@ export default function AdminSponsorsClient() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-heading font-bold text-gray-900">Sponsor Banners</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage advertising banners that appear across the site</p>
+          <p className="text-gray-500 text-sm mt-1">Manage advertising banners by region and section</p>
         </div>
         <button
           onClick={openNew}
@@ -179,9 +207,9 @@ export default function AdminSponsorsClient() {
             </div>
           )}
 
-          {/* Countries */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Visible in Regions</label>
+          {/* Regions */}
+          <div className="mt-5">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">📍 Región</label>
             <div className="flex flex-wrap gap-3">
               {COUNTRY_OPTIONS.map(c => (
                 <label key={c.value} className="flex items-center gap-2 cursor-pointer">
@@ -192,6 +220,24 @@ export default function AdminSponsorsClient() {
                     className="rounded border-gray-300 text-brand-purple focus:ring-brand-purple"
                   />
                   <span className="text-sm text-gray-700">{c.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div className="mt-4">
+            <label className="block text-sm font-semibold text-gray-800 mb-2">📄 Sección</label>
+            <div className="flex flex-wrap gap-3">
+              {SECTION_OPTIONS.map(s => (
+                <label key={s.value} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.sections.includes(s.value)}
+                    onChange={() => toggleSection(s.value)}
+                    className="rounded border-gray-300 text-brand-purple focus:ring-brand-purple"
+                  />
+                  <span className="text-sm text-gray-700">{s.label}</span>
                 </label>
               ))}
             </div>
@@ -215,7 +261,7 @@ export default function AdminSponsorsClient() {
           <div className="mt-6 flex gap-3">
             <button
               onClick={handleSave}
-              disabled={saving || !form.sponsorName || !form.imageUrl}
+              disabled={saving || !form.sponsorName || !form.imageUrl || form.countries.length === 0 || form.sections.length === 0}
               className="flex items-center gap-2 bg-brand-purple text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-brand-purple/90 transition-colors disabled:opacity-50"
             >
               <Save size={16} /> {saving ? 'Saving...' : 'Save'}
@@ -242,7 +288,9 @@ export default function AdminSponsorsClient() {
         <div className="space-y-3">
           {sponsors.map((s) => {
             let countries: string[] = [];
+            let sections: string[] = [];
             try { countries = JSON.parse(s.countries); } catch { countries = []; }
+            try { sections = JSON.parse(s.sections); } catch { sections = []; }
             return (
               <div key={s.id} className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
                 <GripVertical size={16} className="text-gray-300 flex-shrink-0" />
@@ -255,12 +303,16 @@ export default function AdminSponsorsClient() {
                     <span className={`inline-block w-2 h-2 rounded-full ${s.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
                     <span className="text-xs text-gray-400">#{s.sortOrder}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     {countries.map(c => (
                       <span key={c} className="text-[10px] px-1.5 py-0.5 bg-brand-purple/10 text-brand-purple rounded-full">{c}</span>
                     ))}
+                    <span className="text-gray-300 text-[10px]">|</span>
+                    {sections.map(sec => (
+                      <span key={sec} className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full">{sec}</span>
+                    ))}
                     {s.link && (
-                      <a href={s.link} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 flex items-center gap-0.5 hover:underline">
+                      <a href={s.link} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 flex items-center gap-0.5 hover:underline ml-1">
                         <ExternalLink size={10} /> Link
                       </a>
                     )}

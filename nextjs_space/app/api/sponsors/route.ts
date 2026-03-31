@@ -9,12 +9,16 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const country = searchParams.get('country') || 'central';
+    const section = searchParams.get('section') || '';
     const all = searchParams.get('all') === 'true';
 
     const where: any = {};
     if (!all) {
       where.isActive = true;
       where.countries = { contains: country };
+      if (section) {
+        where.sections = { contains: section };
+      }
     }
 
     const sponsors = await prisma.sponsorBanner.findMany({
@@ -43,6 +47,7 @@ export async function POST(req: NextRequest) {
         isActive: body.isActive ?? true,
         sortOrder: body.sortOrder ?? 0,
         countries: body.countries || '["central"]',
+        sections: body.sections || '["news"]',
       },
     });
 

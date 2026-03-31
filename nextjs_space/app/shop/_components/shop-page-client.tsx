@@ -7,6 +7,7 @@ import { ShoppingBag, Star, Filter } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
+import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 const INVENTORY_LABELS: Record<string, { label: string; color: string }> = {
@@ -23,6 +24,56 @@ const CATEGORIES = [
   { value: 'equipment', label: 'Equipment' },
   { value: 'merchandise', label: 'Merchandise' },
 ];
+
+function ProductCard({ product, index, t }: { product: any; index: number; t: any }) {
+  const inv = INVENTORY_LABELS[product.inventoryStatus] || INVENTORY_LABELS.in_stock;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+    >
+      <Link href={`/shop/${product.slug}`} className="group block">
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div className="relative aspect-square bg-gray-50">
+            {product.images?.[0] ? (
+              <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <ShoppingBag size={48} className="text-gray-200" />
+              </div>
+            )}
+            {product.isFeatured && (
+              <span className="absolute top-3 left-3 px-2 py-1 bg-brand-neon text-brand-purple-dark text-xs font-bold rounded-full flex items-center gap-1">
+                <Star size={12} fill="currentColor" /> Featured
+              </span>
+            )}
+            <span className={`absolute top-3 right-3 px-2 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded-full ${inv.color}`}>
+              {inv.label}
+            </span>
+          </div>
+          <div className="p-4">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple/60">
+              {product.category?.replace(/_/g, ' ')}
+            </span>
+            <h3 className="font-heading font-bold text-brand-purple mt-1 text-base leading-tight group-hover:text-brand-purple-light transition-colors">
+              {product.name}
+            </h3>
+            {product.shortDescription && (
+              <p className="text-sm text-brand-gray-dark mt-1 line-clamp-2">{product.shortDescription}</p>
+            )}
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-xl font-heading font-black text-brand-purple">${product.price?.toFixed(2)}</span>
+              <span className="text-sm font-semibold text-brand-purple group-hover:underline">
+                {t('shop.viewProduct')}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
 export default function ShopPageClient({ products, bannerData }: { products: any[]; bannerData?: any }) {
   const { t } = useLanguage();
@@ -74,60 +125,26 @@ export default function ShopPageClient({ products, bannerData }: { products: any
               <p className="text-brand-gray-dark text-lg">No products found in this category.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filtered.map((product, i) => {
-                const inv = INVENTORY_LABELS[product.inventoryStatus] || INVENTORY_LABELS.in_stock;
-                return (
-                  <motion.div key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.05 }}
-                  >
-                    <Link href={`/shop/${product.slug}`} className="group block">
-                      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                        {/* Image */}
-                        <div className="relative aspect-square bg-gray-50">
-                          {product.images?.[0] ? (
-                            <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <ShoppingBag size={48} className="text-gray-200" />
-                            </div>
-                          )}
-                          {product.isFeatured && (
-                            <span className="absolute top-3 left-3 px-2 py-1 bg-brand-neon text-brand-purple-dark text-xs font-bold rounded-full flex items-center gap-1">
-                              <Star size={12} fill="currentColor" /> Featured
-                            </span>
-                          )}
-                          {/* Inventory badge */}
-                          <span className={`absolute top-3 right-3 px-2 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded-full ${inv.color}`}>
-                            {inv.label}
-                          </span>
-                        </div>
-                        {/* Info */}
-                        <div className="p-4">
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple/60">
-                            {product.category?.replace(/_/g, ' ')}
-                          </span>
-                          <h3 className="font-heading font-bold text-brand-purple mt-1 text-base leading-tight group-hover:text-brand-purple-light transition-colors">
-                            {product.name}
-                          </h3>
-                          {product.shortDescription && (
-                            <p className="text-sm text-brand-gray-dark mt-1 line-clamp-2">{product.shortDescription}</p>
-                          )}
-                          <div className="flex items-center justify-between mt-3">
-                            <span className="text-xl font-heading font-black text-brand-purple">${product.price?.toFixed(2)}</span>
-                            <span className="text-sm font-semibold text-brand-purple group-hover:underline">
-                              {t('shop.viewProduct')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
+            <>
+              {/* First 4 products */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filtered.slice(0, 4).map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} t={t} />
+                ))}
+              </div>
+
+              {/* Sponsor Banner after 4th product */}
+              <SponsorBannerCarousel className="py-8" section="shop" />
+
+              {/* Remaining products */}
+              {filtered.length > 4 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filtered.slice(4).map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i + 4} t={t} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>

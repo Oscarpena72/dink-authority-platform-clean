@@ -61,7 +61,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
         </div>
 
         {/* Sponsor Banner Carousel */}
-        <SponsorBannerCarousel className="py-6" />
+        <SponsorBannerCarousel className="py-6" section={category || 'news'} />
 
         <div className="max-w-[1200px] mx-auto px-4 py-8">
           {/* Filters */}

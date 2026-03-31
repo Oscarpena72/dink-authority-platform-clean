@@ -201,7 +201,7 @@ export default function MagazineArchiveClient({ editions, banner, countryName, c
             </div>
 
             {/* Sponsor Banner Carousel after first row */}
-            <SponsorBannerCarousel className="py-8" />
+            <SponsorBannerCarousel className="py-8" section="magazine" />
 
             {/* Remaining editions */}
             {items.length > 4 && (

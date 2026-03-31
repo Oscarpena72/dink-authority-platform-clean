@@ -22,7 +22,12 @@ interface Sponsor {
   link: string;
 }
 
-export default function SponsorBannerCarousel({ className }: { className?: string }) {
+interface Props {
+  className?: string;
+  section?: string;
+}
+
+export default function SponsorBannerCarousel({ className, section }: Props) {
   const pathname = usePathname();
   const country = detectCountry(pathname);
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -48,13 +53,16 @@ export default function SponsorBannerCarousel({ className }: { className?: strin
   }, [emblaApi, onSelect]);
 
   useEffect(() => {
-    fetch(`/api/sponsors?country=${country}`)
+    const params = new URLSearchParams();
+    params.set('country', country);
+    if (section) params.set('section', section);
+    fetch(`/api/sponsors?${params.toString()}`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) setSponsors(data);
       })
       .catch(() => {});
-  }, [country]);
+  }, [country, section]);
 
   if (sponsors.length === 0) return null;
 

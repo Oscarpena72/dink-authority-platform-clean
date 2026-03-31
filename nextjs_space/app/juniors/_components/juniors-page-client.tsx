@@ -46,7 +46,7 @@ export default function JuniorsPageClient({ juniors, bannerData }: { juniors: an
       </section>
 
       {/* Sponsor Banner Carousel */}
-      <SponsorBannerCarousel className="py-6" />
+      <SponsorBannerCarousel className="py-6" section="juniors" />
 
       {/* Juniors Grid */}
       <section className="max-w-7xl mx-auto px-4 py-12">

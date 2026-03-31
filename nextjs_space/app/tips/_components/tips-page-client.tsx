@@ -62,7 +62,7 @@ export default function TipsPageClient({ tips, category, bannerData }: { tips: a
       </section>
 
       {/* Sponsor Banner Carousel */}
-      <SponsorBannerCarousel className="py-6" />
+      <SponsorBannerCarousel className="py-6" section="tips" />
 
       {/* Category Filter */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm">
