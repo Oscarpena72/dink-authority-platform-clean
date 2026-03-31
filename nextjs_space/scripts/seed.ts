@@ -639,35 +639,41 @@ async function main() {
   }
   console.log(`${JUNIORS.length} demo juniors seeded`);
 
-  // --- Sponsor Banners (1 per section, all regions) ---
+  // --- Sponsor Banners (4 per section, all regions — rotative carousel) ---
   const ALL_REGIONS = '["central","colombia","mexico","canada"]';
-  const SPONSOR_IMAGES = [
-    '/images/sponsors/coca-cola-banner.jpg',
-    '/images/sponsors/hilton-banner.jpg',
-    '/images/sponsors/gearbox-banner.jpg',
-    '/images/sponsors/pickleball-central-banner.jpg',
-    '/images/sponsors/joola-banner.jpg',
+  const SPONSOR_BRANDS: [string, string, string][] = [
+    ['Coca-Cola', '/images/sponsors/coca-cola-banner.jpg', 'https://coca-cola.com'],
+    ['Hilton Hotels', '/images/sponsors/hilton-banner.jpg', 'https://hilton.com'],
+    ['Gearbox Sports', '/images/sponsors/gearbox-banner.jpg', 'https://gearboxsports.com'],
+    ['Pickleball Central', '/images/sponsors/pickleball-central-banner.jpg', 'https://pickleballcentral.com'],
+    ['JOOLA', '/images/sponsors/joola-banner.jpg', 'https://joola.com'],
   ];
-  const SPONSORS = [
-    { sponsorName: 'Sponsor News (Placeholder)', sections: '["news"]', imageUrl: SPONSOR_IMAGES[0], link: '#', sortOrder: 0 },
-    { sponsorName: 'Sponsor Pro Players (Placeholder)', sections: '["pro-players"]', imageUrl: SPONSOR_IMAGES[1], link: '#', sortOrder: 1 },
-    { sponsorName: 'Sponsor Enthusiasts (Placeholder)', sections: '["enthusiasts"]', imageUrl: SPONSOR_IMAGES[2], link: '#', sortOrder: 2 },
-    { sponsorName: 'Sponsor Juniors (Placeholder)', sections: '["juniors"]', imageUrl: SPONSOR_IMAGES[3], link: '#', sortOrder: 3 },
-    { sponsorName: 'Sponsor Tips (Placeholder)', sections: '["tips"]', imageUrl: SPONSOR_IMAGES[4], link: '#', sortOrder: 4 },
-    { sponsorName: 'Sponsor Results (Placeholder)', sections: '["results"]', imageUrl: SPONSOR_IMAGES[0], link: '#', sortOrder: 5 },
-    { sponsorName: 'Sponsor Events (Placeholder)', sections: '["events"]', imageUrl: SPONSOR_IMAGES[1], link: '#', sortOrder: 6 },
-    { sponsorName: 'Sponsor Gear (Placeholder)', sections: '["gear"]', imageUrl: SPONSOR_IMAGES[2], link: '#', sortOrder: 7 },
-    { sponsorName: 'Sponsor Magazine (Placeholder)', sections: '["magazine"]', imageUrl: SPONSOR_IMAGES[3], link: '#', sortOrder: 8 },
-    { sponsorName: 'Sponsor Shop (Placeholder)', sections: '["shop"]', imageUrl: SPONSOR_IMAGES[4], link: '#', sortOrder: 9 },
-  ];
+  const SPONSOR_SECTIONS = ['news','pro-players','enthusiasts','juniors','tips','results','events','gear','magazine','shop'];
 
-  for (const s of SPONSORS) {
-    const existing = await prisma.sponsorBanner.findFirst({ where: { sponsorName: s.sponsorName } });
-    if (!existing) {
-      await prisma.sponsorBanner.create({ data: { ...s, countries: ALL_REGIONS, isActive: true } });
+  let sponsorOrder = 0;
+  for (const section of SPONSOR_SECTIONS) {
+    for (let i = 0; i < 4; i++) {
+      const idx = (SPONSOR_SECTIONS.indexOf(section) + i) % SPONSOR_BRANDS.length;
+      const [name, img, link] = SPONSOR_BRANDS[idx];
+      const sName = `${name} - ${section} #${i + 1}`;
+      const existing = await prisma.sponsorBanner.findFirst({ where: { sponsorName: sName } });
+      if (!existing) {
+        await prisma.sponsorBanner.create({
+          data: {
+            sponsorName: sName,
+            imageUrl: img,
+            link,
+            isActive: true,
+            sortOrder: sponsorOrder,
+            countries: ALL_REGIONS,
+            sections: JSON.stringify([section]),
+          },
+        });
+      }
+      sponsorOrder++;
     }
   }
-  console.log(`${SPONSORS.length} sponsor banners seeded`);
+  console.log('40 sponsor banners seeded (4 per section, rotative carousel)');
 
   console.log('Seeding complete!');
 }
