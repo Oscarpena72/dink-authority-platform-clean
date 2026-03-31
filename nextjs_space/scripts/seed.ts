@@ -648,7 +648,7 @@ async function main() {
     ['Pickleball Central', '/images/sponsors/pickleball-central-banner.jpg', 'https://pickleballcentral.com'],
     ['JOOLA', '/images/sponsors/joola-banner.jpg', 'https://joola.com'],
   ];
-  const SPONSOR_SECTIONS = ['news','pro-players','enthusiasts','juniors','tips','results','events','gear','magazine','shop'];
+  const SPONSOR_SECTIONS = ['homepage','news','pro-players','enthusiasts','juniors','tips','results','events','gear','magazine','shop'];
 
   let sponsorOrder = 0;
   for (const section of SPONSOR_SECTIONS) {
@@ -673,7 +673,7 @@ async function main() {
       sponsorOrder++;
     }
   }
-  console.log('50 sponsor banners seeded (5 per section, rotative carousel)');
+  console.log('55 sponsor banners seeded (5 per section incl. homepage, rotative carousel)');
 
   console.log('Seeding complete!');
 }

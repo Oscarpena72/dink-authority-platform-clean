@@ -11,6 +11,7 @@ const COUNTRY_OPTIONS = [
 ];
 
 const SECTION_OPTIONS = [
+  { value: 'homepage', label: '🏠 Homepage' },
   { value: 'news', label: 'News' },
   { value: 'pro-players', label: 'Pro Players' },
   { value: 'enthusiasts', label: 'Enthusiasts' },

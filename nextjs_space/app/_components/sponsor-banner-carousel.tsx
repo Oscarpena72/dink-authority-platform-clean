@@ -25,9 +25,10 @@ interface Sponsor {
 interface Props {
   className?: string;
   section?: string;
+  variant?: 'default' | 'homepage';
 }
 
-export default function SponsorBannerCarousel({ className, section }: Props) {
+export default function SponsorBannerCarousel({ className, section, variant = 'default' }: Props) {
   const pathname = usePathname();
   const country = detectCountry(pathname);
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -66,20 +67,29 @@ export default function SponsorBannerCarousel({ className, section }: Props) {
 
   if (sponsors.length === 0) return null;
 
+  /* --- Variant-based sizing --- */
+  const isHomepage = variant === 'homepage';
+  const heightClass = isHomepage
+    ? 'h-[100px] sm:h-[130px] md:h-[160px] lg:h-[180px]'
+    : 'h-[150px] md:h-[200px]';
+  const maxWidthClass = isHomepage ? 'max-w-[1400px]' : 'max-w-[1200px]';
+  const wrapperPadding = isHomepage ? 'py-3' : '';
+
   return (
-    <div className={`w-full flex justify-center ${className || ''}`}>
-      <div className="w-full max-w-[1200px] px-4">
+    <div className={`w-full flex justify-center ${wrapperPadding} ${className || ''}`}>
+      <div className={`w-full ${maxWidthClass} px-4`}>
         <div className="overflow-hidden rounded-[10px]" ref={emblaRef}>
           <div className="flex">
             {sponsors.map((s) => {
               const inner = (
-                <div className="relative w-full h-[150px] md:h-[200px] bg-gray-100 rounded-[10px] overflow-hidden">
+                <div className={`relative w-full ${heightClass} bg-gray-100 rounded-[10px] overflow-hidden`}>
                   <Image
                     src={s.imageUrl}
                     alt={`Sponsor: ${s.sponsorName}`}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 1200px"
+                    sizes={isHomepage ? '(max-width: 768px) 100vw, 1400px' : '(max-width: 768px) 100vw, 1200px'}
+                    priority={isHomepage}
                   />
                 </div>
               );
@@ -111,6 +121,9 @@ export default function SponsorBannerCarousel({ className, section }: Props) {
               />
             ))}
           </div>
+        )}
+        {isHomepage && (
+          <p className="text-center text-[10px] text-brand-gray-dark mt-1 uppercase tracking-widest font-medium">Sponsored</p>
         )}
       </div>
     </div>

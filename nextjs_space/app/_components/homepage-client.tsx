@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo } from 'react';
 import Header from './header';
-import AdBanner from './ad-banner';
+import SponsorBannerCarousel from './sponsor-banner-carousel';
 import HeroStory from './hero-story';
 import LatestNews from './latest-news';
 import FeaturedArticles from './featured-articles';
@@ -47,8 +47,8 @@ export default function HomePageClient({ data }: { data: HomeData }) {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        {/* 1. Ad Banner - sponsors/publicidad */}
-        <AdBanner imageUrl={settings?.ad_banner_image ?? '/images/ad-banner.jpg'} linkUrl={settings?.ad_banner_link ?? null} />
+        {/* 1. Sponsor Banner Carousel - homepage premium placement */}
+        <SponsorBannerCarousel section="homepage" variant="homepage" className="bg-white" />
 
         {/* 2. LEVEL 1: Hero Story - dominant visual */}
         <HeroStory article={heroArticle} />
