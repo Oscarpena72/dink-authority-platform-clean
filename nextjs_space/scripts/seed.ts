@@ -652,7 +652,7 @@ async function main() {
 
   let sponsorOrder = 0;
   for (const section of SPONSOR_SECTIONS) {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const idx = (SPONSOR_SECTIONS.indexOf(section) + i) % SPONSOR_BRANDS.length;
       const [name, img, link] = SPONSOR_BRANDS[idx];
       const sName = `${name} - ${section} #${i + 1}`;
@@ -673,7 +673,7 @@ async function main() {
       sponsorOrder++;
     }
   }
-  console.log('40 sponsor banners seeded (4 per section, rotative carousel)');
+  console.log('50 sponsor banners seeded (5 per section, rotative carousel)');
 
   console.log('Seeding complete!');
 }
