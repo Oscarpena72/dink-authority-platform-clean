@@ -9,6 +9,7 @@ import { Calendar, User, ArrowRight } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
+import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const CATEGORIES: { value: string; labelKey: TranslationKey }[] = [
@@ -59,6 +60,9 @@ export default function TipsPageClient({ tips, category, bannerData }: { tips: a
           </motion.div>
         </div>
       </section>
+
+      {/* Sponsor Banner Carousel */}
+      <SponsorBannerCarousel className="py-6" />
 
       {/* Category Filter */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm">

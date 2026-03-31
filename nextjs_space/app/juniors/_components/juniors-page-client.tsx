@@ -9,6 +9,7 @@ import { ArrowRight, MapPin } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
+import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 
 export default function JuniorsPageClient({ juniors, bannerData }: { juniors: any[]; bannerData?: any }) {
   const { t } = useLanguage();
@@ -43,6 +44,9 @@ export default function JuniorsPageClient({ juniors, bannerData }: { juniors: an
           </motion.div>
         </div>
       </section>
+
+      {/* Sponsor Banner Carousel */}
+      <SponsorBannerCarousel className="py-6" />
 
       {/* Juniors Grid */}
       <section className="max-w-7xl mx-auto px-4 py-12">

@@ -7,6 +7,7 @@ import { BookOpen, ExternalLink, ArrowRight } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import { useLanguage } from '@/lib/i18n/language-context';
+import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 
 interface EditionItem {
   id: string;
@@ -191,11 +192,26 @@ export default function MagazineArchiveClient({ editions, banner, countryName, c
             <p className="text-brand-gray-dark text-lg">No editions available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
-            {items.map((edition, i) => (
-              <EditionCard key={edition?.id ?? i} edition={edition} index={i} />
-            ))}
-          </div>
+          <>
+            {/* First row of editions */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+              {items.slice(0, 4).map((edition, i) => (
+                <EditionCard key={edition?.id ?? i} edition={edition} index={i} />
+              ))}
+            </div>
+
+            {/* Sponsor Banner Carousel after first row */}
+            <SponsorBannerCarousel className="py-8" />
+
+            {/* Remaining editions */}
+            {items.length > 4 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+                {items.slice(4).map((edition, i) => (
+                  <EditionCard key={edition?.id ?? (i + 4)} edition={edition} index={i + 4} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

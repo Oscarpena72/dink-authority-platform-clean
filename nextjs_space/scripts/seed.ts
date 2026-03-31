@@ -639,6 +639,25 @@ async function main() {
   }
   console.log(`${JUNIORS.length} demo juniors seeded`);
 
+  // --- Sponsor Banners ---
+  const SPONSORS = [
+    { sponsorName: 'Coca-Cola', imageUrl: '/images/sponsors/coca-cola-banner.jpg', link: 'https://www.coca-cola.com', sortOrder: 0 },
+    { sponsorName: 'JOOLA', imageUrl: '/images/sponsors/joola-banner.jpg', link: 'https://www.joola.com', sortOrder: 1 },
+    { sponsorName: 'Gearbox Sports', imageUrl: '/images/sponsors/gearbox-banner.jpg', link: 'https://www.gearboxsports.com', sortOrder: 2 },
+    { sponsorName: 'Hilton', imageUrl: '/images/sponsors/hilton-banner.jpg', link: 'https://www.hilton.com', sortOrder: 3 },
+    { sponsorName: 'Pickleball Central', imageUrl: '/images/sponsors/pickleball-central-banner.jpg', link: 'https://www.pickleballcentral.com', sortOrder: 4 },
+  ];
+
+  for (const s of SPONSORS) {
+    const existing = await prisma.sponsorBanner.findFirst({ where: { sponsorName: s.sponsorName } });
+    if (!existing) {
+      await prisma.sponsorBanner.create({
+        data: { ...s, isActive: true, countries: JSON.stringify(['central', 'colombia', 'mexico', 'canada']) },
+      });
+    }
+  }
+  console.log(`${SPONSORS.length} sponsor banners seeded`);
+
   console.log('Seeding complete!');
 }
 

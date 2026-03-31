@@ -8,6 +8,7 @@ import { Clock, ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
+import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -58,6 +59,9 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
             <p className="text-white/60">{t('articles.subtitle')}</p>
           </div>
         </div>
+
+        {/* Sponsor Banner Carousel */}
+        <SponsorBannerCarousel className="py-6" />
 
         <div className="max-w-[1200px] mx-auto px-4 py-8">
           {/* Filters */}
