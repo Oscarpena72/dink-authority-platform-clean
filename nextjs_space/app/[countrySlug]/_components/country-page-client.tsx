@@ -14,6 +14,7 @@ import FeaturedArticles from '@/app/_components/featured-articles';
 import UpcomingEvents from '@/app/_components/upcoming-events';
 import RecentResults from '@/app/_components/recent-results';
 import CommunityCta from '@/app/_components/community-cta';
+import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 
@@ -108,10 +109,10 @@ function ContentCard({ item }: { item: ContentItem }) {
   );
 }
 
-/* ─── Content Section with icon + "View All" link ─── */
-function ContentSection({ title, subtitle, items, icon, viewAllHref, viewAllLabel, bg = 'bg-brand-gray' }: {
+/* ─── Content Section with icon + "View All" link + Sponsor Banner ─── */
+function ContentSection({ title, subtitle, items, icon, viewAllHref, viewAllLabel, bg = 'bg-brand-gray', sponsorSection }: {
   title: string; subtitle?: string; items: ContentItem[]; icon: React.ReactNode;
-  viewAllHref?: string; viewAllLabel?: string; bg?: string;
+  viewAllHref?: string; viewAllLabel?: string; bg?: string; sponsorSection?: string;
 }) {
   if (!items.length) return null;
   /* Adaptive grid: ≤3 items → max 3 cols (fills row); 4+ → 4 cols */
@@ -121,7 +122,8 @@ function ContentSection({ title, subtitle, items, icon, viewAllHref, viewAllLabe
   return (
     <section className={`py-14 ${bg}`}>
       <div className="max-w-[1400px] mx-auto px-4">
-        <div className="flex items-center justify-between mb-10">
+        {/* Section header (acts as the "hero" of the section) */}
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-10 bg-brand-neon rounded-full" />
             <div>
@@ -135,6 +137,13 @@ function ContentSection({ title, subtitle, items, icon, viewAllHref, viewAllLabe
             </Link>
           )}
         </div>
+
+        {/* Sponsor Banner Carousel — between header and content grid */}
+        {sponsorSection && (
+          <SponsorBannerCarousel className="mb-8" section={sponsorSection} />
+        )}
+
+        {/* Content grid */}
         <div className={`grid ${gridCols} gap-7`}>
           {items.map((item) => <ContentCard key={item.id} item={item} />)}
         </div>
@@ -252,6 +261,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
           viewAllHref="/articles"
           viewAllLabel={t('latestNews.viewAll')}
           bg="bg-brand-gray"
+          sponsorSection="news"
         />
 
         {/* ╔══════════════════════════════════════╗
@@ -268,6 +278,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
           items={proItems}
           icon={<Trophy size={20} className="text-brand-neon" />}
           bg="bg-brand-gray"
+          sponsorSection="pro-players"
         />
 
         {/* ╔══════════════════════════════════════╗
@@ -284,6 +295,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
           items={enthItems}
           icon={<Heart size={20} className="text-brand-neon" />}
           bg="bg-white"
+          sponsorSection="enthusiasts"
         />
 
         {/* ╔══════════════════════════════════════╗
@@ -295,6 +307,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
           items={juniorItems}
           icon={<Users size={20} className="text-brand-neon" />}
           bg="bg-brand-gray"
+          sponsorSection="juniors"
         />
 
         {/* ╔══════════════════════════════════════╗
@@ -308,6 +321,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
           viewAllHref="/tips"
           viewAllLabel={t('latestNews.viewAll')}
           bg="bg-white"
+          sponsorSection="tips"
         />
 
         {/* ╔══════════════════════════════════════╗
