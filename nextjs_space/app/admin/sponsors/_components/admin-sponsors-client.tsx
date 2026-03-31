@@ -19,7 +19,7 @@ const SECTION_OPTIONS = [
   { value: 'tips', label: 'Tips' },
   { value: 'results', label: 'Results' },
   { value: 'events', label: 'Events' },
-  { value: 'gear', label: 'Gear' },
+  { value: 'places', label: 'Places' },
   { value: 'magazine', label: 'Magazine' },
   { value: 'shop', label: 'Shop' },
 ];

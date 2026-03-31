@@ -16,7 +16,7 @@ const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.enthusiasts', href: '/articles?category=enthusiasts' },
   { labelKey: 'nav.results', href: '/articles?category=results' },
   { labelKey: 'nav.events', href: '/articles?category=events' },
-  { labelKey: 'nav.gear', href: '/articles?category=gear' },
+  { labelKey: 'nav.places', href: '/places' },
   { labelKey: 'nav.magazine', href: '/magazine' },
   { labelKey: 'nav.shop', href: '/shop' },
 ];

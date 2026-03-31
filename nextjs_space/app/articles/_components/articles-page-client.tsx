@@ -20,9 +20,8 @@ const CATEGORIES: { labelKey: TranslationKey; value: string }[] = [
   { labelKey: 'category.enthusiasts', value: 'enthusiasts' },
   { labelKey: 'category.results', value: 'results' },
   { labelKey: 'category.events', value: 'events' },
-  { labelKey: 'category.gear', value: 'gear' },
-  { labelKey: 'category.tips', value: 'tips' },
   { labelKey: 'category.places', value: 'places' },
+  { labelKey: 'category.tips', value: 'tips' },
   { labelKey: 'category.editorial', value: 'editorial' },
   { labelKey: 'category.magazine', value: 'magazine' },
   { labelKey: 'category.latam', value: 'latam' },
@@ -55,8 +54,14 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
         {/* Page header */}
         <div className="bg-brand-purple py-10">
           <div className="max-w-[1200px] mx-auto px-4">
-            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-2">{t('articles.heading')}</h1>
-            <p className="text-white/60">{t('articles.subtitle')}</p>
+            <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-2">
+              {category === 'places' ? 'Pickleball Places' : t('articles.heading')}
+            </h1>
+            <p className="text-white/60">
+              {category === 'places'
+                ? 'Discover the best pickleball places around the world including courts, clubs, resorts and destinations.'
+                : t('articles.subtitle')}
+            </p>
           </div>
         </div>
 

@@ -23,8 +23,8 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000'),
   title: 'Dink Authority Magazine | The Voice of Pickleball',
-  description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
-  keywords: 'pickleball, magazine, news, tournaments, pro players, gear reviews, pickleball community',
+  description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, pickleball places, and the global pickleball community.',
+  keywords: 'pickleball, magazine, news, tournaments, pro players, pickleball places, courts, clubs, pickleball community',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   openGraph: {
     title: 'Dink Authority Magazine | The Voice of Pickleball',
-    description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
+    description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, pickleball places, and the global pickleball community.',
     images: ['/og-image.png'],
     type: 'website',
   },
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 height: 512,
               },
               sameAs: [],
-              description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, gear reviews, and the global pickleball community.',
+              description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, pickleball places, and the global pickleball community.',
             }),
           }}
         />

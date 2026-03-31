@@ -19,7 +19,7 @@ const translations = {
   'nav.enthusiasts': { en: 'Enthusiasts', es: 'Entusiastas', pt: 'Entusiastas' },
   'nav.results': { en: 'Results', es: 'Resultados', pt: 'Resultados' },
   'nav.events': { en: 'Events', es: 'Eventos', pt: 'Eventos' },
-  'nav.gear': { en: 'Gear', es: 'Equipamiento', pt: 'Equipamentos' },
+  'nav.places': { en: 'Places', es: 'Lugares', pt: 'Lugares' },
   'nav.magazine': { en: 'Magazine', es: 'Revista', pt: 'Revista' },
   'nav.latam': { en: 'LATAM', es: 'LATAM', pt: 'LATAM' },
   'nav.contact': { en: 'Contact', es: 'Contacto', pt: 'Contato' },
@@ -109,11 +109,10 @@ const translations = {
   'category.enthusiasts': { en: 'Enthusiasts', es: 'Entusiastas', pt: 'Entusiastas' },
   'category.results': { en: 'Results', es: 'Resultados', pt: 'Resultados' },
   'category.events': { en: 'Events', es: 'Eventos', pt: 'Eventos' },
-  'category.gear': { en: 'Gear', es: 'Equipamiento', pt: 'Equipamentos' },
+  'category.places': { en: 'Pickleball Places', es: 'Lugares de Pickleball', pt: 'Lugares de Pickleball' },
   'category.magazine': { en: 'Magazine', es: 'Revista', pt: 'Revista' },
   'category.latam': { en: 'LATAM', es: 'LATAM', pt: 'LATAM' },
   'category.tips': { en: 'Tips', es: 'Consejos', pt: 'Dicas' },
-  'category.places': { en: 'Places', es: 'Lugares', pt: 'Lugares' },
   'category.editorial': { en: 'Editorial', es: 'Editorial', pt: 'Editorial' },
 
   // About page
