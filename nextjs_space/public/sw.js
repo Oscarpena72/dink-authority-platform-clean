@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dink-authority-v3';
+const CACHE_NAME = 'dink-authority-v4';
 const OFFLINE_URL = '/offline.html';
 
 // Install — pre-cache only the offline page
