@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { formatEditorialContent } from '@/lib/format-editorial-content';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -203,7 +204,8 @@ export default function JuniorDetailClient({ junior, related, latestEdition, ban
   const isTranslated = hasMetaTranslation;
   const displayTitle = (hasMetaTranslation && !showOriginal) ? translatedMeta!.title : (junior?.title ?? '');
   const displayExcerpt = (hasMetaTranslation && !showOriginal) ? (translatedMeta!.excerpt || junior?.excerpt) : (junior?.excerpt ?? '');
-  const displayContent = (hasContentTranslation && !showOriginal) ? translatedContent! : (junior?.content ?? '');
+  const rawContent = (hasContentTranslation && !showOriginal) ? translatedContent! : (junior?.content ?? '');
+  const displayContent = useMemo(() => formatEditorialContent(rawContent), [rawContent]);
 
   const translatedRelated = useTranslatedArticles(related ?? []);
   const contentParts = splitContent(displayContent, 3);
@@ -276,11 +278,11 @@ export default function JuniorDetailClient({ junior, related, latestEdition, ban
 
         {/* Content with interleaved banners */}
         <article className="max-w-4xl mx-auto px-4 py-10">
-          {contentParts[0] && <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[0] }} />}
+          {contentParts[0] && <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:leading-[1.85] prose-p:mb-6 prose-p:text-brand-purple/80 prose-blockquote:border-l-4 prose-blockquote:border-brand-neon prose-blockquote:bg-brand-neon/5 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:italic prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[0] }} />}
           <LatestEditionBanner edition={latestEdition} t={t} />
-          {contentParts[1] && <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[1] }} />}
+          {contentParts[1] && <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:leading-[1.85] prose-p:mb-6 prose-p:text-brand-purple/80 prose-blockquote:border-l-4 prose-blockquote:border-brand-neon prose-blockquote:bg-brand-neon/5 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:italic prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[1] }} />}
           <BannerAd image={junior?.banner2Image} link={junior?.banner2Link} label={t('common.ad')} />
-          {contentParts[2] && <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[2] }} />}
+          {contentParts[2] && <div className="prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:leading-[1.85] prose-p:mb-6 prose-p:text-brand-purple/80 prose-blockquote:border-l-4 prose-blockquote:border-brand-neon prose-blockquote:bg-brand-neon/5 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:italic prose-a:text-brand-purple" dangerouslySetInnerHTML={{ __html: contentParts[2] }} />}
           <BannerAd image={junior?.banner3Image} link={junior?.banner3Link} label={t('common.ad')} />
 
           {/* Instagram Video Module */}

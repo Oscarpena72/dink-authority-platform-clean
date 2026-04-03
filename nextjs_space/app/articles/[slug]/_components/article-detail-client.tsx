@@ -11,6 +11,7 @@ import StickyBanner from '@/app/_components/sticky-banner';
 import UniversalVideoModule from '@/components/universal-video-module';
 import SubscribeForm from '@/app/_components/subscribe-form';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { formatEditorialContent } from '@/lib/format-editorial-content';
 
 /* ── Share Buttons ── */
 function ShareButtons({ title, compact = false }: { title: string; compact?: boolean }) {
@@ -313,7 +314,8 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
   const hasContentTranslation = !!translatedContent && locale !== 'en';
   const isTranslated = hasMetaTranslation; // Consider translated once meta is ready
   const displayTitle = (hasMetaTranslation && !showOriginal) ? translatedMeta!.title : (article?.title ?? '');
-  const displayContent = (hasContentTranslation && !showOriginal) ? translatedContent! : (article?.content ?? '');
+  const rawContent = (hasContentTranslation && !showOriginal) ? translatedContent! : (article?.content ?? '');
+  const displayContent = useMemo(() => formatEditorialContent(rawContent), [rawContent]);
 
   // Build mobile slot list
   const mobileSlots = useMemo(() => {
@@ -417,9 +419,9 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                 const afterSubscribe = contentBlocks.slice(subscribeIdx).join('');
                 return (
                   <div className="hidden lg:block">
-                    <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: beforeSubscribe }} />
+                    <div className="editorial-body prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-brand-purple/80 prose-p:leading-[1.85] prose-p:mb-6 prose-blockquote:border-l-4 prose-blockquote:border-brand-neon prose-blockquote:bg-brand-gray prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:text-brand-purple/90 prose-blockquote:font-medium prose-blockquote:my-8 prose-strong:text-brand-purple prose-strong:font-bold prose-a:text-brand-purple prose-a:underline prose-li:text-brand-purple/80" dangerouslySetInnerHTML={{ __html: beforeSubscribe }} />
                     <SubscribeForm source="article" variant="inline" />
-                    <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: afterSubscribe }} />
+                    <div className="editorial-body prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-brand-purple/80 prose-p:leading-[1.85] prose-p:mb-6 prose-blockquote:border-l-4 prose-blockquote:border-brand-neon prose-blockquote:bg-brand-gray prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:text-brand-purple/90 prose-blockquote:font-medium prose-blockquote:my-8 prose-strong:text-brand-purple prose-strong:font-bold prose-a:text-brand-purple prose-a:underline prose-li:text-brand-purple/80" dangerouslySetInnerHTML={{ __html: afterSubscribe }} />
                   </div>
                 );
               })()}
@@ -431,7 +433,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                   <div className="lg:hidden">
                     {contentBlocks.map((block, i) => (
                       <React.Fragment key={i}>
-                        <div className="prose prose-lg max-w-none text-brand-purple/80" dangerouslySetInnerHTML={{ __html: block }} />
+                        <div className="editorial-body prose prose-lg max-w-none prose-headings:font-heading prose-headings:text-brand-purple prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-brand-purple/80 prose-p:leading-[1.85] prose-p:mb-6 prose-blockquote:border-l-4 prose-blockquote:border-brand-neon prose-blockquote:bg-brand-gray prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:text-brand-purple/90 prose-blockquote:font-medium prose-blockquote:my-8 prose-strong:text-brand-purple prose-strong:font-bold prose-a:text-brand-purple prose-a:underline prose-li:text-brand-purple/80" dangerouslySetInnerHTML={{ __html: block }} />
                         {i + 1 === subscribeIdx && <SubscribeForm source="article" variant="inline" />}
                         {insertionMap[i + 1] && <MobileInlineSlot type={insertionMap[i + 1].type} data={insertionMap[i + 1].data} />}
                       </React.Fragment>
