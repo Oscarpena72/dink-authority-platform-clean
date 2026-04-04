@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import { motion } from 'framer-motion';
-import { Calendar, User, ArrowRight } from 'lucide-react';
+import { User, ArrowRight } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
@@ -73,12 +73,6 @@ export default function TipsPageClient({ tips, bannerData }: { tips: any[]; bann
                     <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
                       {tip?.authorName && (
                         <span className="flex items-center gap-1"><User size={12} />{tip.authorName}</span>
-                      )}
-                      {tip?.publishedAt && (
-                        <span className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(tip.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
                       )}
                     </div>
                     <span className="inline-flex items-center gap-1 text-brand-purple text-sm font-semibold pt-2 group-hover:gap-2 group-hover:text-brand-purple-light transition-all">

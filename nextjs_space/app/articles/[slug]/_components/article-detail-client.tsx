@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Clock, User, Check, Copy, Share2, Globe, Loader2, Eye } from 'lucide-react';
+import { User, Check, Copy, Share2, Globe, Loader2, Eye } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
@@ -308,6 +308,12 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
     fetchTranslation();
   }, [fetchTranslation]);
 
+  // Track page view
+  useEffect(() => {
+    if (!article?.id) return;
+    fetch(`/api/articles/${article.id}/view`, { method: 'POST' }).catch(() => {});
+  }, [article?.id]);
+
   // Determine displayed content
   const isTranslating = isTranslatingMeta || isTranslatingContent;
   const hasMetaTranslation = !!translatedMeta && locale !== 'en';
@@ -402,12 +408,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                   {article?.authorName && (
                     <div className="flex items-center gap-2"><User size={14} /> {article.authorName}</div>
                   )}
-                  {article?.publishedAt && (
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} />
-                      {new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </div>
-                  )}
+
                 </div>
                 <div className="ml-auto"><ShareButtons title={article?.title ?? ''} compact /></div>
               </div>
@@ -517,10 +518,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                           <h3 className="font-heading font-bold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2 mb-3 text-[17px] leading-snug">
                             {a?.title ?? ''}
                           </h3>
-                          <div className="flex items-center gap-2 text-xs text-brand-gray-dark">
-                            <Clock size={12} className="text-brand-neon/60" />
-                            <span>{a?.publishedAt ? new Date(a.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
-                          </div>
+
                         </div>
                       </div>
                     </Link>

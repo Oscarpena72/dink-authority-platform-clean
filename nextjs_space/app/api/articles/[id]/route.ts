@@ -51,7 +51,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         banner3Link: body?.banner3Link ?? existing?.banner3Link,
         metaTitle: body?.metaTitle ?? existing?.metaTitle,
         metaDescription: body?.metaDescription ?? existing?.metaDescription,
-        publishedAt: body?.status === 'published' && !existing?.publishedAt ? new Date() : existing?.publishedAt,
+        publishedAt: body?.publishedAt ? new Date(body.publishedAt) : (body?.status === 'published' && !existing?.publishedAt ? new Date() : existing?.publishedAt),
       },
     });
     return NextResponse.json(article);

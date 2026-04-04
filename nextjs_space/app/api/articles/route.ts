@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         banner3Link: body?.banner3Link ?? null,
         metaTitle: body?.metaTitle ?? null,
         metaDescription: body?.metaDescription ?? null,
-        publishedAt: body?.status === 'published' ? new Date() : null,
+        publishedAt: body?.publishedAt ? new Date(body.publishedAt) : (body?.status === 'published' ? new Date() : null),
       },
     });
     return NextResponse.json(article);

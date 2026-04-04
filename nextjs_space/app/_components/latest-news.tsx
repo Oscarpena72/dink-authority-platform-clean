@@ -3,7 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Clock, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import CommunityCta from './community-cta';
@@ -66,13 +66,8 @@ export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
                         {article?.title ?? 'Untitled'}
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-brand-gray-dark">
-                        <Clock size={12} className="text-brand-neon/60" />
-                        <span>{article?.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
                         {article?.authorName && (
-                          <>
-                            <span className="text-brand-neon">·</span>
-                            <span className="font-medium">{article.authorName}</span>
-                          </>
+                          <span className="font-medium">{article.authorName}</span>
                         )}
                       </div>
                     </div>

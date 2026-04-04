@@ -3,7 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, ExternalLink, Instagram, Facebook, Twitter, Youtube, Clock, ChevronRight, Newspaper, Trophy, Heart, Users, Lightbulb } from 'lucide-react';
+import { ArrowRight, BookOpen, ExternalLink, Instagram, Facebook, Twitter, Youtube, ChevronRight, Newspaper, Trophy, Heart, Users, Lightbulb } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import NewsletterSignup from '@/app/_components/newsletter-signup';
@@ -91,15 +91,8 @@ function ContentCard({ item }: { item: ContentItem }) {
             <h3 className="font-heading font-bold text-brand-purple group-hover:text-brand-neon transition-colors line-clamp-2 mb-3 text-[17px] leading-snug">{displayTitle}</h3>
             {item.excerpt && <p className="text-sm text-brand-gray-dark line-clamp-2 mb-3">{item.excerpt}</p>}
             <div className="flex items-center gap-2 text-xs text-brand-gray-dark">
-              <Clock size={12} className="text-brand-neon/60" />
-              {item.publishedAt && (
-                <span>{new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-              )}
               {item.authorName && (
-                <>
-                  <span className="text-brand-neon">·</span>
-                  <span className="font-medium">{item.authorName}</span>
-                </>
+                <span className="font-medium">{item.authorName}</span>
               )}
             </div>
           </div>

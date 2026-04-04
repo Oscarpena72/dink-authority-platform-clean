@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import { motion } from 'framer-motion';
-import { ArrowRight, Calendar, User } from 'lucide-react';
+import { ArrowRight, User } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
@@ -71,14 +71,7 @@ export default function JuniorsPageClient({ juniors, bannerData }: { juniors: an
                       {junior?.title ?? 'Untitled'}
                     </h2>
                     {junior?.excerpt && <p className="text-gray-600 text-sm line-clamp-2">{junior.excerpt}</p>}
-                    <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
-                      {junior?.publishedAt && (
-                        <span className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(junior.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
+
                     <span className="inline-flex items-center gap-1 text-brand-purple text-sm font-semibold pt-2 group-hover:gap-2 group-hover:text-brand-purple-light transition-all">
                       {t('juniors.readStory')} <ArrowRight size={14} />
                     </span>

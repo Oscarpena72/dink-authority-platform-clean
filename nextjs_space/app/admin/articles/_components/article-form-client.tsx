@@ -36,6 +36,7 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
     banner3Link: article?.banner3Link ?? '',
     metaTitle: article?.metaTitle ?? '',
     metaDescription: article?.metaDescription ?? '',
+    publishedAt: article?.publishedAt ? new Date(article.publishedAt).toISOString().slice(0, 16) : '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -135,6 +136,16 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                   </select>
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-brand-purple mb-2">📅 Publish Date <span className="text-gray-400 text-xs font-normal">(required — defaults to now if empty)</span></label>
+                <input type="datetime-local" name="publishedAt" value={form?.publishedAt ?? ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" />
+              </div>
+              {article && (
+                <div className="flex items-center gap-2 pt-2">
+                  <span className="text-sm font-semibold text-brand-purple">👁️ Views:</span>
+                  <span className="px-3 py-1 bg-brand-gray text-brand-purple text-sm font-bold rounded-full">{article.viewCount ?? 0}</span>
+                </div>
+              )}
             </div>
 
             {/* Media Section */}

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Clock, ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import WhatsAppButton from '@/app/_components/whatsapp-button';
@@ -120,10 +120,6 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                             {article?.title ?? ''}
                           </h3>
                           {article?.excerpt && <p className="text-sm text-brand-gray-dark line-clamp-2 mb-2">{article.excerpt}</p>}
-                          <div className="flex items-center gap-2 text-xs text-brand-gray-dark">
-                            <Clock size={12} />
-                            <span>{article?.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
-                          </div>
                         </div>
                       </div>
                     </Link>

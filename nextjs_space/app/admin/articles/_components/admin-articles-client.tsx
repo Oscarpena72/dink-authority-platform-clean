@@ -50,6 +50,7 @@ export default function AdminArticlesClient() {
                   <th className="text-left px-4 py-3 font-semibold text-brand-purple hidden md:table-cell">Category</th>
                   <th className="text-left px-4 py-3 font-semibold text-brand-purple">Status</th>
                   <th className="text-left px-4 py-3 font-semibold text-brand-purple hidden md:table-cell">Flags</th>
+                  <th className="text-center px-4 py-3 font-semibold text-brand-purple hidden md:table-cell">Views</th>
                   <th className="text-right px-4 py-3 font-semibold text-brand-purple">Actions</th>
                 </tr>
               </thead>
@@ -75,6 +76,9 @@ export default function AdminArticlesClient() {
                         {a?.isHeroStory && <span className="px-2 py-0.5 bg-brand-purple text-white text-[10px] font-bold rounded">HERO</span>}
                         {a?.isFeatured && <Star size={14} className="text-yellow-500" />}
                       </div>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell text-center text-sm text-brand-gray-dark">
+                      {a?.viewCount ?? 0}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">

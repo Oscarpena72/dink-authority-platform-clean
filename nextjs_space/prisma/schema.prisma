@@ -85,6 +85,7 @@ model Article {
   banner3Link       String?
   metaTitle         String?
   metaDescription   String?
+  viewCount    Int       @default(0)
   publishedAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
