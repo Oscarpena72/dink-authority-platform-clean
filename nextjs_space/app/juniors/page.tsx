@@ -14,15 +14,14 @@ export const metadata: Metadata = {
 };
 
 export default async function JuniorsPage() {
-  let juniors: any[] = [];
+  let articles: any[] = [];
   try {
-    juniors = await prisma.junior.findMany({
-      where: { status: 'published' },
-      orderBy: { publishDate: 'desc' },
+    articles = await prisma.article.findMany({
+      where: { status: 'published', category: 'juniors' },
+      orderBy: { publishedAt: 'desc' },
     });
   } catch { /* empty */ }
 
-  // Fetch sticky banner settings
   let bannerData: any = null;
   try {
     const settingsRows = await prisma.siteSetting.findMany({
@@ -44,11 +43,11 @@ export default async function JuniorsPage() {
     }
   } catch {}
 
-  const serialized = (juniors ?? []).map((j: any) => ({
-    ...(j ?? {}),
-    publishDate: j?.publishDate?.toISOString?.() ?? null,
-    createdAt: j?.createdAt?.toISOString?.() ?? null,
-    updatedAt: j?.updatedAt?.toISOString?.() ?? null,
+  const serialized = (articles ?? []).map((a: any) => ({
+    ...(a ?? {}),
+    publishedAt: a?.publishedAt?.toISOString?.() ?? null,
+    createdAt: a?.createdAt?.toISOString?.() ?? null,
+    updatedAt: a?.updatedAt?.toISOString?.() ?? null,
   }));
 
   return <JuniorsPageClient juniors={serialized} bannerData={bannerData} />;

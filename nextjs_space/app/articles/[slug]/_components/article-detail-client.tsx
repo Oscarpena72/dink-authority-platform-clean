@@ -442,8 +442,38 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                 );
               })()}
 
+              {/* Inline Sponsor Banners */}
+              {article?.banner1Image && (
+                <div className="my-8">{article.banner1Link ? <a href={article.banner1Link} target="_blank" rel="noopener noreferrer"><img src={article.banner1Image} alt="Sponsor" className="w-full rounded-lg" /></a> : <img src={article.banner1Image} alt="Sponsor" className="w-full rounded-lg" />}</div>
+              )}
+              {article?.banner2Image && (
+                <div className="my-8">{article.banner2Link ? <a href={article.banner2Link} target="_blank" rel="noopener noreferrer"><img src={article.banner2Image} alt="Sponsor" className="w-full rounded-lg" /></a> : <img src={article.banner2Image} alt="Sponsor" className="w-full rounded-lg" />}</div>
+              )}
+              {article?.banner3Image && (
+                <div className="my-8">{article.banner3Link ? <a href={article.banner3Link} target="_blank" rel="noopener noreferrer"><img src={article.banner3Image} alt="Sponsor" className="w-full rounded-lg" /></a> : <img src={article.banner3Image} alt="Sponsor" className="w-full rounded-lg" />}</div>
+              )}
+
               {/* Universal Video Module */}
               <UniversalVideoModule videoUrl={article?.videoUrl ?? ''} posterImage={article?.videoPosterImage || article?.imageUrl} title={displayTitle} />
+
+              {/* Image Gallery */}
+              {(() => {
+                let gallery: string[] = [];
+                try { gallery = JSON.parse(article?.galleryImages ?? '[]').filter(Boolean); } catch {}
+                if (gallery.length === 0) return null;
+                return (
+                  <div className="my-10">
+                    <h3 className="text-lg font-heading font-bold text-brand-purple mb-4">Gallery</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {gallery.map((img: string, i: number) => (
+                        <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
+                          <Image src={img} alt={`Gallery ${i + 1}`} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <ShareButtons title={article?.title ?? ''} />
             </motion.div>

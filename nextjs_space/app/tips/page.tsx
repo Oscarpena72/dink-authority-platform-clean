@@ -13,21 +13,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function TipsPage({ searchParams }: { searchParams: { category?: string } }) {
-  const category = searchParams?.category ?? '';
-  let where: any = { status: 'published' };
-  if (category) where.category = category;
-
-  let tips: any[] = [];
+export default async function TipsPage() {
+  let articles: any[] = [];
   try {
-    tips = await prisma.tip.findMany({
-      where,
-      orderBy: { publishDate: 'desc' },
-      include: { author: { select: { id: true, name: true, slug: true, photoUrl: true } } },
+    articles = await prisma.article.findMany({
+      where: { status: 'published', category: 'tips' },
+      orderBy: { publishedAt: 'desc' },
     });
   } catch { /* empty */ }
 
-  // Fetch sticky banner settings
   let bannerData: any = null;
   try {
     const settingsRows = await prisma.siteSetting.findMany({
@@ -49,12 +43,12 @@ export default async function TipsPage({ searchParams }: { searchParams: { categ
     }
   } catch {}
 
-  const serialized = (tips ?? []).map((t: any) => ({
-    ...(t ?? {}),
-    publishDate: t?.publishDate?.toISOString?.() ?? null,
-    createdAt: t?.createdAt?.toISOString?.() ?? null,
-    updatedAt: t?.updatedAt?.toISOString?.() ?? null,
+  const serialized = (articles ?? []).map((a: any) => ({
+    ...(a ?? {}),
+    publishedAt: a?.publishedAt?.toISOString?.() ?? null,
+    createdAt: a?.createdAt?.toISOString?.() ?? null,
+    updatedAt: a?.updatedAt?.toISOString?.() ?? null,
   }));
 
-  return <TipsPageClient tips={serialized} category={category} bannerData={bannerData} />;
+  return <TipsPageClient tips={serialized} bannerData={bannerData} />;
 }

@@ -7,15 +7,15 @@ import type { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const article = await prisma.article.findUnique({
     where: { slug: params?.slug ?? '' },
-    select: { title: true, excerpt: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true },
+    select: { title: true, excerpt: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, metaTitle: true, metaDescription: true },
   }).catch(() => null);
 
   const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
   const articleUrl = `${siteUrl}/articles/${params?.slug ?? ''}`;
 
   return {
-    title: article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine',
-    description: article?.excerpt ?? 'Read the latest pickleball news on Dink Authority Magazine.',
+    title: (article as any)?.metaTitle || (article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine'),
+    description: (article as any)?.metaDescription || article?.excerpt || 'Read the latest pickleball news on Dink Authority Magazine.',
     alternates: {
       canonical: articleUrl,
     },

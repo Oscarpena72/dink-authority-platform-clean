@@ -33,15 +33,10 @@ async function resolveContentPaths(paths: string[]): Promise<any[]> {
       const parts = path.replace(/^\//, '').split('/');
       if (parts.length < 2) continue;
       const [type, slug] = parts;
-      if (type === 'articles') {
+      // All content types now resolve from the unified Article table
+      if (type === 'articles' || type === 'tips' || type === 'juniors') {
         const a = await prisma.article.findFirst({ where: { slug, status: 'published' }, select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, excerpt: true, publishedAt: true, authorName: true } });
-        if (a) results.push({ ...a, type: 'article', path, publishedAt: a.publishedAt?.toISOString() ?? null });
-      } else if (type === 'tips') {
-        const t = await prisma.tip.findFirst({ where: { slug, status: 'published' }, include: { author: { select: { name: true } } } });
-        if (t) results.push({ ...t, type: 'tip', path, imageUrl: t.featuredImage, authorName: (t as any).author?.name, publishedAt: t.publishDate?.toISOString() ?? null });
-      } else if (type === 'juniors') {
-        const j = await prisma.junior.findFirst({ where: { slug, status: 'published' }, select: { id: true, name: true, title: true, slug: true, featuredImage: true, excerpt: true, country: true, publishDate: true } });
-        if (j) results.push({ ...j, type: 'junior', path, imageUrl: j.featuredImage, authorName: j.country, publishedAt: j.publishDate?.toISOString() ?? null });
+        if (a) results.push({ ...a, type: 'article', path: `/articles/${a.slug}`, publishedAt: a.publishedAt?.toISOString() ?? null });
       }
     } catch { /* skip broken refs */ }
   }

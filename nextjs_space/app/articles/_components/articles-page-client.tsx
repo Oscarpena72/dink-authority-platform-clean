@@ -22,9 +22,9 @@ const CATEGORIES: { labelKey: TranslationKey; value: string }[] = [
   { labelKey: 'category.events', value: 'events' },
   { labelKey: 'category.places', value: 'places' },
   { labelKey: 'category.tips', value: 'tips' },
+  { labelKey: 'category.juniors', value: 'juniors' },
   { labelKey: 'category.editorial', value: 'editorial' },
   { labelKey: 'category.magazine', value: 'magazine' },
-  { labelKey: 'category.latam', value: 'latam' },
 ];
 
 interface Props {

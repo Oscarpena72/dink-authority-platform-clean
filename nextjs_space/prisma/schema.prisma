@@ -75,6 +75,16 @@ model Article {
   authorName   String?
   videoUrl          String?
   videoPosterImage  String?
+  galleryImages     String   @default("[]")
+  socialMediaLink   String?
+  banner1Image      String?
+  banner1Link       String?
+  banner2Image      String?
+  banner2Link       String?
+  banner3Image      String?
+  banner3Link       String?
+  metaTitle         String?
+  metaDescription   String?
   publishedAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

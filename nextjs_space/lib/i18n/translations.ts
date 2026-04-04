@@ -113,6 +113,7 @@ const translations = {
   'category.magazine': { en: 'Magazine', es: 'Revista', pt: 'Revista' },
   'category.latam': { en: 'LATAM', es: 'LATAM', pt: 'LATAM' },
   'category.tips': { en: 'Tips', es: 'Consejos', pt: 'Dicas' },
+  'category.juniors': { en: 'Juniors', es: 'Juniors', pt: 'Juniors' },
   'category.editorial': { en: 'Editorial', es: 'Editorial', pt: 'Editorial' },
 
   // About page
