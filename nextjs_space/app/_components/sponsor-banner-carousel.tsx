@@ -69,9 +69,6 @@ export default function SponsorBannerCarousel({ className, section, variant = 'd
 
   /* --- Variant-based sizing --- */
   const isHomepage = variant === 'homepage';
-  const heightClass = isHomepage
-    ? 'h-[100px] sm:h-[130px] md:h-[160px] lg:h-[180px]'
-    : 'h-[150px] md:h-[200px]';
   const maxWidthClass = isHomepage ? 'max-w-[1400px]' : 'max-w-[1200px]';
   const wrapperPadding = isHomepage ? 'py-3' : '';
 
@@ -82,21 +79,21 @@ export default function SponsorBannerCarousel({ className, section, variant = 'd
           <div className="flex">
             {sponsors.map((s) => {
               const inner = (
-                <div className={`relative w-full ${heightClass} bg-gray-100 rounded-[10px] overflow-hidden`}>
+                <div className="relative w-full aspect-[4/1] bg-gray-100 rounded-[10px] overflow-hidden">
                   <Image
                     src={s.imageUrl}
                     alt={`Sponsor: ${s.sponsorName}`}
                     fill
-                    className="object-cover"
+                    className="object-cover object-center"
                     sizes={isHomepage ? '(max-width: 768px) 100vw, 1400px' : '(max-width: 768px) 100vw, 1200px'}
                     priority={isHomepage}
                   />
                 </div>
               );
               return (
-                <div key={s.id} className="flex-[0_0_100%] min-w-0">
+                <div key={s.id} className="flex-[0_0_100%] min-w-0 flex items-center justify-center">
                   {s.link ? (
-                    <Link href={s.link} target="_blank" rel="noopener noreferrer">
+                    <Link href={s.link} target="_blank" rel="noopener noreferrer" className="block w-full">
                       {inner}
                     </Link>
                   ) : inner}
