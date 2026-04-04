@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       type: 'article',
       images: tip.featuredImage ? [{ url: tip.featuredImage }] : [],
       publishedTime: tip.publishDate?.toISOString?.(),
-      authors: tip.author?.name ? [tip.author.name] : [],
+      authors: tip.authorName || tip.author?.name ? [tip.authorName || tip.author?.name] : [],
     },
   };
 }
@@ -107,7 +107,7 @@ export default async function TipPage({ params }: { params: { slug: string } }) 
     description: tip.metaDescription || tip.excerpt || '',
     image: tip.featuredImage || undefined,
     datePublished: tip.publishDate?.toISOString?.(),
-    author: tip.author ? { '@type': 'Person', name: tip.author.name } : undefined,
+    author: (tip.authorName || tip.author?.name) ? { '@type': 'Person', name: tip.authorName || tip.author.name } : undefined,
     publisher: { '@type': 'Organization', name: 'Dink Authority Magazine' },
   };
 

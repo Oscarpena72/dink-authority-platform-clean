@@ -32,13 +32,28 @@ export async function POST(request: Request) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+    // Resolve author: use authorName to find or create a TipAuthor, or fall back to authorId
+    let resolvedAuthorId: string | null = body?.authorId || null;
+    const authorNameInput = (body?.authorName ?? '').trim();
+    if (authorNameInput && !resolvedAuthorId) {
+      const authorSlug = authorNameInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const existing = await prisma.tipAuthor.findFirst({ where: { slug: authorSlug } });
+      if (existing) {
+        resolvedAuthorId = existing.id;
+      } else {
+        const newAuthor = await prisma.tipAuthor.create({ data: { name: authorNameInput, slug: authorSlug } });
+        resolvedAuthorId = newAuthor.id;
+      }
+    }
+
     const tip = await prisma.tip.create({
       data: {
         title: body?.title ?? 'Untitled Tip',
         slug,
         excerpt: body?.excerpt ?? null,
         featuredImage: body?.featuredImage ?? null,
-        authorId: body?.authorId ?? null,
+        authorId: resolvedAuthorId,
+        authorName: authorNameInput || null,
         publishDate: body?.publishDate ? new Date(body.publishDate) : new Date(),
         category: body?.category ?? 'technique',
         content: body?.content ?? '',

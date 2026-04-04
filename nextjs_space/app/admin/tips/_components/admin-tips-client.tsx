@@ -61,7 +61,7 @@ export default function AdminTipsClient() {
                       <p className="text-xs text-brand-gray-dark">{tip?.publishDate ? new Date(tip.publishDate).toLocaleDateString() : ''}</p>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <span className="text-gray-600">{tip?.author?.name ?? '—'}</span>
+                      <span className="text-gray-600">{tip?.authorName || tip?.author?.name || '—'}</span>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className="px-2 py-1 bg-brand-gray text-brand-purple text-xs rounded-full capitalize">{tip?.category ?? ''}</span>

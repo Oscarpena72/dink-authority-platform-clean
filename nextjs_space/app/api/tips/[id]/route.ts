@@ -21,13 +21,28 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const existing = await prisma.tip.findUnique({ where: { id: params?.id ?? '' } });
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    // Resolve author: use authorName to find or create a TipAuthor, or fall back to authorId
+    let resolvedAuthorId: string | null = body?.authorId || existing.authorId;
+    const authorNameInput = (body?.authorName ?? '').trim();
+    if (authorNameInput) {
+      const authorSlug = authorNameInput.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const existingAuthor = await prisma.tipAuthor.findFirst({ where: { slug: authorSlug } });
+      if (existingAuthor) {
+        resolvedAuthorId = existingAuthor.id;
+      } else {
+        const newAuthor = await prisma.tipAuthor.create({ data: { name: authorNameInput, slug: authorSlug } });
+        resolvedAuthorId = newAuthor.id;
+      }
+    }
+
     const tip = await prisma.tip.update({
       where: { id: params?.id ?? '' },
       data: {
         title: body?.title ?? existing.title,
         excerpt: body?.excerpt ?? existing.excerpt,
         featuredImage: body?.featuredImage ?? existing.featuredImage,
-        authorId: body?.authorId ?? existing.authorId,
+        authorId: resolvedAuthorId,
+        authorName: authorNameInput || existing.authorName,
         publishDate: body?.publishDate ? new Date(body.publishDate) : existing.publishDate,
         category: body?.category ?? existing.category,
         content: body?.content ?? existing.content,

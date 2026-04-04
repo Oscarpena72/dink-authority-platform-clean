@@ -17,7 +17,7 @@ export default function TipFormClient({ tip }: TipFormProps) {
     title: tip?.title ?? '',
     excerpt: tip?.excerpt ?? '',
     featuredImage: tip?.featuredImage ?? '',
-    authorId: tip?.authorId ?? '',
+    authorName: tip?.authorName ?? tip?.author?.name ?? '',
     publishDate: tip?.publishDate ? new Date(tip.publishDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
     category: tip?.category ?? 'technique',
     content: tip?.content ?? '',
@@ -232,12 +232,21 @@ export default function TipFormClient({ tip }: TipFormProps) {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Author</label>
-                <select name="authorId" value={form.authorId} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm">
-                  <option value="">Select author...</option>
+                <input
+                  type="text"
+                  name="authorName"
+                  value={form.authorName}
+                  onChange={handleChange}
+                  list="tip-author-suggestions"
+                  placeholder="e.g. Ari Raga, Anna Bright, Guest Coach..."
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm"
+                  autoComplete="off"
+                />
+                <datalist id="tip-author-suggestions">
                   {(authors ?? []).map((a: any) => (
-                    <option key={a?.id} value={a?.id}>{a?.name}</option>
+                    <option key={a?.id} value={a?.name} />
                   ))}
-                </select>
+                </datalist>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Category</label>

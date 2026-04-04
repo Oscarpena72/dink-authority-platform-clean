@@ -378,16 +378,16 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
       {/* Author + Meta bar */}
       <div className="border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          {tip?.author && (
+          {(tip?.authorName || tip?.author) && (
             <div className="flex items-center gap-4">
-              {tip.author.photoUrl && (
+              {tip.author?.photoUrl && (
                 <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gray-200 ring-2 ring-brand-purple/20">
-                  <Image src={tip.author.photoUrl} alt={tip.author.name ?? ''} fill className="object-cover" sizes="56px" />
+                  <Image src={tip.author.photoUrl} alt={tip.authorName || tip.author?.name || ''} fill className="object-cover" sizes="56px" />
                 </div>
               )}
               <div>
-                <p className="font-heading font-bold text-brand-purple">{tip.author.name}</p>
-                {tip.author.bio && <p className="text-sm text-gray-500 line-clamp-1 max-w-md">{tip.author.bio}</p>}
+                <p className="font-heading font-bold text-brand-purple">{tip.authorName || tip.author?.name}</p>
+                {tip.author?.bio && <p className="text-sm text-gray-500 line-clamp-1 max-w-md">{tip.author.bio}</p>}
               </div>
             </div>
           )}
@@ -467,7 +467,7 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
                   </div>
                   <div className="p-4">
                     <h3 className="font-heading font-bold text-brand-purple line-clamp-2 group-hover:text-brand-purple-light transition-colors">{r?.title ?? ''}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{r?.author?.name ?? ''}</p>
+                    <p className="text-sm text-gray-500 mt-1">{r?.authorName || r?.author?.name || ''}</p>
                   </div>
                 </Link>
               ))}

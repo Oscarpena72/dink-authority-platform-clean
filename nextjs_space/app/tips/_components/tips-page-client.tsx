@@ -125,10 +125,10 @@ export default function TipsPageClient({ tips, category, bannerData }: { tips: a
                       <p className="text-gray-600 text-sm line-clamp-2">{tip.excerpt}</p>
                     )}
                     <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
-                      {tip?.author?.name && (
+                      {(tip?.authorName || tip?.author?.name) && (
                         <span className="flex items-center gap-1">
                           <User size={12} />
-                          {tip.author.name}
+                          {tip.authorName || tip.author?.name}
                         </span>
                       )}
                       {tip?.publishDate && (
