@@ -50,8 +50,10 @@ export default function AdminMagazineClient() {
 
   // Hero settings
   const [showHero, setShowHero] = useState(false);
-  const [heroForm, setHeroForm] = useState({ headline: '', description: '', buttonText: '', buttonLink: '', backgroundWord: '', enabled: 'true' });
+  const [heroForm, setHeroForm] = useState({ headline: '', description: '', buttonText: '', buttonLink: '', backgroundWord: '', backgroundImage: '', enabled: 'true' });
   const [savingHero, setSavingHero] = useState(false);
+  const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
+  const heroImageInputRef = useRef<HTMLInputElement>(null);
 
   // Dynamic country list from DB
   const [countryOptions, setCountryOptions] = useState<CountryOption[]>(BUILT_IN_COUNTRIES);
@@ -83,6 +85,7 @@ export default function AdminMagazineClient() {
         buttonText: s?.magazine_hero_button_text ?? '',
         buttonLink: s?.magazine_hero_button_link ?? '',
         backgroundWord: s?.magazine_hero_background_word ?? '',
+        backgroundImage: s?.magazine_hero_background_image ?? '',
         enabled: s?.magazine_hero_enabled ?? 'true',
       });
     }).catch(() => {});
@@ -206,11 +209,37 @@ export default function AdminMagazineClient() {
           magazine_hero_button_text: heroForm.buttonText,
           magazine_hero_button_link: heroForm.buttonLink,
           magazine_hero_background_word: heroForm.backgroundWord,
+          magazine_hero_background_image: heroForm.backgroundImage,
           magazine_hero_enabled: heroForm.enabled,
         }),
       });
     } catch { /* empty */ }
     setSavingHero(false);
+  };
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingHeroImage(true);
+    try {
+      const presignRes = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, contentType: file.type, isPublic: true }),
+      });
+      const { uploadUrl, publicUrl, headers: uploadHeaders } = await presignRes.json();
+      const reqHeaders: Record<string, string> = { 'Content-Type': file.type };
+      if (uploadHeaders) {
+        Object.entries(uploadHeaders).forEach(([k, v]) => { reqHeaders[k] = v as string; });
+      }
+      await fetch(uploadUrl, { method: 'PUT', headers: reqHeaders, body: file });
+      setHeroForm(prev => ({ ...prev, backgroundImage: publicUrl }));
+    } catch (err) {
+      console.error('Hero image upload failed:', err);
+      alert('Upload failed. Please try again.');
+    }
+    setUploadingHeroImage(false);
+    if (heroImageInputRef.current) heroImageInputRef.current.value = '';
   };
 
   const parseCountries = (c: string): string[] => {
@@ -311,6 +340,43 @@ export default function AdminMagazineClient() {
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
               />
             </div>
+          </div>
+
+          {/* Hero Background Image */}
+          <div className="mt-4">
+            <label className="block text-xs font-semibold text-brand-purple mb-1">Hero Background Image</label>
+            <div className="flex items-center gap-3">
+              <input
+                placeholder="Image URL (or upload below)"
+                value={heroForm.backgroundImage}
+                onChange={e => setHeroForm(p => ({ ...p, backgroundImage: e.target.value }))}
+                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
+              />
+              <input ref={heroImageInputRef} type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" />
+              <button
+                onClick={() => heroImageInputRef.current?.click()}
+                disabled={uploadingHeroImage}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white font-medium rounded-lg hover:bg-brand-purple-light text-sm disabled:opacity-50 whitespace-nowrap"
+              >
+                <Upload size={14} /> {uploadingHeroImage ? 'Uploading...' : 'Upload'}
+              </button>
+              {heroForm.backgroundImage && (
+                <button
+                  onClick={() => setHeroForm(p => ({ ...p, backgroundImage: '' }))}
+                  className="flex items-center gap-1 px-3 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 text-sm"
+                  title="Remove image"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+            {heroForm.backgroundImage && (
+              <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden border border-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={heroForm.backgroundImage} alt="Hero background preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <p className="text-xs text-gray-400 mt-1">Recommended: 1400×400px or wider. This image will be the hero section background. Leave empty for the default purple background.</p>
           </div>
 
           <div className="flex items-center gap-3 mt-4">

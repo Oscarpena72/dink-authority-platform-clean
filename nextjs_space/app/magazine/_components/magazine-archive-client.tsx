@@ -38,6 +38,7 @@ interface HeroData {
   buttonText: string;
   buttonLink: string;
   backgroundWord: string;
+  backgroundImage?: string;
 }
 
 interface Props {
@@ -151,6 +152,7 @@ export default function MagazineArchiveClient({ editions, banner, hero, countryN
   const heroBackgroundWord = hero?.backgroundWord || '';
   const heroButtonText = hero?.buttonText || '';
   const heroButtonLink = hero?.buttonLink || '';
+  const heroBackgroundImage = hero?.backgroundImage || '';
 
   return (
     <div className="min-h-screen bg-brand-gray">
@@ -198,7 +200,14 @@ export default function MagazineArchiveClient({ editions, banner, hero, countryN
       )}
 
       {/* Magazine Hero — editable from admin */}
-      <div className="bg-brand-purple relative overflow-hidden">
+      <div
+        className={`relative overflow-hidden ${heroBackgroundImage ? 'bg-brand-purple-dark' : 'bg-brand-purple'}`}
+        style={heroBackgroundImage ? { backgroundImage: `url(${heroBackgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+      >
+        {/* Dark overlay when background image is set */}
+        {heroBackgroundImage && (
+          <div className="absolute inset-0 bg-brand-purple-dark/70" />
+        )}
         {/* Large background word */}
         {heroBackgroundWord && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" aria-hidden="true">

@@ -49,6 +49,7 @@ export default async function MagazineArchivePage() {
           'magazine_hero_button_text',
           'magazine_hero_button_link',
           'magazine_hero_background_word',
+          'magazine_hero_background_image',
           'magazine_hero_enabled',
         ],
       },
@@ -76,6 +77,7 @@ export default async function MagazineArchivePage() {
         buttonText: settingsMap.magazine_hero_button_text || '',
         buttonLink: settingsMap.magazine_hero_button_link || '',
         backgroundWord: settingsMap.magazine_hero_background_word || '',
+        backgroundImage: settingsMap.magazine_hero_background_image || '',
       }
     : null;
 
