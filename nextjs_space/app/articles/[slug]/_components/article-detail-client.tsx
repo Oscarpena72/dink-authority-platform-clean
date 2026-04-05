@@ -14,13 +14,15 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { formatEditorialContent } from '@/lib/format-editorial-content';
 
 /* ── Share Buttons ── */
-function ShareButtons({ title, compact = false }: { title: string; compact?: boolean }) {
+function ShareButtons({ title, compact = false, articleUrl = '' }: { title: string; compact?: boolean; articleUrl?: string }) {
   const [copied, setCopied] = useState(false);
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(articleUrl);
   const [canNativeShare, setCanNativeShare] = useState(false);
   useEffect(() => {
-    setUrl(window?.location?.href ?? '');
-    setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
+    if (typeof window !== 'undefined') {
+      setUrl(window.location.href);
+      setCanNativeShare(!!navigator.share);
+    }
   }, []);
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
@@ -233,7 +235,7 @@ function TranslationBanner({ isTranslating, isTranslated, translationError, show
 }
 
 /* ── Main Component ── */
-export default function ArticleDetailClient({ article, relatedArticles, sidebarData, bannerData }: { article: any; relatedArticles: any[]; sidebarData?: any; bannerData?: any }) {
+export default function ArticleDetailClient({ article, relatedArticles, sidebarData, bannerData, articleUrl = '' }: { article: any; relatedArticles: any[]; sidebarData?: any; bannerData?: any; articleUrl?: string }) {
   const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
   const { locale, t } = useLanguage();
 
@@ -428,7 +430,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                   )}
 
                 </div>
-                <div className="ml-auto"><ShareButtons title={article?.title ?? ''} compact /></div>
+                <div className="ml-auto"><ShareButtons title={article?.title ?? ''} compact articleUrl={articleUrl} /></div>
               </div>
 
               {/* Desktop: content split at ~37% with subscribe block inserted */}
@@ -494,7 +496,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
                 );
               })()}
 
-              <ShareButtons title={article?.title ?? ''} />
+              <ShareButtons title={article?.title ?? ''} articleUrl={articleUrl} />
             </motion.div>
           </article>
 
