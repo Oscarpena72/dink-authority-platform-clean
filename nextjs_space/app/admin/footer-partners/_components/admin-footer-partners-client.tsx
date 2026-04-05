@@ -21,11 +21,12 @@ interface NavLink {
   isActive: boolean;
 }
 
-type Tab = 'partners' | 'branding' | 'navigation' | 'contact' | 'subscribe';
+type Tab = 'partners' | 'branding' | 'about' | 'navigation' | 'contact' | 'subscribe';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'partners', label: 'Sponsors / Partners' },
   { key: 'branding', label: 'Branding' },
+  { key: 'about', label: 'About Us' },
   { key: 'navigation', label: 'Navigation Links' },
   { key: 'contact', label: 'Contact' },
   { key: 'subscribe', label: 'Stay Connected' },
@@ -50,6 +51,7 @@ export default function AdminFooterPartnersClient() {
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [branding, setBranding] = useState({ title: 'DINK AUTHORITY', subtitle: 'Magazine', description: '' });
+  const [aboutUs, setAboutUs] = useState({ title: '', body: '', ctaText: '', ctaLink: '' });
   const [contact, setContact] = useState({ email: 'info@dinkauthoritymagazine.com', isActive: true });
   const [subscribe, setSubscribe] = useState({ title: 'Stay Connected', subtitle: 'Get updates, new editions & event alerts.' });
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
@@ -76,6 +78,12 @@ export default function AdminFooterPartnersClient() {
         title: s.footer_brand_title ?? 'DINK AUTHORITY',
         subtitle: s.footer_brand_subtitle ?? 'Magazine',
         description: s.footer_brand_description ?? '',
+      });
+      setAboutUs({
+        title: s.footer_about_title ?? '',
+        body: s.footer_about_body ?? '',
+        ctaText: s.footer_about_cta_text ?? '',
+        ctaLink: s.footer_about_cta_link ?? '',
       });
       setContact({
         email: s.footer_contact_email ?? 'info@dinkauthoritymagazine.com',
@@ -382,6 +390,53 @@ export default function AdminFooterPartnersClient() {
               className="flex items-center gap-2 bg-brand-purple text-white px-5 py-2 rounded-lg hover:bg-brand-purple-light text-sm font-medium disabled:opacity-50"
             >
               <Save size={16} /> {savingSettings ? 'Saving...' : 'Save Branding'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ TAB: About Us ═══════ */}
+      {activeTab === 'about' && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <h2 className="font-semibold text-lg mb-1">About Dink Authority</h2>
+          <p className="text-sm text-gray-500 mb-6">Edit the &quot;Who We Are&quot; section shown in the footer. This is independent from the brand logo/title.</p>
+          <div className="space-y-5 max-w-xl">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Section Title</label>
+              <input type="text" value={aboutUs.title} onChange={e => setAboutUs(prev => ({ ...prev, title: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple" placeholder="About Dink Authority" />
+              <p className="text-xs text-gray-400 mt-1">If empty, no About section is shown in the footer.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Section Body</label>
+              <textarea value={aboutUs.body} onChange={e => setAboutUs(prev => ({ ...prev, body: e.target.value }))} rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple" placeholder="The premier digital magazine for the global pickleball community..." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CTA Text <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input type="text" value={aboutUs.ctaText} onChange={e => setAboutUs(prev => ({ ...prev, ctaText: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple" placeholder="Learn more →" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CTA Link <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input type="text" value={aboutUs.ctaLink} onChange={e => setAboutUs(prev => ({ ...prev, ctaLink: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple" placeholder="/about" />
+            </div>
+          </div>
+          {/* Preview */}
+          {aboutUs.title && (
+            <div className="mt-6 p-5 bg-brand-purple rounded-xl">
+              <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Preview</p>
+              <h4 className="font-heading font-bold text-white mb-2 uppercase text-sm tracking-wider">{aboutUs.title}</h4>
+              {aboutUs.body && <p className="text-white/50 text-sm leading-relaxed mb-2">{aboutUs.body}</p>}
+              {aboutUs.ctaText && aboutUs.ctaLink && (
+                <span className="text-brand-neon text-sm font-medium hover:underline">{aboutUs.ctaText}</span>
+              )}
+            </div>
+          )}
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            <button
+              onClick={() => saveSettings({ footer_about_title: aboutUs.title, footer_about_body: aboutUs.body, footer_about_cta_text: aboutUs.ctaText, footer_about_cta_link: aboutUs.ctaLink })}
+              disabled={savingSettings}
+              className="flex items-center gap-2 bg-brand-purple text-white px-5 py-2 rounded-lg hover:bg-brand-purple-light text-sm font-medium disabled:opacity-50"
+            >
+              <Save size={16} /> {savingSettings ? 'Saving...' : 'Save About Us'}
             </button>
           </div>
         </div>

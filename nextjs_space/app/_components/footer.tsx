@@ -46,6 +46,10 @@ export default function Footer() {
   const [brandTitle, setBrandTitle] = useState('DINK AUTHORITY');
   const [brandSubtitle, setBrandSubtitle] = useState('Magazine');
   const [brandDescription, setBrandDescription] = useState('');
+  const [aboutTitle, setAboutTitle] = useState('');
+  const [aboutBody, setAboutBody] = useState('');
+  const [aboutCtaText, setAboutCtaText] = useState('');
+  const [aboutCtaLink, setAboutCtaLink] = useState('');
   const [contactEmail, setContactEmail] = useState('info@dinkauthoritymagazine.com');
   const [contactActive, setContactActive] = useState(true);
   const [subscribeTitle, setSubscribeTitle] = useState('');
@@ -66,6 +70,10 @@ export default function Footer() {
         if (settings?.footer_brand_title) setBrandTitle(settings.footer_brand_title);
         if (settings?.footer_brand_subtitle) setBrandSubtitle(settings.footer_brand_subtitle);
         if (settings?.footer_brand_description !== undefined) setBrandDescription(settings.footer_brand_description || '');
+        if (settings?.footer_about_title) setAboutTitle(settings.footer_about_title);
+        if (settings?.footer_about_body) setAboutBody(settings.footer_about_body);
+        if (settings?.footer_about_cta_text) setAboutCtaText(settings.footer_about_cta_text);
+        if (settings?.footer_about_cta_link) setAboutCtaLink(settings.footer_about_cta_link);
         if (settings?.footer_contact_email) setContactEmail(settings.footer_contact_email);
         if (settings?.footer_contact_active !== undefined) setContactActive(settings.footer_contact_active !== 'false');
         if (settings?.footer_subscribe_title) setSubscribeTitle(settings.footer_subscribe_title);
@@ -91,13 +99,27 @@ export default function Footer() {
       <div className="h-1 neon-gradient" />
       <div className="max-w-[1400px] mx-auto px-4 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Brand — CMS-driven */}
+          {/* Brand + About — CMS-driven */}
           <div>
             <h3 className="font-heading font-bold text-2xl text-white mb-1">{brandTitle}<span className="text-brand-neon">.</span></h3>
             <p className="text-brand-neon text-xs font-bold uppercase tracking-[0.2em] mb-4">{brandSubtitle}</p>
-            <p className="text-white/50 text-sm leading-relaxed">
-              {brandDescription || t('footer.description')}
-            </p>
+            {/* About Us block — independent from brand identity */}
+            {aboutTitle ? (
+              <div>
+                <p className="text-white/50 text-sm leading-relaxed">
+                  {aboutBody}
+                </p>
+                {aboutCtaText && aboutCtaLink && (
+                  <Link href={aboutCtaLink} className="inline-block mt-3 text-brand-neon text-sm font-medium hover:underline transition-colors">
+                    {aboutCtaText}
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="text-white/50 text-sm leading-relaxed">
+                {brandDescription || t('footer.description')}
+              </p>
+            )}
           </div>
 
           {/* Navigation — CMS or fallback */}
