@@ -5,9 +5,11 @@ import { useLanguage } from '@/lib/i18n/language-context';
 interface SubscribeFormProps {
   source: 'article' | 'footer';
   variant?: 'inline' | 'footer';
+  overrideTitle?: string;
+  overrideSubtitle?: string;
 }
 
-export default function SubscribeForm({ source, variant = 'inline' }: SubscribeFormProps) {
+export default function SubscribeForm({ source, variant = 'inline', overrideTitle, overrideSubtitle }: SubscribeFormProps) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -64,8 +66,8 @@ export default function SubscribeForm({ source, variant = 'inline' }: SubscribeF
   if (variant === 'footer') {
     return (
       <form onSubmit={handleSubmit} className="space-y-3">
-        <h3 className="font-heading font-bold text-white mb-2 uppercase text-sm tracking-wider">{t('subscribe.stayConnected')}</h3>
-        <p className="text-white/50 text-sm mb-3">{t('subscribe.stayConnectedCta')}</p>
+        <h3 className="font-heading font-bold text-white mb-2 uppercase text-sm tracking-wider">{overrideTitle || t('subscribe.stayConnected')}</h3>
+        <p className="text-white/50 text-sm mb-3">{overrideSubtitle || t('subscribe.stayConnectedCta')}</p>
         <input
           type="email"
           placeholder={t('subscribe.emailPlaceholderShort')}
