@@ -7,15 +7,34 @@ import type { Metadata } from 'next';
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const article = await prisma.article.findUnique({
     where: { slug: params?.slug ?? '' },
-    select: { title: true, excerpt: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, metaTitle: true, metaDescription: true },
+    select: { title: true, excerpt: true, content: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, metaTitle: true, metaDescription: true },
   }).catch(() => null);
 
   const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
   const articleUrl = `${siteUrl}/articles/${params?.slug ?? ''}`;
 
+  // Title fallback: metaTitle → title
+  const ogTitle = (article as any)?.metaTitle || article?.title || 'Dink Authority Magazine';
+  const pageTitle = (article as any)?.metaTitle || (article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine');
+
+  // Description fallback: metaDescription → excerpt → first paragraph from content
+  let ogDescription = (article as any)?.metaDescription || article?.excerpt || '';
+  if (!ogDescription && article?.content) {
+    // Extract first meaningful paragraph from HTML content
+    const textMatch = article.content.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+    ogDescription = textMatch.length > 200 ? textMatch.substring(0, 197) + '...' : textMatch;
+  }
+  if (!ogDescription) ogDescription = 'Read the latest pickleball news on Dink Authority Magazine.';
+
+  // Image: article featured image (absolute URL) → site fallback
+  const hasArticleImage = !!article?.imageUrl;
+  const absoluteImageUrl = hasArticleImage
+    ? (article!.imageUrl!.startsWith('http') ? article!.imageUrl! : `${siteUrl}${article!.imageUrl}`)
+    : `${siteUrl}/og-image.png`;
+
   return {
-    title: (article as any)?.metaTitle || (article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine'),
-    description: (article as any)?.metaDescription || article?.excerpt || 'Read the latest pickleball news on Dink Authority Magazine.',
+    title: pageTitle,
+    description: ogDescription,
     alternates: {
       canonical: articleUrl,
     },
@@ -27,22 +46,37 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       'max-video-preview': -1,
     },
     openGraph: {
-      title: article?.title ?? 'Dink Authority Magazine',
-      description: article?.excerpt ?? '',
+      title: ogTitle,
+      description: ogDescription,
       type: 'article',
       url: articleUrl,
       siteName: 'Dink Authority Magazine',
       locale: 'en_US',
-      images: article?.imageUrl ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }] : ['/og-image.png'],
+      images: [
+        {
+          url: absoluteImageUrl,
+          width: 1200,
+          height: 630,
+          alt: article?.title ?? 'Dink Authority Magazine',
+          type: 'image/jpeg',
+        },
+      ],
       ...(article?.publishedAt ? { publishedTime: new Date(article.publishedAt).toISOString() } : {}),
       ...(article?.updatedAt ? { modifiedTime: new Date(article.updatedAt).toISOString() } : {}),
       authors: [article?.authorName || 'Dink Authority Editorial Team'],
     },
     twitter: {
       card: 'summary_large_image',
-      title: article?.title ?? 'Dink Authority Magazine',
-      description: article?.excerpt ?? '',
-      images: article?.imageUrl ? [article.imageUrl] : ['/og-image.png'],
+      title: ogTitle,
+      description: ogDescription,
+      images: [
+        {
+          url: absoluteImageUrl,
+          width: 1200,
+          height: 630,
+          alt: article?.title ?? 'Dink Authority Magazine',
+        },
+      ],
       site: '@DinkAuthority',
     },
   };
