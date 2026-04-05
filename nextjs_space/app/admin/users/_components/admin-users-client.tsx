@@ -1,6 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Plus, Pencil, Trash2, Save, X, Shield, ShieldCheck, ShieldAlert, Eye, EyeOff, Key, UserCheck, UserX } from 'lucide-react';
 import { ROLES, ROLE_LABELS, ROLE_LEVEL, type Role } from '@/lib/roles';
 
@@ -29,11 +28,11 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
   viewer: <Eye size={14} />,
 };
 
-export default function AdminUsersClient() {
-  const { data: session } = useSession() || {};
-  const myRole = (session?.user as any)?.role as Role;
-  const myId = (session?.user as any)?.id;
+export default function AdminUsersClient({ serverRole, serverUserId }: { serverRole: string; serverUserId: string }) {
+  const myRole = serverRole as Role;
+  const myId = serverUserId;
   const isSuperAdmin = myRole === 'super_admin';
+  const formRef = useRef<HTMLDivElement>(null);
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +77,7 @@ export default function AdminUsersClient() {
     setEditingId(u.id);
     setShowForm(true);
     setError('');
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const handleSave = async () => {
@@ -158,7 +158,7 @@ export default function AdminUsersClient() {
           <button onClick={() => setShowOwnPw(true)} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">
             <Key size={16} /> Change My Password
           </button>
-          <button onClick={() => { clearForm(); setShowForm(true); }} className="flex items-center gap-2 bg-brand-purple text-white px-4 py-2 rounded-lg hover:bg-brand-purple-light text-sm font-medium">
+          <button onClick={() => { clearForm(); setShowForm(true); setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100); }} className="flex items-center gap-2 bg-brand-purple text-white px-4 py-2 rounded-lg hover:bg-brand-purple-light text-sm font-medium">
             <Plus size={16} /> New User
           </button>
         </div>
@@ -169,7 +169,7 @@ export default function AdminUsersClient() {
 
       {/* CREATE / EDIT FORM */}
       {showForm && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
+        <div ref={formRef} className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-lg">{editingId ? 'Edit User' : 'Create New User'}</h2>
             <button onClick={clearForm} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
