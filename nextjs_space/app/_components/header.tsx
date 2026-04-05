@@ -2,11 +2,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Menu, X, Globe, Instagram, Facebook, Twitter, Youtube, ChevronRight, ChevronDown } from 'lucide-react';
+import { Search, Menu, X, Globe, Instagram, Facebook, Youtube, ChevronRight, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LOCALE_LABELS, LOCALE_NAMES, Locale } from '@/lib/i18n/translations';
 import type { TranslationKey } from '@/lib/i18n/translations';
+import TikTokIcon from '@/components/icons/tiktok-icon';
 
 const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.news', href: '/articles?category=news' },
@@ -27,13 +28,6 @@ const WORLD_COUNTRIES = [
   { name: 'Mexico', slug: 'mexico', flag: '🇲🇽' },
 ];
 
-const SOCIAL_LINKS = [
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Youtube, href: '#', label: 'YouTube' },
-];
-
 const LOCALES: Locale[] = ['en', 'es', 'pt'];
 
 export default function Header() {
@@ -42,11 +36,34 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [langOpen, setLangOpen] = useState(false);
   const [worldOpen, setWorldOpen] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<{ icon: any; href: string; label: string }[]>([]);
   const langRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { locale, setLocale, t } = useLanguage();
+
+  // Fetch social links from site settings
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then((settings: Record<string, string>) => {
+        setSocialLinks([
+          { icon: Instagram, href: settings?.social_instagram ?? '#', label: 'Instagram' },
+          { icon: Facebook, href: settings?.social_facebook ?? '#', label: 'Facebook' },
+          { icon: TikTokIcon, href: settings?.social_tiktok ?? '#', label: 'TikTok' },
+          { icon: Youtube, href: settings?.social_youtube ?? '#', label: 'YouTube' },
+        ]);
+      })
+      .catch(() => {
+        setSocialLinks([
+          { icon: Instagram, href: '#', label: 'Instagram' },
+          { icon: Facebook, href: '#', label: 'Facebook' },
+          { icon: TikTokIcon, href: '#', label: 'TikTok' },
+          { icon: Youtube, href: '#', label: 'YouTube' },
+        ]);
+      });
+  }, []);
 
   // Detect country context from URL path (e.g., /colombia/... → colombia)
   const COUNTRY_SLUGS = ['colombia', 'canada', 'mexico'];
@@ -104,8 +121,8 @@ export default function Header() {
       <div className="bg-brand-purple text-white relative z-[60]">
         <div className="max-w-[1400px] mx-auto px-4 py-1.5 flex items-center justify-between text-xs">
           <div className="flex items-center gap-4">
-            {SOCIAL_LINKS.map((s: any) => (
-              <a key={s?.label} href={s?.href ?? '#'} aria-label={s?.label ?? 'social'} className="hover:text-brand-neon transition-colors">
+            {socialLinks.map((s: any) => (
+              <a key={s?.label} href={s?.href ?? '#'} target="_blank" rel="noopener noreferrer" aria-label={s?.label ?? 'social'} className="hover:text-brand-neon transition-colors">
                 <s.icon size={15} />
               </a>
             ))}

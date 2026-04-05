@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Twitter, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff, ExternalLink, MonitorSmartphone } from 'lucide-react';
+import { Save, Loader2, Globe, MessageCircle, Instagram, Facebook, Youtube, Settings, LayoutPanelLeft, Eye, EyeOff, ExternalLink, MonitorSmartphone } from 'lucide-react';
+import TikTokIcon from '@/components/icons/tiktok-icon';
 
 function SlotConfig({ slotNum, settings, onChange }: { slotNum: number; settings: Record<string, string>; onChange: (key: string, val: string) => void }) {
   const prefix = `sidebar_slot${slotNum}`;
@@ -201,8 +202,8 @@ export default function AdminSettingsClient() {
               <input value={settings?.social_facebook ?? ''} onChange={(e: any) => handleChange('social_facebook', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="Facebook URL" />
             </div>
             <div className="flex items-center gap-3">
-              <Twitter size={18} className="text-brand-gray-dark flex-shrink-0" />
-              <input value={settings?.social_twitter ?? ''} onChange={(e: any) => handleChange('social_twitter', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="Twitter/X URL" />
+              <TikTokIcon size={18} className="text-brand-gray-dark flex-shrink-0" />
+              <input value={settings?.social_tiktok ?? ''} onChange={(e: any) => handleChange('social_tiktok', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="TikTok URL" />
             </div>
             <div className="flex items-center gap-3">
               <Youtube size={18} className="text-brand-gray-dark flex-shrink-0" />

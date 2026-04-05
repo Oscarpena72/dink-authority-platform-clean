@@ -1,10 +1,11 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Instagram, Facebook, Twitter, Youtube, Mail } from 'lucide-react';
+import { Instagram, Facebook, Youtube, Mail } from 'lucide-react';
 import SubscribeForm from '@/app/_components/subscribe-form';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { TranslationKey } from '@/lib/i18n/translations';
+import TikTokIcon from '@/components/icons/tiktok-icon';
 
 const FOOTER_NAV: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.news', href: '/articles?category=news' },
@@ -13,15 +14,28 @@ const FOOTER_NAV: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.events', href: '/articles?category=events' },
 ];
 
-const SOCIALS = [
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Youtube, href: '#', label: 'YouTube' },
-];
-
 export default function Footer() {
   const { t } = useLanguage();
+  const [socials, setSocials] = useState<{ icon: any; href: string; label: string }[]>([
+    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Facebook, href: '#', label: 'Facebook' },
+    { icon: TikTokIcon, href: '#', label: 'TikTok' },
+    { icon: Youtube, href: '#', label: 'YouTube' },
+  ]);
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then((settings: Record<string, string>) => {
+        setSocials([
+          { icon: Instagram, href: settings?.social_instagram ?? '#', label: 'Instagram' },
+          { icon: Facebook, href: settings?.social_facebook ?? '#', label: 'Facebook' },
+          { icon: TikTokIcon, href: settings?.social_tiktok ?? '#', label: 'TikTok' },
+          { icon: Youtube, href: settings?.social_youtube ?? '#', label: 'YouTube' },
+        ]);
+      })
+      .catch(() => {});
+  }, []);
   return (
     <footer className="bg-brand-purple text-white">
       {/* Neon accent line at top */}
@@ -53,8 +67,8 @@ export default function Footer() {
           <div>
             <h3 className="font-heading font-bold text-white mb-5 uppercase text-sm tracking-wider">{t('footer.connect')}</h3>
             <div className="flex items-center gap-3 mb-5">
-              {SOCIALS.map((s: any) => (
-                <a key={s?.label} href={s?.href ?? '#'} aria-label={s?.label} className="p-2.5 bg-white/5 rounded-xl hover:bg-brand-neon/15 hover:text-brand-neon transition-all border border-white/5 hover:border-brand-neon/30">
+              {socials.map((s: any) => (
+                <a key={s?.label} href={s?.href ?? '#'} target="_blank" rel="noopener noreferrer" aria-label={s?.label} className="p-2.5 bg-white/5 rounded-xl hover:bg-brand-neon/15 hover:text-brand-neon transition-all border border-white/5 hover:border-brand-neon/30">
                   <s.icon size={18} />
                 </a>
               ))}
