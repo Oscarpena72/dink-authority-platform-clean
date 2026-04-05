@@ -32,9 +32,18 @@ interface BannerData {
   buttonLink: string;
 }
 
+interface HeroData {
+  headline: string;
+  description: string;
+  buttonText: string;
+  buttonLink: string;
+  backgroundWord: string;
+}
+
 interface Props {
   editions: EditionItem[];
   banner: BannerData | null;
+  hero?: HeroData | null;
   countryName?: string;
   countrySlug?: string;
 }
@@ -126,7 +135,7 @@ function EditionCard({ edition, index, siteUrl }: { edition: EditionItem; index:
   );
 }
 
-export default function MagazineArchiveClient({ editions, banner, countryName, countrySlug }: Props) {
+export default function MagazineArchiveClient({ editions, banner, hero, countryName, countrySlug }: Props) {
   const { t } = useLanguage();
   const items = editions ?? [];
   const [siteUrl, setSiteUrl] = useState('https://dink-authority-magaz-nlc0mg.abacusai.app');
@@ -135,6 +144,13 @@ export default function MagazineArchiveClient({ editions, banner, countryName, c
       setSiteUrl(window.location.origin);
     }
   }, []);
+
+  /* Resolve hero values — CMS overrides, fallbacks for empty fields */
+  const heroHeadline = hero?.headline || (countryName ? `Dink Authority ${countryName}` : 'Dink Authority Magazine');
+  const heroDescription = hero?.description || 'Browse all editions of Dink Authority Magazine. Click any cover to read online.';
+  const heroBackgroundWord = hero?.backgroundWord || '';
+  const heroButtonText = hero?.buttonText || '';
+  const heroButtonLink = hero?.buttonLink || '';
 
   return (
     <div className="min-h-screen bg-brand-gray">
@@ -181,20 +197,38 @@ export default function MagazineArchiveClient({ editions, banner, countryName, c
         </section>
       )}
 
-      {/* Page header */}
-      <div className="bg-brand-purple">
-        <div className="max-w-[1400px] mx-auto px-4 py-10 md:py-14">
+      {/* Magazine Hero — editable from admin */}
+      <div className="bg-brand-purple relative overflow-hidden">
+        {/* Large background word */}
+        {heroBackgroundWord && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" aria-hidden="true">
+            <span className="text-[6rem] sm:text-[8rem] md:text-[10rem] lg:text-[13rem] font-heading font-black text-white/[0.04] uppercase whitespace-nowrap leading-none tracking-tight">
+              {heroBackgroundWord}
+            </span>
+          </div>
+        )}
+        <div className="relative max-w-[1400px] mx-auto px-4 py-10 md:py-14">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-brand-neon/10 flex items-center justify-center">
               <BookOpen size={20} className="text-brand-neon" />
             </div>
             <h1 className="text-3xl md:text-4xl font-heading font-bold text-white">
-              {countryName ? `Dink Authority ${countryName}` : 'Dink Authority Magazine'}
+              {heroHeadline}
             </h1>
           </div>
-          <p className="text-white/60 text-sm md:text-base max-w-2xl">
-            Browse all editions of Dink Authority Magazine. Click any cover to read online.
+          <p className="text-white/60 text-sm md:text-base max-w-2xl mb-4">
+            {heroDescription}
           </p>
+          {heroButtonText && heroButtonLink && (
+            <a
+              href={heroButtonLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg"
+            >
+              {heroButtonText} <ArrowRight size={16} />
+            </a>
+          )}
         </div>
       </div>
 

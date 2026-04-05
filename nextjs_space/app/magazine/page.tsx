@@ -34,8 +34,8 @@ export default async function MagazineArchivePage() {
     publishDate: e.publishDate?.toISOString?.() ?? e.publishDate,
   }));
 
-  // Fetch banner settings
-  const bannerSettings = await prisma.siteSetting.findMany({
+  // Fetch banner + hero settings
+  const allSettings = await prisma.siteSetting.findMany({
     where: {
       key: {
         in: [
@@ -44,13 +44,19 @@ export default async function MagazineArchivePage() {
           'magazine_banner_subtitle',
           'magazine_banner_button_text',
           'magazine_banner_button_link',
+          'magazine_hero_headline',
+          'magazine_hero_description',
+          'magazine_hero_button_text',
+          'magazine_hero_button_link',
+          'magazine_hero_background_word',
+          'magazine_hero_enabled',
         ],
       },
     },
   });
 
   const settingsMap: Record<string, string> = {};
-  (bannerSettings ?? []).forEach((s: any) => { settingsMap[s.key] = s.value; });
+  (allSettings ?? []).forEach((s: any) => { settingsMap[s.key] = s.value; });
 
   const banner = settingsMap.magazine_banner_image
     ? {
@@ -62,5 +68,16 @@ export default async function MagazineArchivePage() {
       }
     : null;
 
-  return <MagazineArchiveClient editions={editions} banner={banner} />;
+  const heroEnabled = (settingsMap.magazine_hero_enabled ?? 'true') === 'true';
+  const hero = heroEnabled
+    ? {
+        headline: settingsMap.magazine_hero_headline || '',
+        description: settingsMap.magazine_hero_description || '',
+        buttonText: settingsMap.magazine_hero_button_text || '',
+        buttonLink: settingsMap.magazine_hero_button_link || '',
+        backgroundWord: settingsMap.magazine_hero_background_word || '',
+      }
+    : null;
+
+  return <MagazineArchiveClient editions={editions} banner={banner} hero={hero} />;
 }

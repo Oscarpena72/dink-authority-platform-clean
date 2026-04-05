@@ -48,6 +48,11 @@ export default function AdminMagazineClient() {
   const [bannerForm, setBannerForm] = useState({ image: '', title: '', subtitle: '', buttonText: '', buttonLink: '' });
   const [savingBanner, setSavingBanner] = useState(false);
 
+  // Hero settings
+  const [showHero, setShowHero] = useState(false);
+  const [heroForm, setHeroForm] = useState({ headline: '', description: '', buttonText: '', buttonLink: '', backgroundWord: '', enabled: 'true' });
+  const [savingHero, setSavingHero] = useState(false);
+
   // Dynamic country list from DB
   const [countryOptions, setCountryOptions] = useState<CountryOption[]>(BUILT_IN_COUNTRIES);
 
@@ -63,7 +68,7 @@ export default function AdminMagazineClient() {
       setCountryOptions([...BUILT_IN_COUNTRIES, ...dbCountries]);
     }).catch(() => {});
 
-    // Fetch banner settings
+    // Fetch banner + hero settings
     fetch('/api/settings').then(r => r.json()).then((s: any) => {
       setBannerForm({
         image: s?.magazine_banner_image ?? '',
@@ -71,6 +76,14 @@ export default function AdminMagazineClient() {
         subtitle: s?.magazine_banner_subtitle ?? '',
         buttonText: s?.magazine_banner_button_text ?? '',
         buttonLink: s?.magazine_banner_button_link ?? '',
+      });
+      setHeroForm({
+        headline: s?.magazine_hero_headline ?? '',
+        description: s?.magazine_hero_description ?? '',
+        buttonText: s?.magazine_hero_button_text ?? '',
+        buttonLink: s?.magazine_hero_button_link ?? '',
+        backgroundWord: s?.magazine_hero_background_word ?? '',
+        enabled: s?.magazine_hero_enabled ?? 'true',
       });
     }).catch(() => {});
   }, []);
@@ -181,6 +194,25 @@ export default function AdminMagazineClient() {
     setSavingBanner(false);
   };
 
+  const handleSaveHero = async () => {
+    setSavingHero(true);
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          magazine_hero_headline: heroForm.headline,
+          magazine_hero_description: heroForm.description,
+          magazine_hero_button_text: heroForm.buttonText,
+          magazine_hero_button_link: heroForm.buttonLink,
+          magazine_hero_background_word: heroForm.backgroundWord,
+          magazine_hero_enabled: heroForm.enabled,
+        }),
+      });
+    } catch { /* empty */ }
+    setSavingHero(false);
+  };
+
   const parseCountries = (c: string): string[] => {
     try { return JSON.parse(c || '[]'); } catch { return []; }
   };
@@ -194,15 +226,103 @@ export default function AdminMagazineClient() {
           <BookOpen size={24} className="text-brand-neon" />
           <h1 className="text-2xl font-heading font-bold text-brand-purple">Magazine Editions</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowBanner(!showBanner)} className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white font-bold rounded-lg hover:bg-brand-purple-light text-sm">
-            <Settings size={16} /> Banner
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => { setShowHero(!showHero); setShowBanner(false); }} className={`flex items-center gap-2 px-4 py-2 font-bold rounded-lg text-sm ${showHero ? 'bg-brand-neon text-brand-purple-dark' : 'bg-brand-purple text-white hover:bg-brand-purple-light'}`}>
+            <Settings size={16} /> Hero
+          </button>
+          <button onClick={() => { setShowBanner(!showBanner); setShowHero(false); }} className={`flex items-center gap-2 px-4 py-2 font-bold rounded-lg text-sm ${showBanner ? 'bg-brand-neon text-brand-purple-dark' : 'bg-brand-purple text-white hover:bg-brand-purple-light'}`}>
+            <ImageIcon size={16} /> Banner
           </button>
           <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim text-sm">
             <Plus size={16} /> Add Edition
           </button>
         </div>
       </div>
+
+      {/* Hero Settings */}
+      {showHero && (
+        <div className="bg-purple-50 rounded-xl border border-purple-200 p-6 mb-6">
+          <h2 className="font-heading font-bold text-lg text-brand-purple mb-1 flex items-center gap-2">
+            <Settings size={18} /> Magazine Hero Settings
+          </h2>
+          <p className="text-xs text-brand-gray-dark mb-4">Configure the hero section that appears at the top of the Magazine page.</p>
+
+          {/* Enable/Disable toggle */}
+          <label className="flex items-center gap-3 mb-4 cursor-pointer">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={heroForm.enabled === 'true'}
+                onChange={e => setHeroForm(p => ({ ...p, enabled: e.target.checked ? 'true' : 'false' }))}
+                className="sr-only peer"
+              />
+              <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-brand-neon transition-colors" />
+              <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
+            </div>
+            <span className="text-sm font-semibold text-brand-purple">
+              Hero {heroForm.enabled === 'true' ? 'Enabled' : 'Disabled'}
+            </span>
+          </label>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Headline</label>
+              <input
+                placeholder="e.g. Subscribe to Dink Authority Magazine"
+                value={heroForm.headline}
+                onChange={e => setHeroForm(p => ({ ...p, headline: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Background Word (large typography)</label>
+              <input
+                placeholder="e.g. Pickleball Magazine"
+                value={heroForm.backgroundWord}
+                onChange={e => setHeroForm(p => ({ ...p, backgroundWord: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Description / Subheadline</label>
+              <textarea
+                placeholder="e.g. Browse all editions of Dink Authority Magazine. Click any cover to read online."
+                value={heroForm.description}
+                onChange={e => setHeroForm(p => ({ ...p, description: e.target.value }))}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Button Text</label>
+              <input
+                placeholder="e.g. Subscribe Now"
+                value={heroForm.buttonText}
+                onChange={e => setHeroForm(p => ({ ...p, buttonText: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brand-purple mb-1">Button Link</label>
+              <input
+                placeholder="e.g. https://stripe.com/..."
+                value={heroForm.buttonLink}
+                onChange={e => setHeroForm(p => ({ ...p, buttonLink: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 mt-4">
+            <button onClick={handleSaveHero} disabled={savingHero} className="flex items-center gap-2 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim text-sm disabled:opacity-50">
+              <Save size={16} /> {savingHero ? 'Saving...' : 'Save Hero'}
+            </button>
+            <button onClick={() => setShowHero(false)} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200 text-sm">
+              <X size={16} /> Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Banner Settings */}
       {showBanner && (
