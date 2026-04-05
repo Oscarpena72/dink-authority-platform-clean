@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     select: { title: true, excerpt: true, content: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, metaTitle: true, metaDescription: true },
   }).catch(() => null);
 
-  const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
+  const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
   const articleUrl = `${siteUrl}/articles/${params?.slug ?? ''}`;
 
   // Title fallback: metaTitle → title
@@ -26,9 +26,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
   if (!ogDescription) ogDescription = 'Read the latest pickleball news on Dink Authority Magazine.';
 
-  // Image: article featured image (absolute URL) → site fallback
+  // Image: use OG image proxy for article images to avoid Content-Disposition: attachment from S3
+  // This ensures WhatsApp and other crawlers receive the image with correct inline headers
   const hasArticleImage = !!article?.imageUrl;
   const absoluteImageUrl = hasArticleImage
+    ? `${siteUrl}/api/og-image?slug=${encodeURIComponent(params?.slug ?? '')}`
+    : `${siteUrl}/og-image.png`;
+  // Keep direct S3 URL for twitter:image since Twitter handles Content-Disposition correctly
+  const directImageUrl = hasArticleImage
     ? (article!.imageUrl!.startsWith('http') ? article!.imageUrl! : `${siteUrl}${article!.imageUrl}`)
     : `${siteUrl}/og-image.png`;
 
@@ -71,7 +76,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description: ogDescription,
       images: [
         {
-          url: absoluteImageUrl,
+          url: directImageUrl,
           width: 1200,
           height: 630,
           alt: article?.title ?? 'Dink Authority Magazine',
@@ -172,7 +177,7 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
   };
   const relSerialized = (relatedArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null }));
 
-  const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
+  const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
   const articleUrl = `${siteUrl}/articles/${article?.slug ?? ''}`;
 
   const authorName = article?.authorName || 'Dink Authority Editorial Team';
