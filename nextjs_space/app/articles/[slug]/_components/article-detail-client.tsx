@@ -31,9 +31,17 @@ function ShareButtons({ title, compact = false, articleUrl = '' }: { title: stri
     try { await navigator.share({ title, url }); } catch { /* user cancelled or not supported */ }
   };
 
+  /* Detect mobile devices via userAgent + viewport width */
+  const isMobile = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    const mobileUA = /android|iphone|ipad|ipod|mobile|webos|blackberry|opera mini|iemobile/i.test(ua);
+    return mobileUA || window.innerWidth < 768;
+  }, []);
+
   /* Open share URL in a centered popup window — the standard approach for
-     Facebook and LinkedIn share dialogs. Falls back to window.open with
-     no features (new tab) if the popup is blocked. */
+     Facebook and LinkedIn share dialogs on desktop. Falls back to window.open
+     with no features (new tab) if the popup is blocked. */
   const openSharePopup = useCallback((shareUrl: string, w = 600, h = 500) => {
     const left = Math.round(window.screenX + (window.outerWidth - w) / 2);
     const top = Math.round(window.screenY + (window.outerHeight - h) / 2);
@@ -53,6 +61,15 @@ function ShareButtons({ title, compact = false, articleUrl = '' }: { title: stri
   const xUrl = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodedUrl}`;
 
+  /* Facebook share: direct redirect on mobile, popup on desktop */
+  const shareFacebook = useCallback(() => {
+    if (isMobile()) {
+      window.location.href = facebookUrl;
+    } else {
+      openSharePopup(facebookUrl);
+    }
+  }, [isMobile, openSharePopup, facebookUrl]);
+
   const fbIcon = <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>;
   const liIcon = <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>;
   const xIcon = <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
@@ -61,8 +78,8 @@ function ShareButtons({ title, compact = false, articleUrl = '' }: { title: stri
   if (compact) {
     return (
       <div className="flex items-center gap-1.5">
-        {/* Facebook & LinkedIn: popup dialog via window.open */}
-        <button onClick={() => openSharePopup(facebookUrl)} title="Share on Facebook"
+        {/* Facebook: mobile redirect / desktop popup */}
+        <button onClick={shareFacebook} title="Share on Facebook"
           className="p-2 rounded-lg border border-transparent text-brand-gray-dark transition-all duration-200 hover:bg-[#1877F2]/10 hover:text-[#1877F2] hover:border-[#1877F2]/30">{fbIcon}</button>
         <button onClick={() => openSharePopup(linkedinUrl)} title="Share on LinkedIn"
           className="p-2 rounded-lg border border-transparent text-brand-gray-dark transition-all duration-200 hover:bg-[#0A66C2]/10 hover:text-[#0A66C2] hover:border-[#0A66C2]/30">{liIcon}</button>
@@ -90,8 +107,8 @@ function ShareButtons({ title, compact = false, articleUrl = '' }: { title: stri
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple"><Share2 size={16} /><span>Share this article</span></div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Facebook & LinkedIn: popup dialog via window.open */}
-          <button onClick={() => openSharePopup(facebookUrl)}
+          {/* Facebook: mobile redirect / desktop popup */}
+          <button onClick={shareFacebook}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-gray text-sm font-medium text-brand-gray-dark transition-all duration-200 hover:bg-[#1877F2]/10 hover:text-[#1877F2] hover:border-[#1877F2]/30">
             {fbIcon}<span className="hidden sm:inline">Facebook</span>
           </button>
