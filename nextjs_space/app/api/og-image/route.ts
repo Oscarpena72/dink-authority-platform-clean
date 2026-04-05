@@ -2,21 +2,30 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import sharp from 'sharp';
+
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
 
 /**
- * OG Image proxy endpoint.
+ * OG Image proxy endpoint — optimised for WhatsApp & social-media crawlers.
  *
  * Usage:  /api/og-image?slug=my-article-slug
  *
- * Fetches the article's featured image from S3 and streams it back with
- * proper Content-Type (image/jpeg, image/png, etc.) and WITHOUT the
- * Content-Disposition: attachment header that S3 sets on user-uploaded files.
+ * 1. Looks up the article's featured image in the DB.
+ * 2. Downloads the original from S3.
+ * 3. Resizes / crops it to exactly 1200 × 630 (landscape, centre-crop)
+ *    using `sharp`.  This is critical because:
+ *    - Many article images are **vertical / portrait** (e.g. 1545 × 2000).
+ *    - WhatsApp rejects or ignores portrait images and falls back to the
+ *      site-level og:image (the generic Dink logo).
+ *    - The og:image:width / og:image:height tags already declare 1200 × 630,
+ *      so the actual pixels must match.
+ * 4. Serves the result with proper Content-Type and **without**
+ *    Content-Disposition: attachment (which S3 sets on user uploads).
  *
- * This is important because social media crawlers (WhatsApp in particular)
- * may reject images that are served with Content-Disposition: attachment.
- *
- * The response is cached for 7 days (with 1 hour stale-while-revalidate)
- * to avoid hitting S3 on every crawler request.
+ * The response is cached for 7 days to avoid hitting S3 + sharp on
+ * every crawler request.
  */
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get('slug');
@@ -24,49 +33,72 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing slug parameter' }, { status: 400 });
   }
 
+  const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
+
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
-      select: { imageUrl: true },
+      select: { imageUrl: true, focalPointX: true, focalPointY: true },
     });
 
     if (!article?.imageUrl) {
-      // Redirect to default OG image
-      const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
       return NextResponse.redirect(`${siteUrl}/og-image.png`, 302);
     }
 
     // Ensure absolute URL
     const imageUrl = article.imageUrl.startsWith('http')
       ? article.imageUrl
-      : `${process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app'}${article.imageUrl}`;
+      : `${siteUrl}${article.imageUrl}`;
 
-    // Fetch the image from S3
+    // Fetch the original image from S3
     const imgResponse = await fetch(imageUrl, {
       headers: { 'Accept': 'image/*' },
     });
 
     if (!imgResponse.ok) {
-      const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
       return NextResponse.redirect(`${siteUrl}/og-image.png`, 302);
     }
 
-    const contentType = imgResponse.headers.get('content-type') || 'image/jpeg';
-    const imageBuffer = await imgResponse.arrayBuffer();
+    const originalBuffer = Buffer.from(await imgResponse.arrayBuffer());
 
-    return new NextResponse(imageBuffer, {
+    // Use focal point from DB if available, otherwise centre
+    const focalX = article.focalPointX ?? 50;
+    const focalY = article.focalPointY ?? 50;
+
+    // Resize + crop to 1200 × 630 using sharp
+    // Strategy: cover (fill the 1200×630 box, crop the excess)
+    // Position: use the article's focal-point percentage
+    const resizedBuffer = await sharp(originalBuffer)
+      .resize(OG_WIDTH, OG_HEIGHT, {
+        fit: 'cover',
+        position: focalPointToGravity(focalX, focalY),
+      })
+      .jpeg({ quality: 85, progressive: true })
+      .toBuffer();
+
+    return new NextResponse(resizedBuffer, {
       status: 200,
       headers: {
-        'Content-Type': contentType,
-        'Content-Length': String(imageBuffer.byteLength),
-        // Cache for 7 days, revalidate in background after 1 hour
+        'Content-Type': 'image/jpeg',
+        'Content-Length': String(resizedBuffer.byteLength),
         'Cache-Control': 'public, max-age=604800, s-maxage=604800, stale-while-revalidate=3600',
-        // No Content-Disposition header — serve inline for crawlers
       },
     });
   } catch (error) {
     console.error('[og-image] Error:', error);
-    const siteUrl = process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app';
-    return NextResponse.redirect(`${siteUrl}/og-image.png`, 302);
+    const fallbackUrl = `${siteUrl}/og-image.png`;
+    return NextResponse.redirect(fallbackUrl, 302);
   }
+}
+
+/**
+ * Convert focal-point percentages (0-100) to a sharp gravity string.
+ * sharp accepts: north, northeast, east, southeast, south, southwest, west, northwest, centre, entropy, attention
+ * We map the focal-point into a 3×3 grid → one of the 9 compass positions.
+ */
+function focalPointToGravity(x: number, y: number): string {
+  const col = x < 33 ? 'west' : x > 66 ? 'east' : '';
+  const row = y < 33 ? 'north' : y > 66 ? 'south' : '';
+  if (!col && !row) return 'centre';
+  return `${row}${col}` || 'centre';
 }
