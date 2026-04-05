@@ -6,13 +6,24 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { isAtLeast, ROLE_LEVEL, type Role } from '@/lib/roles';
 
+/* Helper: get fresh role from DB (JWT may be stale) */
+async function getCallerInfo() {
+  const session = await getServerSession(authOptions);
+  const id = (session?.user as any)?.id;
+  if (!id) return { id: null as string | null, role: null as Role | null };
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+    return { id, role: (dbUser?.role ?? (session?.user as any)?.role) as Role };
+  } catch {
+    return { id, role: (session?.user as any)?.role as Role };
+  }
+}
+
 /* PUT — update user (admin+) */
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions);
-    const callerId = (session?.user as any)?.id;
-    const callerRole = (session?.user as any)?.role as Role;
-    if (!isAtLeast(callerRole, 'admin')) {
+    const { id: callerId, role: callerRole } = await getCallerInfo();
+    if (!isAtLeast(callerRole ?? undefined, 'admin')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const { id } = params;
@@ -40,7 +51,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         if (target.role === 'super_admin') {
           return NextResponse.json({ error: 'Cannot modify a Super Admin' }, { status: 403 });
         }
-        if ((ROLE_LEVEL[newRole] ?? 0) >= (ROLE_LEVEL[callerRole] ?? 0)) {
+        if ((ROLE_LEVEL[newRole] ?? 0) >= (ROLE_LEVEL[callerRole!] ?? 0)) {
           return NextResponse.json({ error: 'Cannot assign a role equal or higher than your own' }, { status: 403 });
         }
       }
@@ -82,9 +93,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 /* DELETE — delete user (super_admin only) */
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions);
-    const callerId = (session?.user as any)?.id;
-    const callerRole = (session?.user as any)?.role as Role;
+    const { id: callerId, role: callerRole } = await getCallerInfo();
     if (callerRole !== 'super_admin') {
       return NextResponse.json({ error: 'Only Super Admin can delete users' }, { status: 403 });
     }

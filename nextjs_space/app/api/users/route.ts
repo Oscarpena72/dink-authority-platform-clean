@@ -6,12 +6,24 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { isAtLeast, ROLE_LEVEL, type Role } from '@/lib/roles';
 
+/* Helper: get fresh role from DB (JWT may be stale) */
+async function getCallerInfo() {
+  const session = await getServerSession(authOptions);
+  const id = (session?.user as any)?.id;
+  if (!id) return { id: null as string | null, role: null as Role | null };
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+    return { id, role: (dbUser?.role ?? (session?.user as any)?.role) as Role };
+  } catch {
+    return { id, role: (session?.user as any)?.role as Role };
+  }
+}
+
 /* GET — list all users (admin+) */
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    const role = (session?.user as any)?.role;
-    if (!isAtLeast(role, 'admin')) {
+    const { role } = await getCallerInfo();
+    if (!isAtLeast(role ?? undefined, 'admin')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const users = await prisma.user.findMany({
@@ -27,9 +39,8 @@ export async function GET() {
 /* POST — create user (admin+) */
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    const callerRole = (session?.user as any)?.role as Role;
-    if (!isAtLeast(callerRole, 'admin')) {
+    const { role: callerRole } = await getCallerInfo();
+    if (!isAtLeast(callerRole ?? undefined, 'admin')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const body = await req.json();
@@ -42,7 +53,7 @@ export async function POST(req: Request) {
     }
     const targetRole = (role || 'editor') as Role;
     /* Non-super_admin cannot create users with higher/equal role */
-    if (callerRole !== 'super_admin' && (ROLE_LEVEL[targetRole] ?? 0) >= (ROLE_LEVEL[callerRole] ?? 0)) {
+    if (callerRole !== 'super_admin' && (ROLE_LEVEL[targetRole] ?? 0) >= (ROLE_LEVEL[callerRole!] ?? 0)) {
       return NextResponse.json({ error: 'Cannot assign a role equal or higher than your own' }, { status: 403 });
     }
     const existing = await prisma.user.findUnique({ where: { email } });
