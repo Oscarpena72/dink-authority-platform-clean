@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import { useLanguage } from '@/lib/i18n/language-context';
 import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
+import ShareButtons from '@/app/magazine/[slug]/_components/share-buttons';
 
 interface EditionItem {
   id: string;
@@ -38,10 +39,15 @@ interface Props {
   countrySlug?: string;
 }
 
-function EditionCard({ edition, index }: { edition: EditionItem; index: number }) {
+function EditionCard({ edition, index, siteUrl }: { edition: EditionItem; index: number; siteUrl: string }) {
   const readUrl = edition?.slug && (edition?.pdfCloudPath || edition?.pdfUrl)
     ? `/magazine/${edition.slug}`
     : edition?.externalUrl ?? null;
+
+  /* Absolute share URL for this edition */
+  const shareUrl = edition?.slug
+    ? `${siteUrl}/magazine/${edition.slug}`
+    : (edition?.externalUrl ?? siteUrl);
 
   return (
     <motion.div
@@ -91,12 +97,12 @@ function EditionCard({ edition, index }: { edition: EditionItem; index: number }
               ? new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
               : ''}
           </p>
-          <div className="mt-auto">
+          <div className="mt-auto flex flex-col gap-2">
             {readUrl ? (
               readUrl.startsWith('/') ? (
                 <Link
                   href={readUrl}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-xs uppercase tracking-wider"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-xs uppercase tracking-wider self-start"
                 >
                   Read <BookOpen size={12} />
                 </Link>
@@ -105,12 +111,14 @@ function EditionCard({ edition, index }: { edition: EditionItem; index: number }
                   href={readUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-xs uppercase tracking-wider"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-xs uppercase tracking-wider self-start"
                 >
                   Read <ExternalLink size={12} />
                 </a>
               )
             ) : null}
+            {/* Compact share buttons */}
+            <ShareButtons url={shareUrl} title={edition?.title ?? ''} description={edition?.description ?? undefined} compact />
           </div>
         </div>
       </div>
@@ -121,6 +129,12 @@ function EditionCard({ edition, index }: { edition: EditionItem; index: number }
 export default function MagazineArchiveClient({ editions, banner, countryName, countrySlug }: Props) {
   const { t } = useLanguage();
   const items = editions ?? [];
+  const [siteUrl, setSiteUrl] = useState('https://dink-authority-magaz-nlc0mg.abacusai.app');
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSiteUrl(window.location.origin);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-brand-gray">
@@ -196,7 +210,7 @@ export default function MagazineArchiveClient({ editions, banner, countryName, c
             {/* First row of editions */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
               {items.slice(0, 4).map((edition, i) => (
-                <EditionCard key={edition?.id ?? i} edition={edition} index={i} />
+                <EditionCard key={edition?.id ?? i} edition={edition} index={i} siteUrl={siteUrl} />
               ))}
             </div>
 
@@ -207,7 +221,7 @@ export default function MagazineArchiveClient({ editions, banner, countryName, c
             {items.length > 4 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
                 {items.slice(4).map((edition, i) => (
-                  <EditionCard key={edition?.id ?? (i + 4)} edition={edition} index={i + 4} />
+                  <EditionCard key={edition?.id ?? (i + 4)} edition={edition} index={i + 4} siteUrl={siteUrl} />
                 ))}
               </div>
             )}

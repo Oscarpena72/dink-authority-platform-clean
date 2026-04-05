@@ -12,13 +12,38 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
   if (!edition) return { title: 'Magazine - Dink Authority' };
+
+  const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
+  const pageUrl = `${siteUrl}/magazine/${edition.slug}`;
+  const ogImageUrl = edition.slug
+    ? `${siteUrl}/api/og-image?type=magazine&slug=${edition.slug}`
+    : (edition.coverUrl ?? `${siteUrl}/og-image.png`);
+  const description = edition.description ?? `Read ${edition.title} - Dink Authority Magazine`;
+
   return {
     title: `${edition.title} | Dink Authority Magazine`,
-    description: edition.description ?? `Read ${edition.title} - Dink Authority Magazine`,
+    description,
     openGraph: {
       title: edition.title,
-      description: edition.description ?? '',
-      images: edition.coverUrl ? [edition.coverUrl] : [],
+      description,
+      url: pageUrl,
+      siteName: 'Dink Authority',
+      type: 'article',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+          alt: edition.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: edition.title,
+      description,
+      images: [ogImageUrl],
     },
   };
 }

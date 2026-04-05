@@ -29,6 +29,8 @@ const OG_HEIGHT = 630;
  */
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get('slug');
+  const type = request.nextUrl.searchParams.get('type') ?? 'article'; // 'article' | 'magazine'
+
   if (!slug) {
     return NextResponse.json({ error: 'Missing slug parameter' }, { status: 400 });
   }
@@ -36,19 +38,35 @@ export async function GET(request: NextRequest) {
   const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
 
   try {
-    const article = await prisma.article.findUnique({
-      where: { slug },
-      select: { imageUrl: true, focalPointX: true, focalPointY: true },
-    });
+    let rawImageUrl: string | null = null;
+    let focalX = 50;
+    let focalY = 50;
 
-    if (!article?.imageUrl) {
+    if (type === 'magazine') {
+      const edition = await prisma.magazineEdition.findFirst({
+        where: { slug },
+        select: { coverUrl: true },
+      });
+      rawImageUrl = edition?.coverUrl ?? null;
+      // Magazine covers have no focal point — always centre crop
+    } else {
+      const article = await prisma.article.findUnique({
+        where: { slug },
+        select: { imageUrl: true, focalPointX: true, focalPointY: true },
+      });
+      rawImageUrl = article?.imageUrl ?? null;
+      focalX = article?.focalPointX ?? 50;
+      focalY = article?.focalPointY ?? 50;
+    }
+
+    if (!rawImageUrl) {
       return NextResponse.redirect(`${siteUrl}/og-image.png`, 302);
     }
 
     // Ensure absolute URL
-    const imageUrl = article.imageUrl.startsWith('http')
-      ? article.imageUrl
-      : `${siteUrl}${article.imageUrl}`;
+    const imageUrl = rawImageUrl.startsWith('http')
+      ? rawImageUrl
+      : `${siteUrl}${rawImageUrl}`;
 
     // Fetch the original image from S3
     const imgResponse = await fetch(imageUrl, {
@@ -61,13 +79,7 @@ export async function GET(request: NextRequest) {
 
     const originalBuffer = Buffer.from(await imgResponse.arrayBuffer());
 
-    // Use focal point from DB if available, otherwise centre
-    const focalX = article.focalPointX ?? 50;
-    const focalY = article.focalPointY ?? 50;
-
     // Resize + crop to 1200 × 630 using sharp
-    // Strategy: cover (fill the 1200×630 box, crop the excess)
-    // Position: use the article's focal-point percentage
     const resizedBuffer = await sharp(originalBuffer)
       .resize(OG_WIDTH, OG_HEIGHT, {
         fit: 'cover',
