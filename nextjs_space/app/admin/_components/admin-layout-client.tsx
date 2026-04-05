@@ -1,13 +1,14 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard, FileText, Calendar, Image as ImageIcon,
-  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Megaphone, Globe, MonitorPlay, Handshake
+  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Megaphone, Globe, MonitorPlay, Handshake, Shield
 } from 'lucide-react';
+import { canAccess, ROLE_LABELS, type Role } from '@/lib/roles';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -24,12 +25,19 @@ const NAV_ITEMS = [
   { label: 'Media', href: '/admin/media', icon: ImageIcon },
   { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { label: 'Subscribers', href: '/admin/subscribers', icon: Users },
+  { label: 'Users', href: '/admin/users', icon: Shield },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 export default function AdminLayoutClient({ children, session }: { children: React.ReactNode; session: any }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const userRole = (session?.user?.role ?? 'viewer') as Role;
+
+  const filteredNav = useMemo(
+    () => NAV_ITEMS.filter((item) => canAccess(userRole, item.href)),
+    [userRole]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -47,7 +55,7 @@ export default function AdminLayoutClient({ children, session }: { children: Rea
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item: any) => {
+          {filteredNav.map((item: any) => {
             const isActive = pathname === item?.href || (item?.href !== '/admin' && pathname?.startsWith?.(item?.href ?? '___'));
             return (
               <Link
@@ -68,7 +76,8 @@ export default function AdminLayoutClient({ children, session }: { children: Rea
         </nav>
 
         <div className="p-4 border-t border-white/10">
-          <div className="text-white/60 text-xs mb-2">{session?.user?.email ?? ''}</div>
+          <div className="text-white/60 text-xs mb-1">{session?.user?.email ?? ''}</div>
+          <div className="text-brand-neon text-[10px] font-semibold uppercase tracking-wider mb-2">{ROLE_LABELS[userRole] ?? userRole}</div>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
             className="flex items-center gap-2 text-white/70 hover:text-red-400 text-sm transition-colors"
