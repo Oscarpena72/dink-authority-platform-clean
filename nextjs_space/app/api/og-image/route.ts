@@ -96,8 +96,11 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, max-age=604800, s-maxage=604800, stale-while-revalidate=3600',
       },
     });
-  } catch (error) {
-    console.error('[og-image] Error:', error);
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errStack = error instanceof Error ? error.stack : '';
+    console.error(`[og-image] Error for type=${type} slug=${slug}: ${errMsg}`);
+    if (errStack) console.error(`[og-image] Stack: ${errStack}`);
     const fallbackUrl = `${siteUrl}/og-image.png`;
     return NextResponse.redirect(fallbackUrl, 302);
   }
