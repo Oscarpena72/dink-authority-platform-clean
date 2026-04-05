@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Instagram, Facebook, Youtube, Mail } from 'lucide-react';
 import SubscribeForm from '@/app/_components/subscribe-form';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -14,6 +15,15 @@ const FOOTER_NAV: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.events', href: '/articles?category=events' },
 ];
 
+interface FooterPartner {
+  id: string;
+  name: string;
+  logoUrl: string;
+  websiteUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export default function Footer() {
   const { t } = useLanguage();
   const [socials, setSocials] = useState<{ icon: any; href: string; label: string }[]>([
@@ -22,6 +32,7 @@ export default function Footer() {
     { icon: TikTokIcon, href: '#', label: 'TikTok' },
     { icon: Youtube, href: '#', label: 'YouTube' },
   ]);
+  const [partners, setPartners] = useState<FooterPartner[]>([]);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -33,6 +44,13 @@ export default function Footer() {
           { icon: TikTokIcon, href: settings?.social_tiktok ?? '#', label: 'TikTok' },
           { icon: Youtube, href: settings?.social_youtube ?? '#', label: 'YouTube' },
         ]);
+      })
+      .catch(() => {});
+
+    fetch('/api/footer-partners')
+      .then(res => res.json())
+      .then((data: FooterPartner[]) => {
+        if (Array.isArray(data)) setPartners(data);
       })
       .catch(() => {});
   }, []);
@@ -85,16 +103,34 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Sponsors bar */}
-        <div className="border-t border-white/5 mt-10 pt-8">
-          <p className="text-white/30 text-[10px] uppercase tracking-widest text-center mb-4 font-medium">Our Sponsors & Partners</p>
-          <div className="flex items-center justify-center gap-8 flex-wrap opacity-40 hover:opacity-60 transition-opacity">
-            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">JOOLA</span>
-            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">SELKIRK</span>
-            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">FRANKLIN</span>
-            <span className="text-white/60 text-sm font-heading font-bold tracking-wider">ENGAGE</span>
+        {/* Sponsors bar — dynamic from CMS */}
+        {partners.length > 0 && (
+          <div className="border-t border-white/5 mt-10 pt-8">
+            <p className="text-white/30 text-[10px] uppercase tracking-widest text-center mb-5 font-medium">Our Sponsors &amp; Partners</p>
+            <div className="flex items-center justify-center gap-8 md:gap-10 flex-wrap">
+              {partners.map(p => {
+                const logoImg = (
+                  <div className="relative h-8 w-24 sm:h-9 sm:w-28 opacity-50 hover:opacity-90 transition-opacity grayscale hover:grayscale-0">
+                    <Image
+                      src={p.logoUrl}
+                      alt={p.name}
+                      fill
+                      className="object-contain brightness-200"
+                      unoptimized
+                    />
+                  </div>
+                );
+                return p.websiteUrl ? (
+                  <a key={p.id} href={p.websiteUrl} target="_blank" rel="noopener noreferrer" title={p.name}>
+                    {logoImg}
+                  </a>
+                ) : (
+                  <div key={p.id} title={p.name}>{logoImg}</div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="border-t border-white/5 mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/30 text-xs">&copy; {new Date().getFullYear()} Dink Authority Magazine. {t('footer.rights')}</p>

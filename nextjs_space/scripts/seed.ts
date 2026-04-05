@@ -675,6 +675,29 @@ async function main() {
   }
   console.log('55 sponsor banners seeded (5 per section incl. homepage, rotative carousel)');
 
+  // --- Footer Partners ---
+  const footerPartners = [
+    { name: 'JOOLA', sortOrder: 0 },
+    { name: 'Selkirk', sortOrder: 1 },
+    { name: 'Franklin', sortOrder: 2 },
+    { name: 'Engage', sortOrder: 3 },
+  ];
+  for (const fp of footerPartners) {
+    const existing = await prisma.footerPartner.findFirst({ where: { name: fp.name } });
+    if (!existing) {
+      await prisma.footerPartner.create({
+        data: {
+          name: fp.name,
+          logoUrl: '',
+          websiteUrl: null,
+          isActive: false,
+          sortOrder: fp.sortOrder,
+        },
+      });
+    }
+  }
+  console.log('Footer partners seeded (inactive until logos are uploaded)');
+
   console.log('Seeding complete!');
 }
 
