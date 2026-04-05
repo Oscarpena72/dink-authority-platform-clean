@@ -45,6 +45,10 @@ export default function AdminUsersClient({ serverRole, serverUserId }: { serverR
   /* Form */
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'editor' as string, isActive: true });
 
+  /* Delete confirmation modal */
+  const [deleteTarget, setDeleteTarget] = useState<UserRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   /* Password reset modal */
   const [resetUserId, setResetUserId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
@@ -108,12 +112,14 @@ export default function AdminUsersClient({ serverRole, serverUserId }: { serverR
     else { const d = await res.json(); setError(d.error || 'Failed'); }
   };
 
-  const deleteUser = async (u: UserRecord) => {
-    if (!confirm(`Delete user "${u.email}"? This cannot be undone.`)) return;
-    setError(''); setSuccess('');
-    const res = await fetch(`/api/users/${u.id}`, { method: 'DELETE' });
+  const confirmDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true); setError(''); setSuccess('');
+    const res = await fetch(`/api/users/${deleteTarget.id}`, { method: 'DELETE' });
     if (res.ok) { setSuccess('User deleted'); fetchUsers(); }
     else { const d = await res.json(); setError(d.error || 'Failed'); }
+    setDeleting(false);
+    setDeleteTarget(null);
   };
 
   const handleResetPassword = async () => {
@@ -261,7 +267,7 @@ export default function AdminUsersClient({ serverRole, serverUserId }: { serverR
                             <button onClick={() => { setResetUserId(u.id); setNewPassword(''); setError(''); }} title="Reset Password" className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-amber-600"><Key size={15} /></button>
                           )}
                           {isSuperAdmin && !isMe && (
-                            <button onClick={() => deleteUser(u)} title="Delete" className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-red-600"><Trash2 size={15} /></button>
+                            <button onClick={() => setDeleteTarget(u)} title="Delete" className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-red-600"><Trash2 size={15} /></button>
                           )}
                         </div>
                       </td>
@@ -305,6 +311,27 @@ export default function AdminUsersClient({ serverRole, serverUserId }: { serverR
               <button onClick={() => { setShowOwnPw(false); setOwnPwForm({ currentPassword: '', newPassword: '' }); }} className="px-4 py-2 text-gray-500 text-sm">Cancel</button>
               <button onClick={handleOwnPw} disabled={ownPwSaving || ownPwForm.newPassword.length < 8 || !ownPwForm.currentPassword} className="flex items-center gap-2 bg-brand-purple text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">
                 <Save size={16} /> {ownPwSaving ? 'Saving...' : 'Change Password'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl">
+            <h3 className="font-semibold text-lg mb-1 text-red-600">Delete User</h3>
+            <p className="text-sm text-gray-600 mb-2">Are you sure you want to delete this user?</p>
+            <div className="bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
+              <p className="font-medium text-gray-800">{deleteTarget.name || '—'}</p>
+              <p className="text-sm text-gray-500">{deleteTarget.email}</p>
+              <p className="text-xs text-red-500 mt-1">⚠️ This action cannot be undone.</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 text-gray-500 text-sm hover:text-gray-700">Cancel</button>
+              <button onClick={confirmDeleteUser} disabled={deleting} className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50">
+                <Trash2 size={16} /> {deleting ? 'Deleting...' : 'Yes, Delete'}
               </button>
             </div>
           </div>
