@@ -18,7 +18,7 @@ export default function NewsletterSignup() {
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), source: 'homepage-newsletter' }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {

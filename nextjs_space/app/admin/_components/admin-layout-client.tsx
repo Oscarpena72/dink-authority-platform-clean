@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard, FileText, Calendar, Image as ImageIcon,
-  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Megaphone, Globe, MonitorPlay, Handshake, Shield, Info
+  Mail, Settings, LogOut, Menu, X, Home, ChevronRight, Trophy, BookOpen, Users, ShoppingBag, Megaphone, Globe, MonitorPlay, Handshake, Shield, Info, MessageSquare, TrendingUp
 } from 'lucide-react';
 import { canAccess, ROLE_LABELS, type Role } from '@/lib/roles';
 
@@ -26,6 +26,8 @@ const NAV_ITEMS = [
   { label: 'Media', href: '/admin/media', icon: ImageIcon },
   { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { label: 'Subscribers', href: '/admin/subscribers', icon: Users },
+  { label: 'Contacts', href: '/admin/contacts', icon: MessageSquare },
+  { label: 'Leads & CRM', href: '/admin/leads', icon: TrendingUp },
   { label: 'Users', href: '/admin/users', icon: Shield },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];

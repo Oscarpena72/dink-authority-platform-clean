@@ -5,10 +5,19 @@ import { Download, Users, Search, RefreshCw } from 'lucide-react';
 interface Subscriber {
   id: string;
   email: string;
+  name: string | null;
   phoneNumber: string | null;
   source: string;
   subscribedAt: string;
 }
+
+const SOURCE_COLORS: Record<string, string> = {
+  'footer': 'bg-green-50 text-green-600',
+  'article': 'bg-purple-50 text-purple-600',
+  'magazine': 'bg-amber-50 text-amber-600',
+  'homepage': 'bg-blue-50 text-blue-600',
+  'popup': 'bg-pink-50 text-pink-600',
+};
 
 export default function AdminSubscribersPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -44,6 +53,7 @@ export default function AdminSubscribersPage() {
   const filtered = search.trim()
     ? subscribers.filter((s) =>
         s.email.toLowerCase().includes(search.toLowerCase()) ||
+        (s.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
         (s.phoneNumber ?? '').includes(search) ||
         s.source.toLowerCase().includes(search.toLowerCase())
       )
@@ -51,7 +61,7 @@ export default function AdminSubscribersPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-brand-purple">Subscribers</h1>
           <p className="text-sm text-gray-500 mt-1">{total} total subscriber{total !== 1 ? 's' : ''}</p>
@@ -69,49 +79,45 @@ export default function AdminSubscribersPage() {
         </div>
       </div>
 
-      {/* Search */}
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Search by email, phone, or source..."
+          placeholder="Search by name, email, phone, or source..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
         />
       </div>
 
-      {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Phone</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Phone</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Source</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="px-4 py-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">Loading...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-12 text-center text-gray-400">
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">
                   <Users size={32} className="mx-auto mb-2 text-gray-300" />
                   {search ? 'No subscribers match your search.' : 'No subscribers yet.'}
                 </td></tr>
               ) : (
                 filtered.map((s) => (
                   <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                    <td className="px-4 py-3 text-gray-700">{s.name ?? '\u2014'}</td>
                     <td className="px-4 py-3 font-medium text-brand-purple">{s.email}</td>
-                    <td className="px-4 py-3 text-gray-600">{s.phoneNumber ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{s.phoneNumber ?? '\u2014'}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
-                        s.source === 'article'
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'bg-green-50 text-green-600'
-                      }`}>
+                      <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${SOURCE_COLORS[s.source] ?? 'bg-gray-50 text-gray-600'}`}>
                         {s.source}
                       </span>
                     </td>

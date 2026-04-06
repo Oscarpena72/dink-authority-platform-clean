@@ -116,13 +116,16 @@ model Event {
 model NewsletterSubscriber {
   id           String   @id @default(cuid())
   email        String   @unique
+  name         String?
   isActive     Boolean  @default(true)
+  source       String   @default("homepage")
   subscribedAt DateTime @default(now())
 }
 
 model Subscriber {
   id           String   @id @default(cuid())
   email        String   @unique
+  name         String?
   phoneNumber  String?
   source       String   @default("footer")
   subscribedAt DateTime @default(now())
@@ -154,8 +157,10 @@ model ContactSubmission {
   id        String   @id @default(cuid())
   name      String
   email     String
+  phone     String?
   subject   String?
   message   String
+  source    String   @default("contact-form")
   status    String   @default("new")
   createdAt DateTime @default(now())
 }
