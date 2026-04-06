@@ -39,6 +39,7 @@ export const NAV_ACCESS: Record<string, Role[]> = {
   '/admin/subscribers': ['super_admin', 'admin'],
   '/admin/contacts': ['super_admin', 'admin'],
   '/admin/leads': ['super_admin', 'admin'],
+  '/admin/consent': ['super_admin', 'admin'],
   '/admin/settings': ['super_admin'],
   '/admin/users': ['super_admin', 'admin'],
 };

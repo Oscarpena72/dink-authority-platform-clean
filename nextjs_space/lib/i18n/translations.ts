@@ -165,6 +165,18 @@ const translations = {
   // Cookie banner
   'cookie.message': { en: 'We use cookies to enhance your experience. By continuing to browse, you agree to our use of cookies.', es: 'Usamos cookies para mejorar tu experiencia. Al continuar navegando, aceptas nuestro uso de cookies.', pt: 'Usamos cookies para melhorar sua experiência. Ao continuar navegando, você concorda com o uso de cookies.' },
   'cookie.accept': { en: 'Accept', es: 'Aceptar', pt: 'Aceitar' },
+  'cookie.title': { en: 'Cookie Preferences', es: 'Preferencias de Cookies', pt: 'Preferências de Cookies' },
+  'cookie.customize': { en: 'Customize', es: 'Personalizar', pt: 'Personalizar' },
+  'cookie.rejectOptional': { en: 'Essential Only', es: 'Solo Esenciales', pt: 'Apenas Essenciais' },
+  'cookie.acceptAll': { en: 'Accept All', es: 'Aceptar Todas', pt: 'Aceitar Todas' },
+  'cookie.essential': { en: 'Essential Cookies', es: 'Cookies Esenciales', pt: 'Cookies Essenciais' },
+  'cookie.essentialDesc': { en: 'Required for basic site functionality. Cannot be disabled.', es: 'Necesarias para el funcionamiento básico del sitio. No se pueden desactivar.', pt: 'Necessários para o funcionamento básico do site. Não podem ser desativados.' },
+  'cookie.alwaysActive': { en: 'Always Active', es: 'Siempre Activas', pt: 'Sempre Ativas' },
+  'cookie.analytics': { en: 'Analytics Cookies', es: 'Cookies de Analítica', pt: 'Cookies de Análise' },
+  'cookie.analyticsDesc': { en: 'Help us understand how visitors interact with our site.', es: 'Nos ayudan a entender cómo los visitantes interactúan con el sitio.', pt: 'Nos ajudam a entender como os visitantes interagem com o site.' },
+  'cookie.marketing': { en: 'Marketing Cookies', es: 'Cookies de Marketing', pt: 'Cookies de Marketing' },
+  'cookie.marketingDesc': { en: 'Used to deliver personalized advertisements.', es: 'Se usan para mostrar anuncios personalizados.', pt: 'Usados para exibir anúncios personalizados.' },
+  'cookie.savePreferences': { en: 'Save Preferences', es: 'Guardar Preferencias', pt: 'Salvar Preferências' },
 
   // Shop
   'nav.tips': { en: 'Tips', es: 'Tips', pt: 'Dicas' },

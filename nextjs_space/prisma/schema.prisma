@@ -416,3 +416,18 @@ model FooterPartner {
   @@index([isActive, sortOrder])
 }
 
+
+model CookieConsent {
+  id             String   @id @default(cuid())
+  sessionId      String   @unique
+  essential      Boolean  @default(true)
+  analytics      Boolean  @default(false)
+  marketing      Boolean  @default(false)
+  ipHash         String?
+  userAgent      String?
+  consentVersion String   @default("1.0")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([createdAt])
+}
