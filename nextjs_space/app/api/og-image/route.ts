@@ -131,17 +131,19 @@ export async function GET(request: NextRequest) {
         const scaledLogo = await sharp(logoBuffer).resize({ width: logoW, withoutEnlargement: true }).png().toBuffer();
         const scaledLogoMeta = await sharp(scaledLogo).metadata();
         const logoH = scaledLogoMeta.height ?? 60;
-        const logoTop = Math.round(OG_HEIGHT / 2 - logoH / 2 - 30);
+        // Centre logo vertically on the right half
+        const logoTop = Math.round(OG_HEIGHT / 2 - logoH / 2);
         layers.push({ input: scaledLogo, left: rightX, top: Math.max(logoTop, 30) });
 
-        // Tagline below logo
-        const tagSvg = Buffer.from(
-          `<svg width="${textAreaW}" height="40">
-            <text x="0" y="28" font-family="Arial, Helvetica, sans-serif" font-size="18"
-                  font-weight="bold" letter-spacing="3" fill="rgba(255,255,255,0.7)">THE VOICE OF PICKLEBALL</text>
+        // Decorative accent line below logo (no text — sharp has no font access)
+        const lineW = Math.min(logoW, 200);
+        const lineSvg = Buffer.from(
+          `<svg width="${lineW}" height="3">
+            <rect x="0" y="0" width="${lineW}" height="3" rx="1.5" fill="rgba(57,255,20,0.5)"/>
           </svg>`
         );
-        layers.push({ input: tagSvg, left: rightX, top: Math.max(logoTop, 30) + logoH + 16 });
+        const lineLeft = rightX + Math.round((logoW - lineW) / 2);
+        layers.push({ input: lineSvg, left: lineLeft, top: Math.max(logoTop, 30) + logoH + 14 });
       }
 
       resizedBuffer = await sharp({
