@@ -329,6 +329,8 @@ model MagazineEdition {
   pdfPageCount Int?
   slug         String?  @unique
   countries    String   @default("[\"central\"]")
+  viewCount    Int      @default(0)
+  lastViewedAt DateTime?
 
   @@index([publishDate])
 }

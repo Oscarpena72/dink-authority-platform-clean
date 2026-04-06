@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, FileText, ExternalLink, Image as ImageIcon, Settings } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, FileText, ExternalLink, Image as ImageIcon, Settings, Eye, TrendingUp, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 interface EditionItem {
@@ -17,6 +17,8 @@ interface EditionItem {
   isCurrent: boolean;
   publishDate: string;
   countries: string;
+  viewCount: number;
+  lastViewedAt: string | null;
 }
 
 interface CountryOption {
@@ -244,6 +246,22 @@ export default function AdminMagazineClient() {
 
   const parseCountries = (c: string): string[] => {
     try { return JSON.parse(c || '[]'); } catch { return []; }
+  };
+
+  const top5 = useMemo(() => {
+    return [...(editions ?? [])]
+      .sort((a, b) => (b?.viewCount ?? 0) - (a?.viewCount ?? 0))
+      .slice(0, 5)
+      .filter(e => (e?.viewCount ?? 0) > 0);
+  }, [editions]);
+
+  const totalViews = useMemo(() => {
+    return (editions ?? []).reduce((sum, e) => sum + (e?.viewCount ?? 0), 0);
+  }, [editions]);
+
+  const formatDate = (d: string | null) => {
+    if (!d) return '—';
+    try { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return '—'; }
   };
 
   if (loading) return <div className="p-8 text-center text-brand-gray-dark">Loading...</div>;
@@ -487,6 +505,61 @@ export default function AdminMagazineClient() {
         </div>
       )}
 
+      {/* View Stats + Top 5 */}
+      {(editions ?? []).length > 0 && (
+        <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Summary Cards */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 size={18} className="text-brand-neon" />
+              <h3 className="font-heading font-bold text-brand-purple text-sm">View Summary</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-2xl font-bold text-brand-purple">{totalViews.toLocaleString()}</p>
+                <p className="text-xs text-brand-gray-dark">Total Views</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-brand-purple">{(editions ?? []).length}</p>
+                <p className="text-xs text-brand-gray-dark">Total Editions</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Top 5 Most Viewed */}
+          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp size={18} className="text-brand-neon" />
+              <h3 className="font-heading font-bold text-brand-purple text-sm">Top 5 Most Viewed Editions</h3>
+            </div>
+            {top5.length === 0 ? (
+              <p className="text-sm text-brand-gray-dark">No views recorded yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {top5.map((ed, idx) => (
+                  <div key={ed?.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                    <span className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${idx === 0 ? 'bg-yellow-100 text-yellow-700' : idx === 1 ? 'bg-gray-100 text-gray-600' : idx === 2 ? 'bg-orange-100 text-orange-600' : 'bg-gray-50 text-gray-500'}`}>
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-brand-purple truncate">{ed?.title ?? ''}</p>
+                      <p className="text-xs text-brand-gray-dark">{ed?.issueNumber ?? ''}</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm font-bold text-brand-purple">
+                      <Eye size={14} className="text-brand-neon" />
+                      {(ed?.viewCount ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-brand-gray-dark hidden sm:block">
+                      {formatDate(ed?.lastViewedAt)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Editions list */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {(editions ?? []).length === 0 ? (
@@ -522,6 +595,16 @@ export default function AdminMagazineClient() {
                   ))}
                 </div>
                 {ed?.description && <p className="text-brand-gray-dark text-sm line-clamp-2 mb-3">{ed.description}</p>}
+                {/* View Stats */}
+                <div className="flex items-center gap-4 mb-3 text-xs text-brand-gray-dark border-t border-gray-100 pt-2">
+                  <span className="flex items-center gap-1">
+                    <Eye size={12} className="text-brand-neon" />
+                    <strong className="text-brand-purple">{(ed?.viewCount ?? 0).toLocaleString()}</strong> views
+                  </span>
+                  {ed?.lastViewedAt && (
+                    <span>Last: {formatDate(ed.lastViewedAt)}</span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => handleEdit(ed)} className="p-1.5 text-brand-purple hover:bg-brand-purple/10 rounded"><Pencil size={14} /></button>
                   <button onClick={() => handleDelete(ed?.id ?? '')} className="p-1.5 text-red-500 hover:bg-red-50 rounded"><Trash2 size={14} /></button>

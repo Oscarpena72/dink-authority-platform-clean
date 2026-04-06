@@ -28,6 +28,13 @@ interface EditionData {
 type ViewMode = 'flipbook' | 'reader';
 
 export default function MagazineViewerClient({ edition }: { edition: EditionData }) {
+  // Track view on mount (fire-and-forget)
+  useEffect(() => {
+    if (edition?.id) {
+      fetch(`/api/magazine/${edition.id}/view`, { method: 'POST' }).catch(() => {});
+    }
+  }, [edition?.id]);
+
   const [viewMode, setViewMode] = useState<ViewMode>('flipbook');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
