@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { csvResponse } from '@/lib/csv-export';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,17 +50,11 @@ export async function GET(req: NextRequest) {
     });
 
     if (format === 'csv') {
-      const header = 'Name,Email,Phone,Source,Date Subscribed';
-      const rows = subscribers.map((s: any) =>
-        `"${s.name ?? ''}","${s.email}","${s.phoneNumber ?? ''}","${s.source}","${new Date(s.subscribedAt).toISOString()}"`
-      );
-      const csv = [header, ...rows].join('\n');
-      return new NextResponse(csv, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="subscribers.csv"',
-        },
-      });
+      const headers = ['Name', 'Email', 'Phone', 'Source', 'Date Subscribed'];
+      const rows = subscribers.map((s: any) => [
+        s.name ?? '', s.email, s.phoneNumber ?? '', s.source, new Date(s.subscribedAt).toISOString(),
+      ]);
+      return csvResponse(headers, rows, 'subscribers');
     }
 
     return NextResponse.json({ subscribers, total: subscribers.length });

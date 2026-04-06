@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import sharp from 'sharp';
+import path from 'path';
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
@@ -79,14 +80,91 @@ export async function GET(request: NextRequest) {
 
     const originalBuffer = Buffer.from(await imgResponse.arrayBuffer());
 
-    // Resize + crop to 1200 × 630 using sharp
-    const resizedBuffer = await sharp(originalBuffer)
-      .resize(OG_WIDTH, OG_HEIGHT, {
-        fit: 'cover',
-        position: focalPointToGravity(focalX, focalY),
+    let resizedBuffer: Buffer;
+
+    if (type === 'magazine') {
+      // Magazine covers are typically portrait — compose on branded background
+      // instead of aggressively cropping to landscape.
+      const coverResized = await sharp(originalBuffer)
+        .resize({
+          height: OG_HEIGHT - 60,   // 570px tall, leave padding
+          withoutEnlargement: true,
+          fit: 'inside',
+        })
+        .toBuffer();
+
+      const coverMeta = await sharp(coverResized).metadata();
+      const coverW = coverMeta.width ?? 380;
+      const coverH = coverMeta.height ?? 570;
+
+      // Load the white logo for branding
+      const logoPath = path.join(process.cwd(), 'public', 'images', 'dink-authority-logo-white.png');
+      let logoBuffer: Buffer | null = null;
+      try {
+        logoBuffer = await sharp(logoPath).resize({ width: 280, withoutEnlargement: true }).png().toBuffer();
+      } catch { /* logo optional */ }
+
+      // Dark branded background
+      const layers: sharp.OverlayOptions[] = [];
+
+      // Position cover on the left side with padding
+      const coverLeft = 60;
+      const coverTop = Math.round((OG_HEIGHT - coverH) / 2);
+      layers.push({ input: coverResized, left: coverLeft, top: coverTop });
+
+      // Add a subtle white border/shadow around the cover
+      const borderSvg = Buffer.from(
+        `<svg width="${coverW + 4}" height="${coverH + 4}">
+          <rect x="0" y="0" width="${coverW + 4}" height="${coverH + 4}" rx="4" ry="4"
+                fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+        </svg>`
+      );
+      layers.push({ input: borderSvg, left: coverLeft - 2, top: coverTop - 2 });
+
+      // Right side: logo + "THE VOICE OF PICKLEBALL" text
+      const rightX = coverLeft + coverW + 60;
+      const textAreaW = OG_WIDTH - rightX - 40;
+
+      if (logoBuffer && textAreaW > 100) {
+        const logoMeta = await sharp(logoBuffer).metadata();
+        const logoW = Math.min(logoMeta.width ?? 280, textAreaW);
+        const scaledLogo = await sharp(logoBuffer).resize({ width: logoW, withoutEnlargement: true }).png().toBuffer();
+        const scaledLogoMeta = await sharp(scaledLogo).metadata();
+        const logoH = scaledLogoMeta.height ?? 60;
+        const logoTop = Math.round(OG_HEIGHT / 2 - logoH / 2 - 30);
+        layers.push({ input: scaledLogo, left: rightX, top: Math.max(logoTop, 30) });
+
+        // Tagline below logo
+        const tagSvg = Buffer.from(
+          `<svg width="${textAreaW}" height="40">
+            <text x="0" y="28" font-family="Arial, Helvetica, sans-serif" font-size="18"
+                  font-weight="bold" letter-spacing="3" fill="rgba(255,255,255,0.7)">THE VOICE OF PICKLEBALL</text>
+          </svg>`
+        );
+        layers.push({ input: tagSvg, left: rightX, top: Math.max(logoTop, 30) + logoH + 16 });
+      }
+
+      resizedBuffer = await sharp({
+        create: {
+          width: OG_WIDTH,
+          height: OG_HEIGHT,
+          channels: 4,
+          background: { r: 9, g: 4, b: 38, alpha: 1 },  // #090426
+        },
       })
-      .jpeg({ quality: 85, progressive: true })
-      .toBuffer();
+        .composite(layers)
+        .jpeg({ quality: 90, progressive: true })
+        .toBuffer();
+    } else {
+      // Articles: standard cover crop with focal point
+      resizedBuffer = await sharp(originalBuffer)
+        .resize(OG_WIDTH, OG_HEIGHT, {
+          fit: 'cover',
+          position: focalPointToGravity(focalX, focalY),
+        })
+        .jpeg({ quality: 85, progressive: true })
+        .toBuffer();
+    }
 
     return new NextResponse(resizedBuffer, {
       status: 200,

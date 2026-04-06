@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { csvResponse } from '@/lib/csv-export';
 
 export async function POST(request: Request) {
   try {
@@ -38,17 +39,11 @@ export async function GET(req: NextRequest) {
     const subscribers = await prisma.newsletterSubscriber.findMany({ orderBy: { subscribedAt: 'desc' } });
 
     if (format === 'csv') {
-      const header = 'Email,Source,Status,Date Subscribed';
-      const rows = (subscribers ?? []).map((s: any) =>
-        `"${s.email}","${s.source ?? 'homepage'}","${s.isActive ? 'Active' : 'Inactive'}","${new Date(s.subscribedAt).toISOString()}"`
-      );
-      const csv = [header, ...rows].join('\n');
-      return new NextResponse(csv, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="newsletter_subscribers.csv"',
-        },
-      });
+      const headers = ['Email', 'Source', 'Status', 'Date Subscribed'];
+      const rows = (subscribers ?? []).map((s: any) => [
+        s.email, s.source ?? 'homepage', s.isActive ? 'Active' : 'Inactive', new Date(s.subscribedAt).toISOString(),
+      ]);
+      return csvResponse(headers, rows, 'newsletter_subscribers');
     }
 
     return NextResponse.json(subscribers ?? []);

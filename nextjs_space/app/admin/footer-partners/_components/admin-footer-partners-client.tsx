@@ -50,7 +50,7 @@ export default function AdminFooterPartnersClient() {
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [branding, setBranding] = useState({ title: 'DINK AUTHORITY', subtitle: 'Magazine', description: '' });
-  const [contact, setContact] = useState({ email: 'info@dinkauthoritymagazine.com', isActive: true });
+  const [contact, setContact] = useState({ email: 'contact@dinkauthoritymagazine.com', isActive: true });
   const [subscribe, setSubscribe] = useState({ title: 'Stay Connected', subtitle: 'Get updates, new editions & event alerts.' });
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const [editingLink, setEditingLink] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function AdminFooterPartnersClient() {
         description: s.footer_brand_description ?? '',
       });
       setContact({
-        email: s.footer_contact_email ?? 'info@dinkauthoritymagazine.com',
+        email: s.footer_contact_email ?? 'contact@dinkauthoritymagazine.com',
         isActive: s.footer_contact_active !== 'false',
       });
       setSubscribe({
@@ -479,7 +479,7 @@ export default function AdminFooterPartnersClient() {
           <div className="space-y-5 max-w-xl">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-              <input type="email" value={contact.email} onChange={e => setContact(prev => ({ ...prev, email: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple" placeholder="info@dinkauthoritymagazine.com" />
+              <input type="email" value={contact.email} onChange={e => setContact(prev => ({ ...prev, email: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple" placeholder="contact@dinkauthoritymagazine.com" />
             </div>
             <div className="flex items-center gap-3">
               <label className="relative inline-flex items-center cursor-pointer">

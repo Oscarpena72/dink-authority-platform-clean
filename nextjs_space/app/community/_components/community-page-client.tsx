@@ -108,8 +108,8 @@ export default function CommunityPageClient() {
       <main>
         {/* Hero */}
         <section className="relative">
-          <div className="relative w-full aspect-[16/10] sm:aspect-[16/8] md:aspect-[16/7] max-h-[65vh] overflow-hidden">
-            <Image src="/images/community-hero.jpg" alt="Dink Authority Community Correspondents" fill className="object-cover" priority sizes="100vw" />
+          <div className="relative w-full h-[50vh] sm:h-[55vh] md:h-[65vh] overflow-hidden">
+            <Image src="/images/community-hero.jpg" alt="Dink Authority Community Correspondents" fill className="object-cover object-center" priority sizes="100vw" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
           </div>
           <div className="absolute bottom-0 left-0 right-0 px-4 py-6 md:py-12">

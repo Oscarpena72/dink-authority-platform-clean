@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { csvResponse } from '@/lib/csv-export';
 
 export async function POST(request: Request) {
   try {
@@ -37,17 +38,13 @@ export async function GET(req: NextRequest) {
     const submissions = await prisma.contactSubmission.findMany({ orderBy: { createdAt: 'desc' } });
 
     if (format === 'csv') {
-      const header = 'Name,Email,Phone,Subject,Message,Source,Status,Date';
-      const rows = (submissions ?? []).map((s: any) =>
-        `"${(s.name ?? '').replace(/"/g, '""')}","${s.email}","${s.phone ?? ''}","${(s.subject ?? '').replace(/"/g, '""')}","${(s.message ?? '').replace(/"/g, '""').replace(/\n/g, ' ')}","${s.source ?? 'contact-form'}","${s.status ?? 'new'}","${new Date(s.createdAt).toISOString()}"`
-      );
-      const csv = [header, ...rows].join('\n');
-      return new NextResponse(csv, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="contacts.csv"',
-        },
-      });
+      const headers = ['Name', 'Email', 'Phone', 'Subject', 'Message', 'Source', 'Status', 'Date'];
+      const rows = (submissions ?? []).map((s: any) => [
+        s.name ?? '', s.email, s.phone ?? '', s.subject ?? '',
+        (s.message ?? '').replace(/[\n\r]+/g, ' '), s.source ?? 'contact-form',
+        s.status ?? 'new', new Date(s.createdAt).toISOString(),
+      ]);
+      return csvResponse(headers, rows, 'contacts');
     }
 
     return NextResponse.json(submissions ?? []);

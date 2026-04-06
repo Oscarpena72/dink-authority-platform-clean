@@ -46,7 +46,7 @@ export default function Footer() {
   const [brandTitle, setBrandTitle] = useState('DINK AUTHORITY');
   const [brandSubtitle, setBrandSubtitle] = useState('Magazine');
   const [brandDescription, setBrandDescription] = useState('');
-  const [contactEmail, setContactEmail] = useState('info@dinkauthoritymagazine.com');
+  const [contactEmail, setContactEmail] = useState('contact@dinkauthoritymagazine.com');
   const [contactActive, setContactActive] = useState(true);
   const [subscribeTitle, setSubscribeTitle] = useState('');
   const [subscribeSubtitle, setSubscribeSubtitle] = useState('');

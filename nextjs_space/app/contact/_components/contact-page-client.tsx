@@ -58,7 +58,7 @@ export default function ContactPageClient() {
                 <Mail size={20} className="text-brand-neon mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-heading font-bold text-brand-purple mb-1">{t('contact.emailLabel')}</h3>
-                  <p className="text-sm text-brand-gray-dark">info@dinkauthoritymagazine.com</p>
+                  <p className="text-sm text-brand-gray-dark">contact@dinkauthoritymagazine.com</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

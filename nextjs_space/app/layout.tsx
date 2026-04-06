@@ -27,12 +27,12 @@ export const metadata: Metadata = {
   keywords: 'pickleball, magazine, news, tournaments, pro players, pickleball places, courts, clubs, pickleball community',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.ico?v=2', sizes: 'any' },
+      { url: '/favicon-32x32.png?v=2', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png?v=2', sizes: '16x16', type: 'image/png' },
     ],
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico?v=2',
+    apple: '/apple-touch-icon.png?v=2',
   },
   manifest: '/manifest.json',
   openGraph: {
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Dink Authority" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
         <Script src="https://apps.abacus.ai/chatllm/appllm-lib.js" strategy="beforeInteractive" />
         <script
           type="application/ld+json"

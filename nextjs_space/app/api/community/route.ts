@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { csvResponse } from '@/lib/csv-export';
 
 export async function POST(request: Request) {
   try {
@@ -92,17 +93,14 @@ export async function GET(request: Request) {
     });
 
     if (format === 'csv') {
-      const header = 'First Name,Last Name,Email,Phone,City,State,Address,Zip Code,Facebook,Instagram,TikTok,Message,Status,Date';
-      const rows = records.map(r => [
+      const headers = ['First Name', 'Last Name', 'Email', 'Phone', 'City', 'State', 'Address', 'Zip Code', 'Facebook', 'Instagram', 'TikTok', 'Message', 'Status', 'Date'];
+      const rows = records.map((r: any) => [
         r.firstName, r.lastName, r.email, r.phone || '', r.city, r.state,
         r.address || '', r.zipCode || '', r.facebookUrl || '', r.instagramUrl || '',
-        r.tiktokUrl || '', (r.message || '').replace(/[\n\r,]/g, ' '), r.status,
+        r.tiktokUrl || '', (r.message || '').replace(/[\n\r]+/g, ' '), r.status,
         new Date(r.createdAt).toISOString(),
-      ].map(v => `"${v}"`).join(','));
-      const csv = [header, ...rows].join('\n');
-      return new Response(csv, {
-        headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename=community-correspondents.csv' },
-      });
+      ]);
+      return csvResponse(headers, rows, 'community_correspondents');
     }
 
     return NextResponse.json(records);

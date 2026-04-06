@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { csvResponse } from '@/lib/csv-export';
 import crypto from 'crypto';
 
 function hashIp(ip: string): string {
@@ -94,17 +95,12 @@ export async function GET(req: NextRequest) {
     ]);
 
     if (format === 'csv') {
-      const header = 'ID,Session ID,Essential,Analytics,Marketing,IP Hash,Version,Date';
-      const rows = recentRecords.map((r: any) =>
-        `"${r.id}","${r.sessionId}",${r.essential},${r.analytics},${r.marketing},"${r.ipHash || ''}","${r.consentVersion}","${r.createdAt.toISOString()}"`
-      );
-      const csv = [header, ...rows].join('\n');
-      return new NextResponse(csv, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="cookie-consent.csv"',
-        },
-      });
+      const csvHeaders = ['ID', 'Session ID', 'Essential', 'Analytics', 'Marketing', 'IP Hash', 'Version', 'Date'];
+      const csvRows = recentRecords.map((r: any) => [
+        r.id, r.sessionId, r.essential, r.analytics, r.marketing,
+        r.ipHash || '', r.consentVersion, r.createdAt.toISOString(),
+      ]);
+      return csvResponse(csvHeaders, csvRows, 'cookie_consent');
     }
 
     return NextResponse.json({

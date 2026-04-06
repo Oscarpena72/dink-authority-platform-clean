@@ -102,7 +102,7 @@ export default function AdminSettingsClient() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-brand-purple mb-1">Contact Email</label>
-              <input value={settings?.contact_email ?? ''} onChange={(e: any) => handleChange('contact_email', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="info@dinkauthoritymagazine.com" />
+              <input value={settings?.contact_email ?? ''} onChange={(e: any) => handleChange('contact_email', e?.target?.value ?? '')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="contact@dinkauthoritymagazine.com" />
             </div>
           </div>
         </div>

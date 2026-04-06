@@ -97,18 +97,21 @@ export default function AdminLeadsClient() {
   }, [subscribers, newsletter, contacts]);
 
   const exportAllCSV = () => {
-    const header = 'Type,Name,Email,Phone,Source,Date';
+    const esc = (v: unknown) => { const s = v == null ? '' : String(v); return `"${s.replace(/"/g, '""')}"`; };
+    const header = ['Type','Name','Email','Phone','Source','Date'].map(esc).join(',');
     const rows = [
-      ...subscribers.map(s => `"Subscriber","${s.name ?? ''}","${s.email}","${s.phoneNumber ?? ''}","${s.source}","${new Date(s.subscribedAt).toISOString()}"`),
-      ...newsletter.map(s => `"Newsletter","","${s.email}","","${s.source ?? 'homepage'}","${new Date(s.subscribedAt).toISOString()}"`),
-      ...contacts.map(c => `"Contact","${c.name}","${c.email}","${c.phone ?? ''}","${c.source ?? 'contact-form'}","${new Date(c.createdAt).toISOString()}"`),
+      ...subscribers.map(s => [esc('Subscriber'),esc(s.name ?? ''),esc(s.email),esc(s.phoneNumber ?? ''),esc(s.source),esc(new Date(s.subscribedAt).toISOString())].join(',')),
+      ...newsletter.map(s => [esc('Newsletter'),esc(''),esc(s.email),esc(''),esc(s.source ?? 'homepage'),esc(new Date(s.subscribedAt).toISOString())].join(',')),
+      ...contacts.map(c => [esc('Contact'),esc(c.name),esc(c.email),esc(c.phone ?? ''),esc(c.source ?? 'contact-form'),esc(new Date(c.createdAt).toISOString())].join(',')),
     ];
-    const csv = [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const BOM = '\uFEFF';
+    const csv = BOM + [header, ...rows].join('\r\n');
+    const date = new Date().toISOString().split('T')[0];
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'all_leads_export.csv';
+    a.download = `all_leads_export_${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
