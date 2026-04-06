@@ -56,10 +56,16 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const dbUser = await prisma.user.findUnique({ where: { email: session.user.email } });
+    // Look up by id first (reliable), fall back to email
+    const userId = (session.user as any).id as string | undefined;
+    const dbUser = userId
+      ? await prisma.user.findUnique({ where: { id: userId } })
+      : session.user.email
+        ? await prisma.user.findUnique({ where: { email: session.user.email } })
+        : null;
     if (!dbUser || !['super_admin', 'admin'].includes(dbUser.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
