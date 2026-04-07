@@ -65,14 +65,14 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     if (isMobile) setViewMode('reader');
   }, [isMobile]);
 
-  // Fetch PDF via proxy and load as ArrayBuffer for reliable cross-device support
+  // Fetch PDF and load as ArrayBuffer for reliable cross-device support
   const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchPdf() {
       try {
-        // First get the PDF info (cloud path)
+        // Get the PDF URL (public URL or signed URL)
         const checkRes = await fetch(`/api/magazine/pdf-url?slug=${encodeURIComponent(edition.slug)}`);
         if (!checkRes.ok) {
           if (edition.externalUrl) {
@@ -86,11 +86,25 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         const data = await checkRes.json();
         if (data.pageCount) setNumPages(data.pageCount);
 
-        // Download PDF via proxy as ArrayBuffer (most reliable across devices)
-        const proxyUrl = `/api/magazine/pdf-proxy?slug=${encodeURIComponent(edition.slug)}`;
-        const pdfResponse = await fetch(proxyUrl);
+        // Download PDF directly from the URL (public S3 URL or signed URL)
+        const pdfUrl = data.url;
+        if (!pdfUrl) {
+          throw new Error('No PDF URL returned');
+        }
+
+        const pdfResponse = await fetch(pdfUrl);
         if (!pdfResponse.ok) {
-          throw new Error(`PDF download failed: ${pdfResponse.status}`);
+          // Fallback: try the proxy endpoint (works when S3 credentials are available)
+          const proxyUrl = `/api/magazine/pdf-proxy?slug=${encodeURIComponent(edition.slug)}`;
+          const proxyResponse = await fetch(proxyUrl);
+          if (!proxyResponse.ok) {
+            throw new Error(`PDF download failed: ${pdfResponse.status}`);
+          }
+          const buffer = await proxyResponse.arrayBuffer();
+          if (cancelled) return;
+          setLoadProgress(100);
+          setPdfData(buffer);
+          return;
         }
 
         // Read with progress tracking
