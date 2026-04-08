@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: { countrySlug: stri
   if (!VALID_SLUGS.includes(params.countrySlug)) return {};
   const country = await prisma.country.findUnique({ where: { slug: params.countrySlug } }).catch(() => null);
   if (!country) return {};
-  const siteUrl = process.env.NEXTAUTH_URL || 'https://dink-authority-magaz-nlc0mg.abacusai.app';
+  const siteUrl = process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com';
   return {
     title: `Magazine | Dink Authority ${country.name}`,
     description: `Browse all magazine editions for Dink Authority ${country.name}.`,

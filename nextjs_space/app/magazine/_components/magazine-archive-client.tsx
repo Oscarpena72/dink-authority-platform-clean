@@ -139,7 +139,7 @@ function EditionCard({ edition, index, siteUrl }: { edition: EditionItem; index:
 export default function MagazineArchiveClient({ editions, banner, hero, countryName, countrySlug }: Props) {
   const { t } = useLanguage();
   const items = editions ?? [];
-  const [siteUrl, setSiteUrl] = useState('https://dink-authority-magaz-nlc0mg.abacusai.app');
+  const [siteUrl, setSiteUrl] = useState('https://www.dinkauthoritymagazine.com');
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSiteUrl(window.location.origin);

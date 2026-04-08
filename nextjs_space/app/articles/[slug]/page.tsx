@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     select: { title: true, excerpt: true, content: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, metaTitle: true, metaDescription: true },
   }).catch(() => null);
 
-  const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
+  const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
   const articleUrl = `${siteUrl}/articles/${params?.slug ?? ''}`;
 
   // Title fallback: metaTitle → title
@@ -177,7 +177,7 @@ export default async function ArticleDetailPage({ params }: { params: { slug: st
   };
   const relSerialized = (relatedArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null }));
 
-  const siteUrl = (process.env.NEXTAUTH_URL ?? 'https://dink-authority-magaz-nlc0mg.abacusai.app').replace(/\/+$/, '');
+  const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
   const articleUrl = `${siteUrl}/articles/${article?.slug ?? ''}`;
 
   const authorName = article?.authorName || 'Dink Authority Editorial Team';

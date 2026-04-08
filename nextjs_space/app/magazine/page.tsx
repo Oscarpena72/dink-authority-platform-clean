@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import MagazineArchiveClient from './_components/magazine-archive-client';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteUrl = process.env.NEXTAUTH_URL || 'https://dink-authority-magaz-nlc0mg.abacusai.app';
+  const siteUrl = process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com';
   return {
     title: 'Magazine Archive | Dink Authority',
     description: 'Browse all editions of Dink Authority Magazine. Read the latest and past issues online.',
