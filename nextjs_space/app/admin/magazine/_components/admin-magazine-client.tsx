@@ -99,30 +99,20 @@ export default function AdminMagazineClient() {
     if (file.type !== 'application/pdf') { alert('Please select a PDF file'); return; }
 
     setUploading(true);
-    setUploadProgress('Getting upload URL...');
+    setUploadProgress('Uploading PDF...');
 
     try {
-      const presignedRes = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: 'application/pdf', isPublic: false }),
-      });
-      const { uploadUrl, cloud_storage_path } = await presignedRes.json();
-
-      setUploadProgress('Uploading PDF...');
-
-      const url = new URL(uploadUrl);
-      const signedHeaders = url.searchParams.get('X-Amz-SignedHeaders') ?? '';
-      const headers: Record<string, string> = { 'Content-Type': 'application/pdf' };
-      if (signedHeaders.includes('content-disposition')) {
-        headers['Content-Disposition'] = 'attachment';
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error ?? `Upload failed: ${res.status}`);
       }
-
-      const uploadRes = await fetch(uploadUrl, { method: 'PUT', headers, body: file });
-      if (!uploadRes.ok) throw new Error('Upload failed');
+      const { url, cloud_storage_path } = await res.json();
 
       setUploadProgress('PDF uploaded successfully!');
-      setForm(p => ({ ...p, pdfCloudPath: cloud_storage_path, pdfUrl: '' }));
+      setForm(p => ({ ...p, pdfCloudPath: cloud_storage_path, pdfUrl: url }));
       setTimeout(() => setUploadProgress(''), 3000);
     } catch (err: any) {
       setUploadProgress('Upload failed: ' + (err?.message ?? 'Unknown error'));
@@ -224,18 +214,12 @@ export default function AdminMagazineClient() {
     if (!file) return;
     setUploadingHeroImage(true);
     try {
-      const presignRes = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: file.type, isPublic: true }),
-      });
-      const { uploadUrl, publicUrl, headers: uploadHeaders } = await presignRes.json();
-      const reqHeaders: Record<string, string> = { 'Content-Type': file.type };
-      if (uploadHeaders) {
-        Object.entries(uploadHeaders).forEach(([k, v]) => { reqHeaders[k] = v as string; });
-      }
-      await fetch(uploadUrl, { method: 'PUT', headers: reqHeaders, body: file });
-      setHeroForm(prev => ({ ...prev, backgroundImage: publicUrl }));
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url } = await res.json();
+      setHeroForm(prev => ({ ...prev, backgroundImage: url }));
     } catch (err) {
       console.error('Hero image upload failed:', err);
       alert('Upload failed. Please try again.');

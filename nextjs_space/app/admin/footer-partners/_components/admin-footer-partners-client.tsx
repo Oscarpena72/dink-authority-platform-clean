@@ -135,16 +135,12 @@ export default function AdminFooterPartnersClient() {
     if (!file) return;
     setUploading(true);
     try {
-      const presignRes = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: file.type, isPublic: true }),
-      });
-      const { uploadUrl, publicUrl, headers: uploadHeaders } = await presignRes.json();
-      const reqHeaders: Record<string, string> = { 'Content-Type': file.type };
-      if (uploadHeaders) Object.entries(uploadHeaders).forEach(([k, v]) => { reqHeaders[k] = v as string; });
-      await fetch(uploadUrl, { method: 'PUT', headers: reqHeaders, body: file });
-      setPartnerForm(prev => ({ ...prev, logoUrl: publicUrl }));
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url } = await res.json();
+      setPartnerForm(prev => ({ ...prev, logoUrl: url }));
     } catch (err) {
       console.error('Upload failed:', err);
       alert('Upload failed.');

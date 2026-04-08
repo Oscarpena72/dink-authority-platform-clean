@@ -19,37 +19,24 @@ export default function AdminMediaClient() {
     if (!file) return;
     setUploading(true);
     try {
-      // Get presigned URL
-      const presignRes = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: file.type, isPublic: true }),
-      });
-      const { uploadUrl, cloud_storage_path } = await presignRes.json();
-
-      // Check signed headers
-      const urlObj = new URL(uploadUrl);
-      const signedHeaders = urlObj.searchParams.get('X-Amz-SignedHeaders') ?? '';
-      const headers: Record<string, string> = { 'Content-Type': file.type };
-      if (signedHeaders.includes('content-disposition')) {
-        headers['Content-Disposition'] = 'attachment';
+      // Upload file directly via server (works on both Vercel Blob and S3)
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}));
+        throw new Error(err?.error ?? `Upload failed: ${uploadRes.status}`);
       }
+      const { url, cloud_storage_path } = await uploadRes.json();
 
-      // Upload to S3
-      await fetch(uploadUrl, { method: 'PUT', headers, body: file });
-
-      // Get public URL and save
-      const region = 'us-east-1';
-      const bucket = cloud_storage_path?.split?.('/')?.[0] ?? '';
-      const fileUrl = uploadUrl.split('?')[0];
-
+      // Save media record
       const mediaRes = await fetch('/api/media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fileName: file.name,
-          cloudStoragePath: cloud_storage_path,
-          url: fileUrl,
+          cloudStoragePath: cloud_storage_path ?? null,
+          url,
           mimeType: file.type,
           size: file.size,
           isPublic: true,
@@ -59,6 +46,7 @@ export default function AdminMediaClient() {
       setMedia((prev: any[]) => [newMedia, ...(prev ?? [])]);
     } catch (err: any) {
       console.error('Upload failed:', err);
+      alert('Upload failed: ' + (err?.message ?? 'Unknown error'));
     } finally {
       setUploading(false);
       if (fileRef?.current) fileRef.current.value = '';
