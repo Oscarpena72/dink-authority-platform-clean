@@ -70,6 +70,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(article);
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to create article' }, { status: 500 });
+    console.error('Article creation error:', error?.message, error?.code, error?.meta);
+    return NextResponse.json({ error: `Failed to create article: ${error?.message ?? 'unknown'}` }, { status: 500 });
   }
 }

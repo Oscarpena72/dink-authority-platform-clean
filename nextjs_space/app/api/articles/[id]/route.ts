@@ -55,8 +55,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       },
     });
     return NextResponse.json(article);
-  } catch {
-    return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Article update error:', error?.message, error?.code, error?.meta);
+    return NextResponse.json({ error: `Failed to update article: ${error?.message ?? 'unknown'}` }, { status: 500 });
   }
 }
 
