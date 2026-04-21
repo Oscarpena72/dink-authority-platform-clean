@@ -13,19 +13,46 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
-const CATEGORIES: { labelKey: TranslationKey; value: string }[] = [
-  { labelKey: 'articles.allCategories', value: '' },
-  { labelKey: 'category.news', value: 'news' },
-  { labelKey: 'category.pro-players', value: 'pro-players' },
-  { labelKey: 'category.enthusiasts', value: 'enthusiasts' },
-  { labelKey: 'category.results', value: 'results' },
-  { labelKey: 'category.events', value: 'events' },
-  { labelKey: 'category.places', value: 'places' },
-  { labelKey: 'category.tips', value: 'tips' },
-  { labelKey: 'category.juniors', value: 'juniors' },
-  { labelKey: 'category.editorial', value: 'editorial' },
-  { labelKey: 'category.magazine', value: 'magazine' },
-];
+/** Category filter configs per section */
+const SECTION_CATEGORY_FILTERS: Record<string, { labelKey: TranslationKey; value: string }[]> = {
+  all: [
+    { labelKey: 'articles.allCategories', value: '' },
+    { labelKey: 'category.news', value: 'news' },
+    { labelKey: 'category.pro-players', value: 'pro-players' },
+    { labelKey: 'category.enthusiasts', value: 'enthusiasts' },
+    { labelKey: 'category.results', value: 'results' },
+    { labelKey: 'category.events', value: 'events' },
+    { labelKey: 'category.places', value: 'places' },
+    { labelKey: 'category.tips', value: 'tips' },
+    { labelKey: 'category.juniors', value: 'juniors' },
+    { labelKey: 'category.editorial', value: 'editorial' },
+    { labelKey: 'category.magazine', value: 'magazine' },
+  ],
+  news: [
+    { labelKey: 'articles.allCategories', value: '' },
+    { labelKey: 'category.news', value: 'news' },
+    { labelKey: 'category.editorial', value: 'editorial' },
+    { labelKey: 'category.events', value: 'events' },
+    { labelKey: 'category.places', value: 'places' },
+  ],
+  players: [
+    { labelKey: 'articles.allCategories', value: '' },
+    { labelKey: 'category.pro-players', value: 'pro-players' },
+    { labelKey: 'category.enthusiasts', value: 'enthusiasts' },
+    { labelKey: 'category.juniors', value: 'juniors' },
+  ],
+  tips: [],
+};
+
+/** Map category to its route prefix for article links */
+function getCategoryPrefix(category: string): string {
+  const map: Record<string, string> = {
+    news: 'news', editorial: 'news', events: 'news', places: 'news',
+    'pro-players': 'players', enthusiasts: 'players', juniors: 'players',
+    tips: 'tips',
+  };
+  return map[category] || 'news';
+}
 
 interface Props {
   articles: any[];
@@ -33,19 +60,26 @@ interface Props {
   totalPages: number;
   query: string;
   category: string;
+  section?: string; // 'news' | 'players' | 'tips' | undefined (for legacy /articles)
 }
 
-export default function ArticlesPageClient({ articles, currentPage, totalPages, query, category }: Props) {
+export default function ArticlesPageClient({ articles, currentPage, totalPages, query, category, section }: Props) {
   const router = useRouter();
   const { t } = useLanguage();
   const translated = useTranslatedArticles(articles ?? []);
   const items = translated ?? [];
 
+  const basePath = section ? `/${section}` : '/articles';
+  const filters = SECTION_CATEGORY_FILTERS[section ?? 'all'] ?? SECTION_CATEGORY_FILTERS.all;
+
   const buildUrl = (params: Record<string, string>) => {
     const p = new URLSearchParams();
     Object.entries(params ?? {}).forEach(([k, v]: any) => { if (v) p.set(k, v); });
-    return `/articles?${p.toString()}`;
+    const qs = p.toString();
+    return qs ? `${basePath}?${qs}` : basePath;
   };
+
+  const sectionTitle = section === 'players' ? 'Players' : section === 'tips' ? 'Tips' : section === 'news' ? t('articles.heading') : t('articles.heading');
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -55,7 +89,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
         <div className="bg-brand-purple py-10">
           <div className="max-w-[1200px] mx-auto px-4">
             <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-2">
-              {category === 'places' ? 'Pickleball Places' : t('articles.heading')}
+              {category === 'places' ? 'Pickleball Places' : sectionTitle}
             </h1>
             <p className="text-white/60">
               {category === 'places'
@@ -65,29 +99,30 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
           </div>
         </div>
 
-        {/* Sponsor Banner Carousel */}
-        <SponsorBannerCarousel className="py-6" section={category || 'news'} />
+        <SponsorBannerCarousel className="py-6" section={section || category || 'news'} />
 
         <div className="max-w-[1200px] mx-auto px-4 py-8">
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter size={16} className="text-brand-gray-dark" />
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.value ?? 'all'}
-                  onClick={() => router.push(buildUrl({ category: c.value ?? '', q: query }))}
-                  className={`px-3 py-1.5 text-sm rounded-full font-semibold transition-all ${
-                    (category ?? '') === (c.value ?? '')
-                      ? 'bg-brand-neon text-brand-purple-dark'
-                      : 'bg-brand-gray text-brand-purple hover:bg-brand-neon/10'
-                  }`}
-                >
-                  {t(c.labelKey)}
-                </button>
-              ))}
+          {filters.length > 0 && (
+            <div className="flex flex-col md:flex-row gap-4 mb-8">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Filter size={16} className="text-brand-gray-dark" />
+                {filters.map((c) => (
+                  <button
+                    key={c.value ?? 'all'}
+                    onClick={() => router.push(buildUrl({ category: c.value ?? '', q: query }))}
+                    className={`px-3 py-1.5 text-sm rounded-full font-semibold transition-all ${
+                      (category ?? '') === (c.value ?? '')
+                        ? 'bg-brand-neon text-brand-purple-dark'
+                        : 'bg-brand-gray text-brand-purple hover:bg-brand-neon/10'
+                    }`}
+                  >
+                    {t(c.labelKey)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {items.length === 0 ? (
             <div className="text-center py-20">
@@ -98,6 +133,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {items.map((article: any, i: number) => {
                 const catKey = `category.${article?.category ?? 'news'}` as TranslationKey;
+                const prefix = getCategoryPrefix(article?.category ?? 'news');
                 return (
                   <motion.div
                     key={article?.id ?? i}
@@ -105,7 +141,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <Link href={`/articles/${article?.slug ?? ''}`} className="group block">
+                    <Link href={`/${prefix}/${article?.slug ?? ''}`} className="group block">
                       <div className="bg-brand-gray rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all">
                         <div className="relative aspect-[4/3] bg-brand-gray">
                           {article?.imageUrl && (

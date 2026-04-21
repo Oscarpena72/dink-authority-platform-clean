@@ -12,6 +12,7 @@ import UniversalVideoModule from '@/components/universal-video-module';
 import SubscribeForm from '@/app/_components/subscribe-form';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { formatEditorialContent } from '@/lib/format-editorial-content';
+import { getArticlePath } from '@/lib/article-routes';
 
 /* ── Share Buttons ── */
 function ShareButtons({ title, compact = false, articleUrl = '' }: { title: string; compact?: boolean; articleUrl?: string }) {
@@ -580,7 +581,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
               <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
                 {(relatedArticles ?? []).map((a: any, i: number) => (
                   <motion.div key={a?.id ?? i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
-                    <Link href={`/articles/${a?.slug ?? ''}`} className="group block">
+                    <Link href={getArticlePath(a?.slug ?? '', a?.category ?? 'news')} className="group block">
                       <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                         <div className="relative aspect-[4/3] bg-brand-gray">
                           {a?.imageUrl && (

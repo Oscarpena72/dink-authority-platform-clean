@@ -9,8 +9,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/articles', '/articles/', '/magazine', '/magazine/', '/about', '/contact'],
-        disallow: ['/admin', '/admin/', '/api', '/api/', '/login'],
+        allow: ['/', '/news', '/news/', '/players', '/players/', '/tips', '/tips/', '/magazine', '/magazine/', '/about', '/contact'],
+        disallow: ['/admin', '/admin/', '/api', '/api/', '/login', '/articles', '/articles/'],
       },
     ],
     sitemap: [`${siteUrl}/sitemap.xml`, `${siteUrl}/news-sitemap.xml`],

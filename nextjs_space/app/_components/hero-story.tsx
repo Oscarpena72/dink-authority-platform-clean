@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Zap } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
+import { getArticlePath } from '@/lib/article-routes';
 
 interface HeroStoryProps {
   article: {
@@ -40,7 +41,7 @@ export default function HeroStory({ article }: HeroStoryProps) {
           transition={{ duration: 0.8 }}
           className="relative group"
         >
-          <Link href={`/articles/${article?.slug ?? ''}`}>
+          <Link href={getArticlePath(article?.slug ?? '', article?.category ?? 'news')}>
             {/* Taller aspect on mobile (4:5) to accommodate longer translated titles in ES/PT; 16:9 on md+ */}
             <div className="relative aspect-[4/5] sm:aspect-[4/3] md:aspect-[16/9] bg-brand-purple-light">
               {article?.imageUrl && (

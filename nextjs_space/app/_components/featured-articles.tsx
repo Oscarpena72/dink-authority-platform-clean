@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Star } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
+import { getArticlePath } from '@/lib/article-routes';
 
 interface ArticleItem {
   id: string;
@@ -46,7 +47,7 @@ export default function FeaturedArticles({ articles }: { articles: ArticleItem[]
               viewport={{ once: true }}
               transition={{ delay: i * 0.12 }}
             >
-              <Link href={`/articles/${article?.slug ?? ''}`} className="group block h-full sport-card">
+              <Link href={getArticlePath(article?.slug ?? '', article?.category ?? 'news')} className="group block h-full sport-card">
                 <div className="bg-brand-gray rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 h-full flex flex-col">
                   <div className="relative aspect-[4/3] bg-brand-gray">
                     {article?.imageUrl && (

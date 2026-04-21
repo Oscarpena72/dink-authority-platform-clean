@@ -36,7 +36,8 @@ async function resolveContentPaths(paths: string[]): Promise<any[]> {
       // All content types now resolve from the unified Article table
       if (type === 'articles' || type === 'tips' || type === 'juniors') {
         const a = await prisma.article.findFirst({ where: { slug, status: 'published' }, select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, excerpt: true, publishedAt: true, authorName: true } });
-        if (a) results.push({ ...a, type: 'article', path: `/articles/${a.slug}`, publishedAt: a.publishedAt?.toISOString() ?? null });
+        const catPrefix: Record<string, string> = { news: 'news', editorial: 'news', events: 'news', places: 'news', 'pro-players': 'players', enthusiasts: 'players', juniors: 'players', tips: 'tips' };
+        if (a) results.push({ ...a, type: 'article', path: `/${catPrefix[a.category] || 'news'}/${a.slug}`, publishedAt: a.publishedAt?.toISOString() ?? null });
       }
     } catch { /* skip broken refs */ }
   }

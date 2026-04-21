@@ -10,6 +10,7 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
 import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
+import { getArticlePath } from '@/lib/article-routes';
 
 export default function JuniorsPageClient({ juniors, bannerData }: { juniors: any[]; bannerData?: any }) {
   const { t } = useLanguage();
@@ -50,7 +51,7 @@ export default function JuniorsPageClient({ juniors, bannerData }: { juniors: an
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group"
               >
-                <Link href={`/articles/${junior?.slug ?? ''}`} className="block">
+                <Link href={getArticlePath(junior?.slug ?? '', junior?.category ?? 'juniors')} className="block">
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-4">
                     {junior?.imageUrl && (
                       <Image

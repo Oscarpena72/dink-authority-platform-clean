@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { prisma } from '@/lib/db';
 import { headers } from 'next/headers';
+import { getArticlePath } from '@/lib/article-routes';
 
 export async function GET() {
   const headersList = headers();
@@ -20,6 +21,7 @@ export async function GET() {
       select: {
         slug: true,
         title: true,
+        category: true,
         publishedAt: true,
       },
       orderBy: { publishedAt: 'desc' },
@@ -31,7 +33,7 @@ export async function GET() {
   const entries = (articles ?? []).map((a: any) => {
     const pubDate = a?.publishedAt ? new Date(a.publishedAt).toISOString() : new Date().toISOString();
     return `  <url>
-    <loc>${siteUrl}/articles/${a?.slug ?? ''}</loc>
+    <loc>${siteUrl}${getArticlePath(a?.slug ?? '', a?.category ?? 'news')}</loc>
     <news:news>
       <news:publication>
         <news:name>Dink Authority Magazine</news:name>

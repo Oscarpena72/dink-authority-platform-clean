@@ -10,13 +10,13 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 import TikTokIcon from '@/components/icons/tiktok-icon';
 
 const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
-  { labelKey: 'nav.news', href: '/articles?category=news' },
-  { labelKey: 'nav.proPlayers', href: '/articles?category=pro-players' },
-  { labelKey: 'nav.juniors', href: '/juniors' },
+  { labelKey: 'nav.news', href: '/news' },
+  { labelKey: 'nav.proPlayers', href: '/players?category=pro-players' },
+  { labelKey: 'nav.juniors', href: '/players?category=juniors' },
   { labelKey: 'nav.tips', href: '/tips' },
-  { labelKey: 'nav.enthusiasts', href: '/articles?category=enthusiasts' },
-  { labelKey: 'nav.results', href: '/articles?category=results' },
-  { labelKey: 'nav.events', href: '/articles?category=events' },
+  { labelKey: 'nav.enthusiasts', href: '/players?category=enthusiasts' },
+  { labelKey: 'nav.results', href: '/news?category=results' },
+  { labelKey: 'nav.events', href: '/news?category=events' },
   { labelKey: 'nav.places', href: '/places' },
   { labelKey: 'nav.magazine', href: '/magazine' },
   { labelKey: 'nav.shop', href: '/shop' },
@@ -109,7 +109,7 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery?.trim()) {
-      router.push(`/articles?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/news?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
       setSearchQuery('');
     }

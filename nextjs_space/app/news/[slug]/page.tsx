@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return buildArticleMetadata(article, articleUrl, siteUrl, params?.slug ?? '') as any;
 }
 
-export default async function TipsArticlePage({ params }: { params: { slug: string } }) {
-  const data = await getArticlePageData(params?.slug ?? '', SECTION_CATEGORIES.tips);
+export default async function NewsArticlePage({ params }: { params: { slug: string } }) {
+  const data = await getArticlePageData(params?.slug ?? '', SECTION_CATEGORIES.news);
   if (!data) return notFound();
   const { serialized, relSerialized, sidebarData, bannerData, articleUrl, siteUrl } = data;
   const { jsonLdArticle, jsonLdBreadcrumb } = buildArticleJsonLd(data.article, articleUrl, siteUrl);

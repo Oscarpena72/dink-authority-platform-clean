@@ -10,6 +10,7 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
 import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
+import { getArticlePath } from '@/lib/article-routes';
 
 export default function TipsPageClient({ tips, bannerData }: { tips: any[]; bannerData?: any }) {
   const { t } = useLanguage();
@@ -52,7 +53,7 @@ export default function TipsPageClient({ tips, bannerData }: { tips: any[]; bann
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group"
               >
-                <Link href={`/articles/${tip?.slug ?? ''}`} className="block">
+                <Link href={getArticlePath(tip?.slug ?? '', tip?.category ?? 'tips')} className="block">
                   <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 mb-4">
                     {tip?.imageUrl && (
                       <Image

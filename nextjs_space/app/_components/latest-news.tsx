@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
+import { getArticlePath } from '@/lib/article-routes';
 import CommunityCta from './community-cta';
 
 interface ArticleItem {
@@ -37,7 +38,7 @@ export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
               <p className="text-brand-gray-dark text-sm mt-0.5">{t('latestNews.subtitle')}</p>
             </div>
           </div>
-          <Link href="/articles" className="flex items-center gap-1.5 text-sm font-bold text-brand-purple hover:text-brand-purple-light transition-colors uppercase tracking-wider">
+          <Link href="/news" className="flex items-center gap-1.5 text-sm font-bold text-brand-purple hover:text-brand-purple-light transition-colors uppercase tracking-wider">
             {t('latestNews.viewAll')} <ChevronRight size={16} className="text-brand-neon" />
           </Link>
         </div>
@@ -50,7 +51,7 @@ export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
               >
-                <Link href={`/articles/${article?.slug ?? ''}`} className="group block sport-card">
+                <Link href={getArticlePath(article?.slug ?? '', article?.category ?? 'news')} className="group block sport-card">
                   <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 transition-all duration-300">
                     <div className="relative aspect-[4/3] bg-brand-gray">
                       {article?.imageUrl && (
