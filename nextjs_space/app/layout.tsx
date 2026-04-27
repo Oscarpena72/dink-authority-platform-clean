@@ -6,6 +6,7 @@ import { Providers } from './providers';
 import Script from 'next/script';
 import PWARegister from './_components/pwa-register';
 import PWAInstallPrompt from './_components/pwa-install-prompt';
+import GoogleAnalytics from '@/components/google-analytics';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-body bg-white text-brand-purple antialiased selection:bg-brand-neon/20 selection:text-brand-purple">
         <Providers>{children}</Providers>
+        <GoogleAnalytics />
         <PWARegister />
         <PWAInstallPrompt />
       </body>
