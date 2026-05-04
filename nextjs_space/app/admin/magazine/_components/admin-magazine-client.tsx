@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, FileText, ExternalLink, Image as ImageIcon, Settings, Eye, TrendingUp, BarChart3 } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
 import Link from 'next/link';
 
 interface EditionItem {
@@ -102,20 +103,33 @@ export default function AdminMagazineClient() {
     setUploadProgress('Uploading PDF...');
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error ?? `Upload failed: ${res.status}`);
-      }
-      const { url, cloud_storage_path } = await res.json();
+      // Use Vercel Blob client upload (no 4.5MB server limit)
+      const blob = await upload(`uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload/blob-token',
+      });
 
       setUploadProgress('PDF uploaded successfully!');
-      setForm(p => ({ ...p, pdfCloudPath: cloud_storage_path, pdfUrl: url }));
+      setForm(p => ({ ...p, pdfCloudPath: blob.pathname, pdfUrl: blob.url }));
       setTimeout(() => setUploadProgress(''), 3000);
     } catch (err: any) {
-      setUploadProgress('Upload failed: ' + (err?.message ?? 'Unknown error'));
+      console.error('PDF upload error:', err);
+      // Fallback to direct upload for non-Vercel environments
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error ?? `Upload failed: ${res.status}`);
+        }
+        const { url, cloud_storage_path } = await res.json();
+        setUploadProgress('PDF uploaded successfully!');
+        setForm(p => ({ ...p, pdfCloudPath: cloud_storage_path, pdfUrl: url }));
+        setTimeout(() => setUploadProgress(''), 3000);
+      } catch (fallbackErr: any) {
+        setUploadProgress('Upload failed: ' + (fallbackErr?.message ?? 'Unknown error'));
+      }
     } finally {
       setUploading(false);
     }
@@ -214,15 +228,24 @@ export default function AdminMagazineClient() {
     if (!file) return;
     setUploadingHeroImage(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
-      if (!res.ok) throw new Error('Upload failed');
-      const { url } = await res.json();
-      setHeroForm(prev => ({ ...prev, backgroundImage: url }));
-    } catch (err) {
-      console.error('Hero image upload failed:', err);
-      alert('Upload failed. Please try again.');
+      const blob = await upload(`uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload/blob-token',
+      });
+      setHeroForm(prev => ({ ...prev, backgroundImage: blob.url }));
+    } catch {
+      // Fallback to direct upload
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Upload failed');
+        const { url } = await res.json();
+        setHeroForm(prev => ({ ...prev, backgroundImage: url }));
+      } catch (err) {
+        console.error('Hero image upload failed:', err);
+        alert('Upload failed. Please try again.');
+      }
     }
     setUploadingHeroImage(false);
     if (heroImageInputRef.current) heroImageInputRef.current.value = '';
