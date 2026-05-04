@@ -16,6 +16,7 @@ import StickyBanner from './sticky-banner';
 
 interface HomeData {
   heroArticle: any;
+  heroConfig: Record<string, string>;
   latestArticles: any[];
   featuredArticles: any[];
   events: any[];
@@ -25,7 +26,7 @@ interface HomeData {
 }
 
 export default function HomePageClient({ data }: { data: HomeData }) {
-  const { heroArticle, latestArticles, featuredArticles, events, results, editions, settings } = data ?? {} as HomeData;
+  const { heroArticle, heroConfig, latestArticles, featuredArticles, events, results, editions, settings } = data ?? {} as HomeData;
 
   // Extract sticky banner configuration from site settings
   const bannerData = useMemo(() => {
@@ -51,7 +52,7 @@ export default function HomePageClient({ data }: { data: HomeData }) {
         <SponsorBannerCarousel section="homepage" variant="homepage" className="bg-white" />
 
         {/* 2. LEVEL 1: Hero Story - dominant visual */}
-        <HeroStory article={heroArticle} />
+        <HeroStory article={heroArticle} heroConfig={heroConfig} />
 
         {/* 3. LEVEL 3: Quick Headlines / Latest News */}
         <LatestNews articles={latestArticles ?? []} />

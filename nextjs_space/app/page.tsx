@@ -69,8 +69,16 @@ export default async function HomePage() {
     }
   } catch { /* empty */ }
 
+  // Build hero config from settings
+  const heroConfig: Record<string, string> = {};
+  const heroKeys = ['hero_mode', 'hero_image_url', 'hero_label', 'hero_title', 'hero_subtitle', 'hero_button_text', 'hero_button_url', 'hero_button2_text', 'hero_button2_url', 'hero_link_type', 'hero_article_id', 'hero_section_path', 'hero_magazine_id', 'hero_custom_url', 'hero_focal_x', 'hero_focal_y'];
+  for (const k of heroKeys) {
+    if (settings[k]) heroConfig[k] = settings[k];
+  }
+
   const serialized = {
     heroArticle: heroArticle ? { ...heroArticle, publishedAt: heroArticle?.publishedAt?.toISOString?.() ?? null } : null,
+    heroConfig,
     latestArticles: (latestArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null })),
     featuredArticles: (featuredArticles ?? []).map((a: any) => ({ ...(a ?? {}), publishedAt: a?.publishedAt?.toISOString?.() ?? null })),
     events: (events ?? []).map((e: any) => ({ ...(e ?? {}), startDate: e?.startDate?.toISOString?.() ?? null, endDate: e?.endDate?.toISOString?.() ?? null })),
