@@ -15,14 +15,21 @@ interface EditionItem {
   pdfCloudPath: string | null;
   externalUrl: string | null;
   isCurrent: boolean;
+  currentFor?: string;
   publishDate: string;
 }
 
-export default function MagazineSection({ editions }: { editions: EditionItem[] }) {
+export default function MagazineSection({ editions, region = 'central' }: { editions: EditionItem[]; region?: string }) {
   const items = editions ?? [];
   if (items.length === 0) return null;
 
-  const currentEdition = items.find((e: EditionItem) => e?.isCurrent) ?? items[0];
+  // Find current edition for this region using currentFor field, fallback to isCurrent, then latest
+  const currentEdition = items.find((e: EditionItem) => {
+    try {
+      const regions: string[] = JSON.parse(e?.currentFor || '[]');
+      return regions.includes(region);
+    } catch { return false; }
+  }) ?? items.find((e: EditionItem) => e?.isCurrent) ?? items[0];
   const pastEditions = items.filter((e: EditionItem) => e?.id !== currentEdition?.id).slice(0, 3);
 
   return (

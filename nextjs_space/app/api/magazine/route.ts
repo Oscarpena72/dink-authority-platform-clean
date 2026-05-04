@@ -43,9 +43,23 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    // If marking as current, unmark all others
-    if (body?.isCurrent) {
-      await prisma.magazineEdition.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } });
+    // Parse currentFor regions array
+    const currentForRegions: string[] = Array.isArray(body?.currentFor) ? body.currentFor : [];
+
+    // For each region in currentFor, remove it from all other editions' currentFor
+    if (currentForRegions.length > 0) {
+      const allEditions = await prisma.magazineEdition.findMany({ select: { id: true, currentFor: true } });
+      for (const ed of allEditions) {
+        let edRegions: string[] = [];
+        try { edRegions = JSON.parse(ed.currentFor || '[]'); } catch { edRegions = []; }
+        const filtered = edRegions.filter((r: string) => !currentForRegions.includes(r));
+        if (filtered.length !== edRegions.length) {
+          await prisma.magazineEdition.update({
+            where: { id: ed.id },
+            data: { currentFor: JSON.stringify(filtered), isCurrent: filtered.length > 0 },
+          });
+        }
+      }
     }
 
     // Generate slug from title
@@ -62,9 +76,10 @@ export async function POST(req: Request) {
         pdfCloudPath: body?.pdfCloudPath ?? null,
         pdfPageCount: body?.pdfPageCount ? parseInt(body.pdfPageCount) : null,
         externalUrl: body?.externalUrl ?? null,
-        isCurrent: body?.isCurrent ?? false,
+        isCurrent: currentForRegions.length > 0,
         publishDate: new Date(body?.publishDate ?? new Date()),
         countries: body?.countries ? JSON.stringify(body.countries) : '["central"]',
+        currentFor: JSON.stringify(currentForRegions),
       },
     });
     return NextResponse.json(edition);

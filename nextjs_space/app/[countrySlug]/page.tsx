@@ -95,7 +95,38 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
     });
   } catch { /* empty */ }
 
+  // Fetch current magazine edition for this country from MagazineEdition table
+  let currentEdition: any = null;
+  try {
+    const allEditions = await prisma.magazineEdition.findMany({
+      orderBy: { publishDate: 'desc' },
+      select: { id: true, title: true, slug: true, coverUrl: true, pdfUrl: true, pdfCloudPath: true, externalUrl: true, currentFor: true, publishDate: true },
+    });
+    // Find edition where currentFor includes this country slug
+    currentEdition = allEditions.find((ed: any) => {
+      try { return JSON.parse(ed.currentFor || '[]').includes(params.countrySlug); } catch { return false; }
+    });
+    // Fallback: find any edition whose countries includes this slug
+    if (!currentEdition) {
+      const countryEditions = await prisma.magazineEdition.findMany({
+        orderBy: { publishDate: 'desc' },
+        take: 1,
+      });
+      currentEdition = countryEditions.find((ed: any) => {
+        try { return JSON.parse(ed.countries || '[]').includes(params.countrySlug); } catch { return false; }
+      }) ?? null;
+    }
+  } catch { /* empty */ }
+
   const socialMedia = (() => { try { return JSON.parse(country.socialMedia ?? '{}'); } catch { return {}; } })();
+
+  // Build magazine info: prefer MagazineEdition data, fallback to Country model fields
+  const magazineCover = currentEdition?.coverUrl || country.magazineCover;
+  const magazineTitle = currentEdition?.title || country.magazineTitle;
+  const magazineLink = currentEdition?.slug && currentEdition?.pdfCloudPath
+    ? `/magazine/${currentEdition.slug}`
+    : currentEdition?.externalUrl || country.magazineLink;
+  const magazinePdfUrl = currentEdition?.pdfUrl || country.magazinePdfUrl;
 
   return (
     <CountryPageClient
@@ -103,10 +134,10 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
         name: country.name,
         slug: country.slug,
         flagEmoji: country.flagEmoji,
-        magazineCover: country.magazineCover,
-        magazineTitle: country.magazineTitle,
-        magazineLink: country.magazineLink,
-        magazinePdfUrl: country.magazinePdfUrl,
+        magazineCover,
+        magazineTitle,
+        magazineLink,
+        magazinePdfUrl,
         bannerTopImage: country.bannerTopImage,
         bannerTopLink: country.bannerTopLink,
         bannerMidImage: country.bannerMidImage,

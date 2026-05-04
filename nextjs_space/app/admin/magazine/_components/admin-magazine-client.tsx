@@ -18,6 +18,7 @@ interface EditionItem {
   isCurrent: boolean;
   publishDate: string;
   countries: string;
+  currentFor: string;
   viewCount: number;
   lastViewedAt: string | null;
 }
@@ -32,7 +33,7 @@ const BUILT_IN_COUNTRIES: CountryOption[] = [
 ];
 
 const EMPTY_FORM = {
-  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', pdfUrl: '', pdfCloudPath: '', pdfPageCount: '', isCurrent: false, publishDate: '', countries: ['central'] as string[],
+  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', pdfUrl: '', pdfCloudPath: '', pdfPageCount: '', currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
 };
 
 export default function AdminMagazineClient() {
@@ -142,6 +143,13 @@ export default function AdminMagazineClient() {
     });
   };
 
+  const toggleCurrentFor = (key: string) => {
+    setForm(p => {
+      const current = p.currentFor ?? [];
+      return { ...p, currentFor: current.includes(key) ? current.filter(c => c !== key) : [...current, key] };
+    });
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -162,6 +170,8 @@ export default function AdminMagazineClient() {
   const handleEdit = (ed: EditionItem) => {
     let parsedCountries: string[] = ['central'];
     try { parsedCountries = JSON.parse(ed?.countries || '["central"]'); } catch {}
+    let parsedCurrentFor: string[] = [];
+    try { parsedCurrentFor = JSON.parse(ed?.currentFor || '[]'); } catch {}
     setForm({
       title: ed?.title ?? '',
       issueNumber: ed?.issueNumber ?? '',
@@ -171,7 +181,7 @@ export default function AdminMagazineClient() {
       pdfUrl: ed?.pdfUrl ?? '',
       pdfCloudPath: ed?.pdfCloudPath ?? '',
       pdfPageCount: ed?.pdfPageCount ? String(ed.pdfPageCount) : '',
-      isCurrent: ed?.isCurrent ?? false,
+      currentFor: parsedCurrentFor,
       publishDate: ed?.publishDate ? new Date(ed.publishDate).toISOString().split('T')[0] : '',
       countries: parsedCountries,
     });
@@ -451,10 +461,6 @@ export default function AdminMagazineClient() {
             <input placeholder="External URL (optional heyzine/issuu link)" value={form.externalUrl} onChange={e => setForm(p => ({ ...p, externalUrl: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input type="date" value={form.publishDate} onChange={e => setForm(p => ({ ...p, publishDate: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input placeholder="Page Count (optional)" type="number" value={form.pdfPageCount} onChange={e => setForm(p => ({ ...p, pdfPageCount: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
-            <label className="flex items-center gap-2 px-3 py-2">
-              <input type="checkbox" checked={form.isCurrent} onChange={e => setForm(p => ({ ...p, isCurrent: e?.target?.checked ?? false }))} className="w-4 h-4 rounded border-gray-300 text-brand-purple focus:ring-brand-purple" />
-              <span className="text-sm font-medium">Mark as Current Issue</span>
-            </label>
           </div>
 
           {/* Country visibility checkboxes */}
@@ -468,6 +474,25 @@ export default function AdminMagazineClient() {
                     checked={(form.countries ?? []).includes(opt.key)}
                     onChange={() => toggleCountry(opt.key)}
                     className="w-4 h-4 rounded border-gray-300 text-brand-neon focus:ring-brand-neon"
+                  />
+                  <span className="text-sm font-medium text-brand-purple">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Current Issue Per Region checkboxes */}
+          <div className="mt-4 p-4 border-2 border-brand-neon/40 rounded-lg bg-brand-neon/5">
+            <span className="font-semibold text-sm text-brand-purple block mb-1">⭐ Current Issue For:</span>
+            <p className="text-xs text-brand-gray-dark mb-3">Select which regions show this as their &quot;current issue&quot;. Each region can have only one current issue at a time.</p>
+            <div className="flex flex-wrap gap-4">
+              {countryOptions.map(opt => (
+                <label key={opt.key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(form.currentFor ?? []).includes(opt.key)}
+                    onChange={() => toggleCurrentFor(opt.key)}
+                    className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
                   />
                   <span className="text-sm font-medium text-brand-purple">{opt.label}</span>
                 </label>
@@ -574,6 +599,7 @@ export default function AdminMagazineClient() {
         ) : (
           (editions ?? []).map((ed: EditionItem) => {
             const edCountries = parseCountries(ed?.countries);
+            const edCurrentFor = parseCountries(ed?.currentFor);
             return (
               <div key={ed?.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
@@ -581,8 +607,14 @@ export default function AdminMagazineClient() {
                     {ed?.issueNumber && <span className="text-brand-purple text-xs font-bold uppercase tracking-wider">{ed.issueNumber}</span>}
                     <h3 className="font-heading font-bold text-brand-purple">{ed?.title ?? ''}</h3>
                   </div>
-                  {ed?.isCurrent && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 bg-brand-accent/10 text-brand-accent text-[10px] font-bold rounded uppercase"><Star size={10} /> Current</span>
+                  {edCurrentFor.length > 0 && (
+                    <div className="flex flex-wrap gap-1 justify-end">
+                      {edCurrentFor.map(r => (
+                        <span key={r} className="flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-700 border border-yellow-200 text-[10px] font-bold rounded uppercase">
+                          <Star size={10} /> {r === 'central' ? 'Central' : r}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <p className="text-brand-gray-dark text-xs mb-2">

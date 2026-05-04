@@ -19,9 +19,28 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
+    const editionId = params?.id ?? '';
 
-    if (body?.isCurrent) {
-      await prisma.magazineEdition.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } });
+    // Parse currentFor regions array
+    const currentForRegions: string[] = Array.isArray(body?.currentFor) ? body.currentFor : [];
+
+    // For each region in currentFor, remove it from all OTHER editions' currentFor
+    if (currentForRegions.length > 0) {
+      const allEditions = await prisma.magazineEdition.findMany({
+        where: { id: { not: editionId } },
+        select: { id: true, currentFor: true },
+      });
+      for (const ed of allEditions) {
+        let edRegions: string[] = [];
+        try { edRegions = JSON.parse(ed.currentFor || '[]'); } catch { edRegions = []; }
+        const filtered = edRegions.filter((r: string) => !currentForRegions.includes(r));
+        if (filtered.length !== edRegions.length) {
+          await prisma.magazineEdition.update({
+            where: { id: ed.id },
+            data: { currentFor: JSON.stringify(filtered), isCurrent: filtered.length > 0 },
+          });
+        }
+      }
     }
 
     // Generate slug from title if not provided
@@ -31,7 +50,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const edition = await prisma.magazineEdition.update({
-      where: { id: params?.id ?? '' },
+      where: { id: editionId },
       data: {
         title: body?.title,
         slug: slug ?? undefined,
@@ -42,9 +61,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         pdfCloudPath: body?.pdfCloudPath ?? null,
         pdfPageCount: body?.pdfPageCount ? parseInt(body.pdfPageCount) : null,
         externalUrl: body?.externalUrl ?? null,
-        isCurrent: body?.isCurrent,
+        isCurrent: currentForRegions.length > 0,
         publishDate: body?.publishDate ? new Date(body.publishDate) : undefined,
         countries: body?.countries ? JSON.stringify(body.countries) : undefined,
+        currentFor: JSON.stringify(currentForRegions),
       },
     });
     return NextResponse.json(edition);

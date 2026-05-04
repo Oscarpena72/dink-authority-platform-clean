@@ -336,6 +336,7 @@ model MagazineEdition {
   countries    String   @default("[\"central\"]")
   viewCount    Int      @default(0)
   lastViewedAt DateTime?
+  currentFor   String   @default("[]")
 
   @@index([publishDate])
 }
