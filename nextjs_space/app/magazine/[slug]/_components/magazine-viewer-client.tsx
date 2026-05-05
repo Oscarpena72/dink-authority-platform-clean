@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion';
 import {
   BookOpen, FileText, ChevronLeft, ChevronRight, Maximize2, Minimize2,
-  ZoomIn, ZoomOut, Newspaper, Mail, Megaphone, Loader2
+  ZoomIn, ZoomOut, RotateCcw, ExternalLink, Newspaper, Mail, Megaphone, Loader2, AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/app/_components/header';
@@ -51,6 +51,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [FlipBookComponent, setFlipBookComponent] = useState<any>(null);
+  // Store the raw PDF URL for iframe fallback if interactive viewer fails
+  const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
 
   // Detect mobile
   useEffect(() => {
@@ -88,6 +90,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         if (!pdfUrl) {
           throw new Error('No PDF URL returned');
         }
+
+        // Save URL for iframe fallback before attempting interactive render
+        setFallbackPdfUrl(pdfUrl);
 
         const pdfResponse = await fetch(pdfUrl);
         if (!pdfResponse.ok) {
@@ -149,7 +154,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => { cancelled = true; };
   }, [edition.slug, edition.externalUrl]);
 
-  // Load pdfjs from ArrayBuffer data (most reliable method - no worker for max compatibility)
+  // Load pdfjs from ArrayBuffer data
   useEffect(() => {
     if (!pdfData) return;
     let cancelled = false;
@@ -168,7 +173,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
       } catch (err: any) {
         if (cancelled) return;
         console.error('PDF parse error:', err);
-        setError(`Failed to render PDF: ${err?.message || 'Unknown error'}. Try refreshing the page.`);
+        // Set error but fallback iframe will be shown since fallbackPdfUrl is available
+        setError(`Interactive viewer failed: ${err?.message || 'Unknown error'}`);
       }
     }
     loadPdfJs();
@@ -332,6 +338,71 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   }
 
   if (error) {
+    // If we have the PDF URL, show iframe fallback instead of dead-end error
+    if (fallbackPdfUrl) {
+      return (
+        <>
+          <Header />
+          <div className="bg-brand-gray min-h-screen">
+            {/* Magazine Header */}
+            <div className="bg-brand-purple py-6 md:py-8">
+              <div className="max-w-[1400px] mx-auto px-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    {edition.issueNumber && (
+                      <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
+                    )}
+                    <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.title}</h1>
+                    <p className="text-white/60 text-sm mt-1">
+                      {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} title={edition.title} description={edition.description ?? undefined} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Fallback notice */}
+            <div className="max-w-[1400px] mx-auto px-4 pt-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertTriangle size={20} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-800">
+                    The interactive viewer encountered an issue. You can still read the magazine below using your browser&apos;s built-in PDF viewer.
+                  </p>
+                </div>
+                <a
+                  href={fallbackPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white text-sm font-bold rounded-lg hover:bg-brand-purple-light transition-colors flex-shrink-0"
+                >
+                  <ExternalLink size={14} /> Open PDF Full Screen
+                </a>
+              </div>
+            </div>
+
+            {/* Iframe PDF viewer fallback */}
+            <div className="max-w-[1400px] mx-auto px-4 py-4">
+              <div className="rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
+                <iframe
+                  src={fallbackPdfUrl}
+                  className="w-full border-0"
+                  style={{ height: '85vh', minHeight: '600px' }}
+                  title={`${edition.title} - PDF Viewer`}
+                  allow="fullscreen"
+                />
+              </div>
+            </div>
+          </div>
+          <Footer />
+        </>
+      );
+    }
+
+    // No PDF URL available at all — true dead end
     return (
       <>
         <Header />
@@ -345,6 +416,14 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 Read on External Site
               </a>
             )}
+            <div className="mt-4">
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center gap-2 px-5 py-2.5 border border-brand-purple text-brand-purple font-medium rounded-lg hover:bg-brand-purple hover:text-white transition-colors"
+              >
+                <RotateCcw size={16} /> Try Again
+              </button>
+            </div>
           </div>
         </div>
         <Footer />
@@ -411,17 +490,24 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 {currentPage}/{numPages}
               </span>
 
-              {/* Zoom controls */}
-              {viewMode === 'reader' && (
-                <div className="flex items-center gap-1 ml-2">
-                  <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))} className="p-1.5 hover:bg-gray-100 rounded" title="Zoom out">
-                    <ZoomOut size={16} className="text-gray-600" />
-                  </button>
-                  <span className="text-xs text-gray-500 w-10 text-center">{Math.round(zoom * 100)}%</span>
-                  <button onClick={() => setZoom(z => Math.min(3, z + 0.25))} className="p-1.5 hover:bg-gray-100 rounded" title="Zoom in">
-                    <ZoomIn size={16} className="text-gray-600" />
-                  </button>
-                </div>
+              {/* Zoom controls — visible in both modes */}
+              <div className="flex items-center gap-1 ml-2">
+                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom out">
+                  <ZoomOut size={16} className="text-gray-600" />
+                </button>
+                <button onClick={() => setZoom(1)} className="px-1.5 py-0.5 hover:bg-gray-100 rounded transition-colors min-w-[40px] text-center" title="Reset zoom">
+                  <span className="text-xs font-medium text-gray-500">{Math.round(zoom * 100)}%</span>
+                </button>
+                <button onClick={() => setZoom(z => Math.min(3, z + 0.25))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
+                  <ZoomIn size={16} className="text-gray-600" />
+                </button>
+              </div>
+
+              {/* Open PDF in new tab */}
+              {fallbackPdfUrl && (
+                <a href={fallbackPdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded ml-1 hidden sm:block" title="Open PDF Full Screen">
+                  <ExternalLink size={16} className="text-gray-600" />
+                </a>
               )}
 
               {/* Fullscreen */}
@@ -458,6 +544,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 pageNumbers={pageNumbers}
                 isFullscreen={isFullscreen}
                 isMobile={isMobile}
+                zoom={zoom}
               />
             ) : (
               <ReaderView
@@ -583,6 +670,7 @@ function FlipbookView({
   pageNumbers,
   isFullscreen,
   isMobile,
+  zoom,
 }: {
   FlipBookComponent: any;
   pageImages: Map<number, string>;
@@ -593,6 +681,7 @@ function FlipbookView({
   pageNumbers: number[];
   isFullscreen: boolean;
   isMobile: boolean;
+  zoom: number;
 }) {
   if (!FlipBookComponent || numPages === 0) {
     return (
@@ -606,7 +695,8 @@ function FlipbookView({
   const height = Math.round(width * 1.414); // A4 ratio
 
   return (
-    <div className="flex items-center justify-center" style={{ minHeight: isFullscreen ? 'calc(100vh - 200px)' : '600px' }}>
+    <div className="flex items-center justify-center overflow-auto" style={{ minHeight: isFullscreen ? 'calc(100vh - 200px)' : '600px' }}>
+      <div className="transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
       <FlipBookComponent
         ref={flipbookRef}
         width={width}
@@ -640,6 +730,7 @@ function FlipbookView({
           );
         })}
       </FlipBookComponent>
+      </div>
     </div>
   );
 }
