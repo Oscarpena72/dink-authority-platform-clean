@@ -1,8 +1,8 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { BookOpen, ExternalLink } from 'lucide-react';
 
 interface EditionItem {
@@ -12,8 +12,8 @@ interface EditionItem {
   issueNumber: string | null;
   coverUrl: string | null;
   description: string | null;
+  pdfCloudPath: string | null;
   externalUrl: string | null;
-  pdfUrl: string | null;
   isCurrent: boolean;
   currentFor?: string;
   publishDate: string;
@@ -79,23 +79,22 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                     <p className="text-brand-gray-dark text-xs mb-4">
                       {currentEdition?.publishDate ? new Date(currentEdition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
                     </p>
-                    {(currentEdition?.externalUrl || currentEdition?.pdfUrl) ? (
-                      currentEdition?.slug ? (
-                        <Link
-                          href={`/magazine/${currentEdition.slug}`}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
-                        >
-                          Read Now <ExternalLink size={14} />
-                        </Link>
-                      ) : (
-                        <a
-                          href={currentEdition.externalUrl || currentEdition.pdfUrl || '#'}
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
-                        >
-                          Read Now <ExternalLink size={14} />
-                        </a>
-                      )
+                    {currentEdition?.slug && currentEdition?.pdfCloudPath ? (
+                      <Link
+                        href={`/magazine/${currentEdition.slug}`}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
+                      >
+                        Read Now <BookOpen size={14} />
+                      </Link>
+                    ) : currentEdition?.externalUrl ? (
+                      <a
+                        href={currentEdition.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
+                      >
+                        Read Now <ExternalLink size={14} />
+                      </a>
                     ) : null}
                   </div>
                 </div>
@@ -135,16 +134,14 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                           {edition?.publishDate ? new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
                         </p>
                       </div>
-                      {(edition?.externalUrl || edition?.pdfUrl) ? (
-                        edition?.slug ? (
-                          <Link href={`/magazine/${edition.slug}`} className="text-brand-purple hover:text-brand-neon flex-shrink-0">
-                            <ExternalLink size={16} />
-                          </Link>
-                        ) : (
-                          <a href={edition.externalUrl || edition.pdfUrl || '#'} rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
-                            <ExternalLink size={16} />
-                          </a>
-                        )
+                      {edition?.slug && edition?.pdfCloudPath ? (
+                        <Link href={`/magazine/${edition.slug}`} className="text-brand-purple hover:text-brand-neon flex-shrink-0">
+                          <BookOpen size={16} />
+                        </Link>
+                      ) : edition?.externalUrl ? (
+                        <a href={edition.externalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
+                          <ExternalLink size={16} />
+                        </a>
                       ) : null}
                     </div>
                   </div>

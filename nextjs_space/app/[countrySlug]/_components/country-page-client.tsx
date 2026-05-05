@@ -3,7 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Instagram, Facebook, Twitter, Youtube, ChevronRight, Newspaper, Trophy, Heart, Users, Lightbulb } from 'lucide-react';
+import { ArrowRight, BookOpen, ExternalLink, Instagram, Facebook, Twitter, Youtube, ChevronRight, Newspaper, Trophy, Heart, Users, Lightbulb } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import NewsletterSignup from '@/app/_components/newsletter-signup';
@@ -41,8 +41,7 @@ interface CountryData {
   magazineCover?: string | null;
   magazineTitle?: string | null;
   magazineLink?: string | null;
-  magazineSlug?: string | null;
-
+  magazinePdfUrl?: string | null;
   bannerTopImage?: string | null;
   bannerTopLink?: string | null;
   bannerMidImage?: string | null;
@@ -220,17 +219,10 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
                     )}
                     <div className="flex flex-wrap items-center gap-3">
                       {country.magazineLink && (
-                        country.magazineSlug ? (
-                          <Link href={`/magazine/${country.magazineSlug}`}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
-                            <BookOpen size={16} /> Read Digital Edition
-                          </Link>
-                        ) : (
-                          <a href={country.magazineLink} rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
-                            <BookOpen size={16} /> Read Digital Edition
-                          </a>
-                        )
+                        <a href={country.magazineLink} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
+                          <BookOpen size={16} /> Read Digital Edition
+                        </a>
                       )}
 
                     </div>

@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { BookOpen, ExternalLink, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -17,8 +17,9 @@ interface EditionItem {
   issueNumber: string | null;
   coverUrl: string | null;
   description: string | null;
-  externalUrl: string | null;
+  pdfCloudPath: string | null;
   pdfUrl: string | null;
+  externalUrl: string | null;
   isCurrent: boolean;
   publishDate: string;
 }
@@ -49,7 +50,9 @@ interface Props {
 }
 
 function EditionCard({ edition, index, siteUrl }: { edition: EditionItem; index: number; siteUrl: string }) {
-  const readUrl = edition?.externalUrl || edition?.pdfUrl || null;
+  const readUrl = edition?.slug && (edition?.pdfCloudPath || edition?.pdfUrl)
+    ? `/magazine/${edition.slug}`
+    : edition?.externalUrl ?? null;
 
   /* Absolute share URL for this edition */
   const shareUrl = edition?.slug
@@ -106,16 +109,17 @@ function EditionCard({ edition, index, siteUrl }: { edition: EditionItem; index:
           </p>
           <div className="mt-auto flex flex-col gap-2">
             {readUrl ? (
-              edition?.slug ? (
+              readUrl.startsWith('/') ? (
                 <Link
-                  href={`/magazine/${edition.slug}`}
+                  href={readUrl}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-xs uppercase tracking-wider self-start"
                 >
-                  Read <ExternalLink size={12} />
+                  Read <BookOpen size={12} />
                 </Link>
               ) : (
                 <a
                   href={readUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-xs uppercase tracking-wider self-start"
                 >

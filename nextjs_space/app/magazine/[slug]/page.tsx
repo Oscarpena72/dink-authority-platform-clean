@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import MagazineViewerClient from './_components/magazine-viewer-client';
 import type { Metadata } from 'next';
-import MagazineRedirectClient from './_components/magazine-redirect-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,14 +52,20 @@ export default async function MagazineViewerPage({ params }: Props) {
   const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
   if (!edition) notFound();
 
-  // Use externalUrl first, fallback to pdfUrl for reading
-  const readUrl = edition.externalUrl || edition.pdfUrl;
+  const serialized = {
+    id: edition.id,
+    title: edition.title,
+    slug: edition.slug ?? '',
+    issueNumber: edition.issueNumber,
+    coverUrl: edition.coverUrl,
+    description: edition.description,
+    pdfUrl: edition.pdfUrl,
+    pdfCloudPath: edition.pdfCloudPath,
+    pdfPageCount: edition.pdfPageCount,
+    externalUrl: edition.externalUrl,
+    isCurrent: edition.isCurrent,
+    publishDate: edition.publishDate.toISOString(),
+  };
 
-  // If no reading URL at all, redirect to magazine archive
-  if (!readUrl) {
-    redirect('/magazine');
-  }
-
-  // Render client-side redirect for maximum mobile compatibility
-  return <MagazineRedirectClient url={readUrl} title={edition.title} />;
+  return <MagazineViewerClient edition={serialized} />;
 }
