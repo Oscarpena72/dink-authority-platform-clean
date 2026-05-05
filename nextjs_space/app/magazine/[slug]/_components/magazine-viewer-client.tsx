@@ -60,10 +60,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Default to reader mode on mobile
-  useEffect(() => {
-    if (isMobile) setViewMode('reader');
-  }, [isMobile]);
+  // Both modes (flipbook & reader) work on all devices — no forced switching
 
   // Fetch PDF and load as ArrayBuffer for reliable cross-device support
   const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
