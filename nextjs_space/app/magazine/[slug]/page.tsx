@@ -52,11 +52,14 @@ export default async function MagazineViewerPage({ params }: Props) {
   const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
   if (!edition) notFound();
 
-  // If no external URL, redirect to magazine archive
-  if (!edition.externalUrl) {
+  // Use externalUrl first, fallback to pdfUrl for reading
+  const readUrl = edition.externalUrl || edition.pdfUrl;
+
+  // If no reading URL at all, redirect to magazine archive
+  if (!readUrl) {
     redirect('/magazine');
   }
 
   // Render client-side redirect for maximum mobile compatibility
-  return <MagazineRedirectClient url={edition.externalUrl} title={edition.title} />;
+  return <MagazineRedirectClient url={readUrl} title={edition.title} />;
 }

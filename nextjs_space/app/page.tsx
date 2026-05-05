@@ -58,7 +58,7 @@ export default async function HomePage() {
     editions = await prisma.magazineEdition.findMany({
       orderBy: { publishDate: 'desc' },
       take: 4,
-      select: { id: true, title: true, slug: true, issueNumber: true, coverUrl: true, description: true, externalUrl: true, isCurrent: true, currentFor: true, publishDate: true },
+      select: { id: true, title: true, slug: true, issueNumber: true, coverUrl: true, description: true, externalUrl: true, pdfUrl: true, isCurrent: true, currentFor: true, publishDate: true },
     });
   } catch { /* empty */ }
 

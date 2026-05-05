@@ -13,6 +13,7 @@ interface EditionItem {
   coverUrl: string | null;
   description: string | null;
   externalUrl: string | null;
+  pdfUrl: string | null;
   isCurrent: boolean;
   currentFor?: string;
   publishDate: string;
@@ -78,7 +79,7 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                     <p className="text-brand-gray-dark text-xs mb-4">
                       {currentEdition?.publishDate ? new Date(currentEdition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
                     </p>
-                    {currentEdition?.externalUrl ? (
+                    {(currentEdition?.externalUrl || currentEdition?.pdfUrl) ? (
                       currentEdition?.slug ? (
                         <Link
                           href={`/magazine/${currentEdition.slug}`}
@@ -88,7 +89,7 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                         </Link>
                       ) : (
                         <a
-                          href={currentEdition.externalUrl}
+                          href={currentEdition.externalUrl || currentEdition.pdfUrl || '#'}
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
                         >
@@ -134,13 +135,13 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                           {edition?.publishDate ? new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
                         </p>
                       </div>
-                      {edition?.externalUrl ? (
+                      {(edition?.externalUrl || edition?.pdfUrl) ? (
                         edition?.slug ? (
                           <Link href={`/magazine/${edition.slug}`} className="text-brand-purple hover:text-brand-neon flex-shrink-0">
                             <ExternalLink size={16} />
                           </Link>
                         ) : (
-                          <a href={edition.externalUrl} rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
+                          <a href={edition.externalUrl || edition.pdfUrl || '#'} rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
                             <ExternalLink size={16} />
                           </a>
                         )

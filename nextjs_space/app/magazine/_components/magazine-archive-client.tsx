@@ -18,6 +18,7 @@ interface EditionItem {
   coverUrl: string | null;
   description: string | null;
   externalUrl: string | null;
+  pdfUrl: string | null;
   isCurrent: boolean;
   publishDate: string;
 }
@@ -48,7 +49,7 @@ interface Props {
 }
 
 function EditionCard({ edition, index, siteUrl }: { edition: EditionItem; index: number; siteUrl: string }) {
-  const readUrl = edition?.externalUrl ?? null;
+  const readUrl = edition?.externalUrl || edition?.pdfUrl || null;
 
   /* Absolute share URL for this edition */
   const shareUrl = edition?.slug
