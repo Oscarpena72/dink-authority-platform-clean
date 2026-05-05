@@ -123,11 +123,7 @@ export default function CountryEditClient({ slug }: { slug: string }) {
               <input value={country.magazineLink ?? ''} onChange={e => handleChange('magazineLink', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://..." />
             </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">PDF URL</label>
-              <input value={country.magazinePdfUrl ?? ''} onChange={e => handleChange('magazinePdfUrl', e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="https://..." />
-            </div>
+
           </div>
         </div>
       )}

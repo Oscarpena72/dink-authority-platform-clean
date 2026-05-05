@@ -3,7 +3,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, ExternalLink, Instagram, Facebook, Twitter, Youtube, ChevronRight, Newspaper, Trophy, Heart, Users, Lightbulb } from 'lucide-react';
+import { ArrowRight, BookOpen, Instagram, Facebook, Twitter, Youtube, ChevronRight, Newspaper, Trophy, Heart, Users, Lightbulb } from 'lucide-react';
 import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import NewsletterSignup from '@/app/_components/newsletter-signup';
@@ -41,7 +41,7 @@ interface CountryData {
   magazineCover?: string | null;
   magazineTitle?: string | null;
   magazineLink?: string | null;
-  magazinePdfUrl?: string | null;
+
   bannerTopImage?: string | null;
   bannerTopLink?: string | null;
   bannerMidImage?: string | null;
@@ -224,12 +224,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
                           <BookOpen size={16} /> Read Digital Edition
                         </a>
                       )}
-                      {country.magazinePdfUrl && (
-                        <a href={country.magazinePdfUrl} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 border-2 border-brand-purple/30 text-brand-purple font-bold rounded-lg hover:border-brand-neon hover:text-brand-neon transition-all text-sm uppercase tracking-wider">
-                          <ExternalLink size={16} /> Download PDF
-                        </a>
-                      )}
+
                     </div>
                   </div>
                 </div>

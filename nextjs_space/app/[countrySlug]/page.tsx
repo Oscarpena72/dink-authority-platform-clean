@@ -100,7 +100,7 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
   try {
     const allEditions = await prisma.magazineEdition.findMany({
       orderBy: { publishDate: 'desc' },
-      select: { id: true, title: true, slug: true, coverUrl: true, pdfUrl: true, pdfCloudPath: true, externalUrl: true, currentFor: true, publishDate: true },
+      select: { id: true, title: true, slug: true, coverUrl: true, externalUrl: true, currentFor: true, publishDate: true },
     });
     // Find edition where currentFor includes this country slug
     currentEdition = allEditions.find((ed: any) => {
@@ -123,10 +123,7 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
   // Build magazine info: prefer MagazineEdition data, fallback to Country model fields
   const magazineCover = currentEdition?.coverUrl || country.magazineCover;
   const magazineTitle = currentEdition?.title || country.magazineTitle;
-  const magazineLink = currentEdition?.slug && currentEdition?.pdfCloudPath
-    ? `/magazine/${currentEdition.slug}`
-    : currentEdition?.externalUrl || country.magazineLink;
-  const magazinePdfUrl = currentEdition?.pdfUrl || country.magazinePdfUrl;
+  const magazineLink = currentEdition?.externalUrl || country.magazineLink;
 
   return (
     <CountryPageClient
@@ -137,7 +134,6 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
         magazineCover,
         magazineTitle,
         magazineLink,
-        magazinePdfUrl,
         bannerTopImage: country.bannerTopImage,
         bannerTopLink: country.bannerTopLink,
         bannerMidImage: country.bannerMidImage,

@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, FileText, ExternalLink, Image as ImageIcon, Settings, Eye, TrendingUp, BarChart3 } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, ExternalLink, Image as ImageIcon, Settings, Eye, TrendingUp, BarChart3 } from 'lucide-react';
 import { upload } from '@vercel/blob/client';
-import Link from 'next/link';
 
 interface EditionItem {
   id: string;
@@ -11,9 +10,6 @@ interface EditionItem {
   issueNumber: string | null;
   coverUrl: string | null;
   description: string | null;
-  pdfUrl: string | null;
-  pdfCloudPath: string | null;
-  pdfPageCount: number | null;
   externalUrl: string | null;
   isCurrent: boolean;
   publishDate: string;
@@ -33,7 +29,7 @@ const BUILT_IN_COUNTRIES: CountryOption[] = [
 ];
 
 const EMPTY_FORM = {
-  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', pdfUrl: '', pdfCloudPath: '', pdfPageCount: '', currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
+  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
 };
 
 export default function AdminMagazineClient() {
@@ -43,9 +39,7 @@ export default function AdminMagazineClient() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   // Banner settings
   const [showBanner, setShowBanner] = useState(false);
@@ -95,46 +89,7 @@ export default function AdminMagazineClient() {
     }).catch(() => {});
   }, []);
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf') { alert('Please select a PDF file'); return; }
 
-    setUploading(true);
-    setUploadProgress('Uploading PDF...');
-
-    try {
-      // Use Vercel Blob client upload (no 4.5MB server limit)
-      const blob = await upload(`uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload/blob-token',
-      });
-
-      setUploadProgress('PDF uploaded successfully!');
-      setForm(p => ({ ...p, pdfCloudPath: blob.pathname, pdfUrl: blob.url }));
-      setTimeout(() => setUploadProgress(''), 3000);
-    } catch (err: any) {
-      console.error('PDF upload error:', err);
-      // Fallback to direct upload for non-Vercel environments
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData?.error ?? `Upload failed: ${res.status}`);
-        }
-        const { url, cloud_storage_path } = await res.json();
-        setUploadProgress('PDF uploaded successfully!');
-        setForm(p => ({ ...p, pdfCloudPath: cloud_storage_path, pdfUrl: url }));
-        setTimeout(() => setUploadProgress(''), 3000);
-      } catch (fallbackErr: any) {
-        setUploadProgress('Upload failed: ' + (fallbackErr?.message ?? 'Unknown error'));
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const toggleCountry = (key: string) => {
     setForm(p => {
@@ -178,9 +133,6 @@ export default function AdminMagazineClient() {
       coverUrl: ed?.coverUrl ?? '',
       description: ed?.description ?? '',
       externalUrl: ed?.externalUrl ?? '',
-      pdfUrl: ed?.pdfUrl ?? '',
-      pdfCloudPath: ed?.pdfCloudPath ?? '',
-      pdfPageCount: ed?.pdfPageCount ? String(ed.pdfPageCount) : '',
       currentFor: parsedCurrentFor,
       publishDate: ed?.publishDate ? new Date(ed.publishDate).toISOString().split('T')[0] : '',
       countries: parsedCountries,
@@ -458,9 +410,8 @@ export default function AdminMagazineClient() {
             <input placeholder="Title" value={form.title} onChange={e => setForm(p => ({ ...p, title: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input placeholder="Issue Number (e.g. Issue #12)" value={form.issueNumber} onChange={e => setForm(p => ({ ...p, issueNumber: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input placeholder="Cover Image URL" value={form.coverUrl} onChange={e => setForm(p => ({ ...p, coverUrl: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
-            <input placeholder="External URL (optional heyzine/issuu link)" value={form.externalUrl} onChange={e => setForm(p => ({ ...p, externalUrl: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
+            <input placeholder="Digital Edition URL (Issuu / Heyzine link)" value={form.externalUrl} onChange={e => setForm(p => ({ ...p, externalUrl: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input type="date" value={form.publishDate} onChange={e => setForm(p => ({ ...p, publishDate: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
-            <input placeholder="Page Count (optional)" type="number" value={form.pdfPageCount} onChange={e => setForm(p => ({ ...p, pdfPageCount: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
           </div>
 
           {/* Country visibility checkboxes */}
@@ -498,29 +449,6 @@ export default function AdminMagazineClient() {
                 </label>
               ))}
             </div>
-          </div>
-
-          {/* PDF Upload Section */}
-          <div className="mt-4 p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50">
-            <div className="flex items-center gap-3 mb-2">
-              <FileText size={18} className="text-brand-purple" />
-              <span className="font-semibold text-sm text-brand-purple">PDF Magazine File</span>
-            </div>
-            {form.pdfCloudPath ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-green-600 font-medium">✓ PDF uploaded</span>
-                <button onClick={() => { setForm(p => ({ ...p, pdfCloudPath: '', pdfUrl: '' })); }} className="text-xs text-red-500 underline">Remove</button>
-              </div>
-            ) : (
-              <div>
-                <input ref={fileInputRef} type="file" accept=".pdf" onChange={handlePdfUpload} className="hidden" />
-                <button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white font-medium rounded-lg hover:bg-brand-purple-light text-sm disabled:opacity-50">
-                  <Upload size={14} /> {uploading ? 'Uploading...' : 'Upload PDF'}
-                </button>
-              </div>
-            )}
-            {uploadProgress && <p className="text-xs mt-2 text-brand-gray-dark">{uploadProgress}</p>}
-            <p className="text-xs text-gray-400 mt-2">Upload the PDF to enable the built-in flipbook viewer. Without PDF, the edition will link to the external URL.</p>
           </div>
 
           <div className="mt-4">
@@ -620,11 +548,7 @@ export default function AdminMagazineClient() {
                 <p className="text-brand-gray-dark text-xs mb-2">
                   {ed?.publishDate ? new Date(ed.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
                 </p>
-                {ed?.pdfCloudPath && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded mb-2">
-                    <FileText size={10} /> PDF Uploaded
-                  </span>
-                )}
+
                 {/* Country tags */}
                 <div className="flex flex-wrap gap-1 mb-2">
                   {edCountries.map(c => (
@@ -647,10 +571,10 @@ export default function AdminMagazineClient() {
                 <div className="flex items-center gap-2">
                   <button onClick={() => handleEdit(ed)} className="p-1.5 text-brand-purple hover:bg-brand-purple/10 rounded"><Pencil size={14} /></button>
                   <button onClick={() => handleDelete(ed?.id ?? '')} className="p-1.5 text-red-500 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
-                  {ed?.slug && (ed?.pdfCloudPath || ed?.pdfUrl) && (
-                    <Link href={`/magazine/${ed.slug}`} className="p-1.5 text-brand-neon hover:bg-brand-neon/10 rounded" title="View Flipbook">
+                  {ed?.externalUrl && (
+                    <a href={ed.externalUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-brand-neon hover:bg-brand-neon/10 rounded" title="View Digital Edition">
                       <ExternalLink size={14} />
-                    </Link>
+                    </a>
                   )}
                 </div>
               </div>
