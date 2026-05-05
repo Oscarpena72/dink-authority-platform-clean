@@ -124,6 +124,7 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
   const magazineCover = currentEdition?.coverUrl || country.magazineCover;
   const magazineTitle = currentEdition?.title || country.magazineTitle;
   const magazineLink = currentEdition?.externalUrl || country.magazineLink;
+  const magazineSlug = currentEdition?.slug || null;
 
   return (
     <CountryPageClient
@@ -134,6 +135,7 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
         magazineCover,
         magazineTitle,
         magazineLink,
+        magazineSlug,
         bannerTopImage: country.bannerTopImage,
         bannerTopLink: country.bannerTopLink,
         bannerMidImage: country.bannerMidImage,

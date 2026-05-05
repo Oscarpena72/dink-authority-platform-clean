@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import MagazineRedirectClient from './_components/magazine-redirect-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,11 +52,11 @@ export default async function MagazineViewerPage({ params }: Props) {
   const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
   if (!edition) notFound();
 
-  // Redirect to external digital edition URL (e.g. Issuu, Heyzine)
-  if (edition.externalUrl) {
-    redirect(edition.externalUrl);
+  // If no external URL, redirect to magazine archive
+  if (!edition.externalUrl) {
+    redirect('/magazine');
   }
 
-  // If no external URL, redirect to magazine archive
-  redirect('/magazine');
+  // Render client-side redirect for maximum mobile compatibility
+  return <MagazineRedirectClient url={edition.externalUrl} title={edition.title} />;
 }

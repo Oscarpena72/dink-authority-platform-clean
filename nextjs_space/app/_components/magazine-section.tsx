@@ -2,6 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { BookOpen, ExternalLink } from 'lucide-react';
 
 interface EditionItem {
@@ -78,14 +79,22 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                       {currentEdition?.publishDate ? new Date(currentEdition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
                     </p>
                     {currentEdition?.externalUrl ? (
-                      <a
-                        href={currentEdition.externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
-                      >
-                        Read Now <ExternalLink size={14} />
-                      </a>
+                      currentEdition?.slug ? (
+                        <Link
+                          href={`/magazine/${currentEdition.slug}`}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
+                        >
+                          Read Now <ExternalLink size={14} />
+                        </Link>
+                      ) : (
+                        <a
+                          href={currentEdition.externalUrl}
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider self-start"
+                        >
+                          Read Now <ExternalLink size={14} />
+                        </a>
+                      )
                     ) : null}
                   </div>
                 </div>
@@ -126,9 +135,15 @@ export default function MagazineSection({ editions, region = 'central' }: { edit
                         </p>
                       </div>
                       {edition?.externalUrl ? (
-                        <a href={edition.externalUrl} target="_blank" rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
-                          <ExternalLink size={16} />
-                        </a>
+                        edition?.slug ? (
+                          <Link href={`/magazine/${edition.slug}`} className="text-brand-purple hover:text-brand-neon flex-shrink-0">
+                            <ExternalLink size={16} />
+                          </Link>
+                        ) : (
+                          <a href={edition.externalUrl} rel="noopener noreferrer" className="text-brand-purple hover:text-brand-neon flex-shrink-0">
+                            <ExternalLink size={16} />
+                          </a>
+                        )
                       ) : null}
                     </div>
                   </div>

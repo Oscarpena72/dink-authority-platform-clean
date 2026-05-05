@@ -41,6 +41,7 @@ interface CountryData {
   magazineCover?: string | null;
   magazineTitle?: string | null;
   magazineLink?: string | null;
+  magazineSlug?: string | null;
 
   bannerTopImage?: string | null;
   bannerTopLink?: string | null;
@@ -219,10 +220,17 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
                     )}
                     <div className="flex flex-wrap items-center gap-3">
                       {country.magazineLink && (
-                        <a href={country.magazineLink} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
-                          <BookOpen size={16} /> Read Digital Edition
-                        </a>
+                        country.magazineSlug ? (
+                          <Link href={`/magazine/${country.magazineSlug}`}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
+                            <BookOpen size={16} /> Read Digital Edition
+                          </Link>
+                        ) : (
+                          <a href={country.magazineLink} rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim transition-all text-sm uppercase tracking-wider shadow-lg">
+                            <BookOpen size={16} /> Read Digital Edition
+                          </a>
+                        )
                       )}
 
                     </div>
