@@ -23,7 +23,10 @@ const oswald = Oswald({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000'),
-  title: 'Dink Authority Magazine | The Voice of Pickleball',
+  title: {
+    default: 'Dink Authority Magazine | The Voice of Pickleball',
+    template: '%s',
+  },
   description: 'Your premier source for professional pickleball news, player profiles, tournament coverage, pickleball places, and the global pickleball community.',
   keywords: 'pickleball, magazine, news, tournaments, pro players, pickleball places, courts, clubs, pickleball community',
   icons: {
