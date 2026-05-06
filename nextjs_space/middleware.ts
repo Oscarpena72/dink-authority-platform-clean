@@ -134,8 +134,40 @@ const CATEGORY_SECTION_REDIRECTS: Record<string, string> = {
   'tips': '/tips',
 };
 
+/**
+ * Magazine slug redirects: old slugs → new SEO-optimized slugs with "pickleball-magazine-issue"
+ */
+const MAGAZINE_SLUG_REDIRECTS: Record<string, string> = {
+  'the-awakening-of-asia-pickleball-s-fastest-growing-frontier': 'march-2026-pickleball-magazine-issue-the-awakening-of-asia',
+  'seone-m-ndez-passion-discipline-and-the-love-of-the-game': 'november-2025-pickleball-magazine-issue-seone-mendez',
+  'paula-rives-power-precision-and-the-will-to-win': 'october-2025-pickleball-magazine-issue-paula-rives',
+  'juan-m-benitez-in-august-edition-the-passion-behind-the-game': 'august-2025-pickleball-magazine-issue-juan-m-benitez',
+  'the-competitors-driving-the-game-forward': 'july-2025-pickleball-magazine-issue-lucy-kovalova',
+  'the-best-of-2025-according-to-our-readers': 'december-2025-pickleball-magazine-issue-best-of-2025-readers-choice',
+  'dink-authority-magazine-april-2026': 'april-2026-pickleball-magazine-issue-christa-gecheva',
+  'alex-crum-pickleball-s-competitive-momentum-june-edition-2025': 'june-2025-pickleball-magazine-issue-alex-crum',
+  'megan-fudge-power-passion-and-the-competitive-spirit-of-pickleball': 'may-2025-pickleball-magazine-issue-megan-fudge',
+  'lorena-duknic-performance-power-and-smart-play-april-2025-edition': 'april-2025-pickleball-magazine-issue-lorena-duknic',
+  'glauka-carvajal-the-smile-of-a-rising-competitor': 'march-2025-pickleball-magazine-issue-glauka-carvajal',
+  'dahlia-garza-power-passion-and-the-expanding-world-of-pickleball': 'february-2025-pickleball-magazine-issue-dahlia-garza',
+  'susana-rojas-passion-power-and-play-on-the-court': 'december-2024-pickleball-magazine-issue-susana-rojas',
+  'pickleball-is-conquering-the-world': 'january-2025-pickleball-magazine-issue-catalina-parenteau',
+  'florida-the-paradise-of-pickleball': 'october-2024-pickleball-magazine-issue-florida-pickleball-paradise',
+  'the-kings-of-naples-champions-take-center-stage-in-dink-authority-magazine-may-2026': 'may-2026-pickleball-magazine-issue-kings-of-naples',
+  'los-reyes-de-naples-los-campeones-del-us-open-protagonizan-la-edici-n-de-mayo-de-dink-authority-magazine': 'may-2026-pickleball-magazine-issue-los-reyes-de-naples',
+};
+
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // 0. Redirect /magazine/[old-slug] → /magazine/[new-slug] (301)
+  if (pathname.startsWith('/magazine/') && pathname !== '/magazine') {
+    const slug = pathname.replace('/magazine/', '').replace(/\/$/, '');
+    const newSlug = MAGAZINE_SLUG_REDIRECTS[slug];
+    if (newSlug) {
+      return NextResponse.redirect(new URL(`/magazine/${newSlug}`, request.url), 301);
+    }
+  }
 
   // 1. Redirect /articles/[slug] → new route (301)
   if (pathname.startsWith('/articles/')) {
@@ -166,5 +198,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/articles/:path*', '/articles'],
+  matcher: ['/articles/:path*', '/articles', '/magazine/:path*'],
 };
