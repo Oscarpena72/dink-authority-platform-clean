@@ -99,19 +99,11 @@ export default async function MagazineViewerPage({ params }: Props) {
 
   return (
     <>
-      {/* ===== SERVER-RENDERED SEO BLOCK — visible in initial HTML for Google ===== */}
-      <section className="bg-brand-purple text-white">
-        <div className="max-w-[1400px] mx-auto px-4 pt-6 pb-2">
-          <h1 className="font-heading font-bold text-2xl md:text-3xl">
-            {serialized.seoH1}
-          </h1>
-          <p className="text-white/80 text-sm md:text-base mt-2 max-w-3xl leading-relaxed">
-            {firstParagraph}
-          </p>
-        </div>
-      </section>
+      {/* ===== SERVER-RENDERED SEO — sr-only for crawlers, single visual header lives in client ===== */}
+      <h1 className="sr-only">{serialized.seoH1}</h1>
+      <p className="sr-only">{firstParagraph}</p>
 
-      {/* ===== VIEWER — untouched, loaded client-side ===== */}
+      {/* ===== VIEWER — client-side with single visual header ===== */}
       <MagazineViewerClient edition={serialized} />
 
       {/* ===== SERVER-RENDERED SEO CONTENT BELOW VIEWER ===== */}

@@ -56,6 +56,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [FlipBookComponent, setFlipBookComponent] = useState<any>(null);
   // Store the raw PDF URL for iframe fallback if interactive viewer fails
   const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
+  // Real PDF page aspect ratio (height / width)
+  const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414); // default A4, updated after first render
 
   // Detect mobile
   useEffect(() => {
@@ -173,6 +175,14 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         if (cancelled) return;
         setPdfLib(pdf);
         setNumPages(pdf.numPages);
+        // Detect real page dimensions from first page
+        try {
+          const firstPage = await pdf.getPage(1);
+          const vp = firstPage.getViewport({ scale: 1 });
+          if (vp.width > 0 && vp.height > 0) {
+            setPdfAspectRatio(vp.height / vp.width);
+          }
+        } catch (_) { /* keep default */ }
       } catch (err: any) {
         if (cancelled) return;
         console.error('PDF parse error:', err);
@@ -471,7 +481,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                     : 'text-gray-600 hover:text-brand-purple'
                 }`}
               >
-                <BookOpen size={14} /> <span className="hidden sm:inline">Flipbook</span>
+                <BookOpen size={14} />
               </button>
               <button
                 onClick={() => setViewMode('reader')}
@@ -536,7 +546,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             </div>
           )}
 
-          <div className={`max-w-[1400px] mx-auto px-4 py-6 ${isFullscreen ? 'flex-1 flex items-center justify-center' : ''}`}>
+          <div className={`max-w-[1400px] mx-auto px-4 py-3 ${isFullscreen ? 'flex-1 flex items-center justify-center' : ''}`}>
             {viewMode === 'flipbook' ? (
               <FlipbookView
                 FlipBookComponent={FlipBookComponent}
@@ -549,6 +559,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 isFullscreen={isFullscreen}
                 isMobile={isMobile}
                 zoom={zoom}
+                pdfAspectRatio={pdfAspectRatio}
               />
             ) : (
               <ReaderView
@@ -677,6 +688,7 @@ function FlipbookView({
   isFullscreen,
   isMobile,
   zoom,
+  pdfAspectRatio,
 }: {
   FlipBookComponent: any;
   pageImages: Map<number, string>;
@@ -688,6 +700,7 @@ function FlipbookView({
   isFullscreen: boolean;
   isMobile: boolean;
   zoom: number;
+  pdfAspectRatio: number;
 }) {
   if (!FlipBookComponent || numPages === 0) {
     return (
@@ -698,44 +711,55 @@ function FlipbookView({
   }
 
   const width = isMobile ? Math.min(window.innerWidth - 32, 400) : 500;
-  const height = Math.round(width * 1.414); // A4 ratio
+  const height = Math.round(width * pdfAspectRatio);
 
   return (
-    <div className="flex items-center justify-center overflow-auto" style={{ minHeight: isFullscreen ? 'calc(100vh - 200px)' : '600px' }}>
-      <div className="transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
-      <FlipBookComponent
-        ref={flipbookRef}
-        width={width}
-        height={height}
-        size="stretch"
-        minWidth={300}
-        maxWidth={600}
-        minHeight={400}
-        maxHeight={900}
-        showCover={true}
-        mobileScrollSupport={true}
-        onFlip={(e: any) => setCurrentPage((e?.data ?? 0) + 1)}
-        className="shadow-2xl"
-        useMouseEvents={true}
-        swipeDistance={30}
-        showPageCorners={true}
-        flippingTime={600}
+    <div
+      className="overflow-auto"
+      style={{ minHeight: isFullscreen ? 'calc(100vh - 200px)' : undefined }}
+    >
+      <div
+        className="flex items-start justify-center"
+        style={{
+          transform: `scale(${zoom})`,
+          transformOrigin: 'top center',
+          minHeight: isFullscreen ? 'calc(100vh - 200px)' : `${height + 20}px`,
+          paddingTop: zoom <= 1 ? `${Math.max(0, (isFullscreen ? (window.innerHeight - 200 - height) / 2 : 0))}px` : '0',
+        }}
       >
-        {pageNumbers.map(pageNum => {
-          const imgSrc = pageImages.get(pageNum);
-          return (
-            <div key={pageNum} className="bg-white">
-              {imgSrc ? (
-                <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                  <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </FlipBookComponent>
+        <FlipBookComponent
+          ref={flipbookRef}
+          width={width}
+          height={height}
+          size="stretch"
+          minWidth={280}
+          maxWidth={600}
+          minHeight={Math.round(280 * pdfAspectRatio)}
+          maxHeight={Math.round(600 * pdfAspectRatio)}
+          showCover={true}
+          mobileScrollSupport={true}
+          onFlip={(e: any) => setCurrentPage((e?.data ?? 0) + 1)}
+          className="shadow-2xl"
+          useMouseEvents={true}
+          swipeDistance={30}
+          showPageCorners={true}
+          flippingTime={600}
+        >
+          {pageNumbers.map(pageNum => {
+            const imgSrc = pageImages.get(pageNum);
+            return (
+              <div key={pageNum} className="bg-white">
+                {imgSrc ? (
+                  <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </FlipBookComponent>
       </div>
     </div>
   );
@@ -765,22 +789,32 @@ function ReaderView({
 
   return (
     <div
-      className="flex items-center justify-center overflow-auto"
-      style={{ minHeight: isFullscreen ? 'calc(100vh - 200px)' : '600px' }}
+      className="overflow-auto"
+      style={{ maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '80vh' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       <div
-        className="transition-transform duration-200 shadow-2xl rounded-lg overflow-hidden bg-white"
-        style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', maxWidth: '100%' }}
+        className="flex items-start justify-center transition-transform duration-200"
+        style={{
+          transform: `scale(${zoom})`,
+          transformOrigin: 'top center',
+        }}
       >
-        {imgSrc ? (
-          <img src={imgSrc} alt={`Page ${currentPage}`} className="max-w-full h-auto" style={{ maxHeight: isFullscreen ? '80vh' : '75vh' }} />
-        ) : (
-          <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">
-            <Loader2 className="w-10 h-10 animate-spin text-brand-purple/30" />
-          </div>
-        )}
+        <div className="shadow-2xl rounded-lg overflow-hidden bg-white">
+          {imgSrc ? (
+            <img
+              src={imgSrc}
+              alt={`Page ${currentPage}`}
+              className="max-w-full h-auto block"
+              style={{ maxHeight: isFullscreen ? '80vh' : '75vh' }}
+            />
+          ) : (
+            <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">
+              <Loader2 className="w-10 h-10 animate-spin text-brand-purple/30" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
