@@ -141,6 +141,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
   // Real PDF page aspect ratio (height / width)
   const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414); // default A4, updated after first render
+  const autoFitApplied = useRef(false);
 
   // Pinch-zoom hook for mobile gesture handling
   const pinch = usePinchZoom(zoom, setZoom, viewerScrollRef);
@@ -152,6 +153,35 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // Auto-fit zoom on first load: ensure entire page is visible without scrolling
+  useEffect(() => {
+    if (!pdfLib || autoFitApplied.current || typeof window === 'undefined') return;
+    autoFitApplied.current = true;
+    const baseWidth = isMobile ? Math.min(window.innerWidth - 32, 400) : 500;
+    const baseHeight = Math.round(baseWidth * pdfAspectRatio);
+    const available = window.innerHeight - 280; // header + toolbar + padding
+    if (baseHeight > available) {
+      setZoom(parseFloat(Math.max(0.35, available / baseHeight).toFixed(2)));
+    }
+  }, [pdfLib, pdfAspectRatio, isMobile]);
+
+  // Navigation helpers — used by toolbar and side buttons
+  const goToPrev = useCallback(() => {
+    if (currentPage <= 1) return;
+    setCurrentPage(p => Math.max(1, p - 1));
+    if (viewMode === 'flipbook' && flipbookRef.current) {
+      flipbookRef.current.pageFlip()?.flipPrev();
+    }
+  }, [currentPage, viewMode]);
+
+  const goToNext = useCallback(() => {
+    if (currentPage >= numPages) return;
+    setCurrentPage(p => Math.min(numPages, p + 1));
+    if (viewMode === 'flipbook' && flipbookRef.current) {
+      flipbookRef.current.pageFlip()?.flipNext();
+    }
+  }, [currentPage, numPages, viewMode]);
 
   // Both modes (flipbook & reader) work on all devices — no forced switching
 
@@ -558,10 +588,11 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           </div>
         </div>
 
-        {/* View Mode Toggle + Controls */}
+        {/* View Mode Toggle + Navigation + Controls — sticky toolbar */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
-          <div className="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="max-w-[1400px] mx-auto px-4 py-2 flex items-center justify-between gap-2">
+            {/* Left: view mode toggle */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
               <button
                 onClick={() => setViewMode('flipbook')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
@@ -584,37 +615,49 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
-              {/* Page indicator */}
-              <span className="text-sm text-brand-gray-dark hidden sm:block">
+            {/* Center: page navigation — ALWAYS visible */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={goToPrev}
+                disabled={currentPage <= 1}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={18} className="text-brand-purple" />
+              </button>
+              <span className="text-sm text-brand-gray-dark min-w-[80px] text-center hidden sm:inline">
                 Page {currentPage} of {numPages}
               </span>
-              <span className="text-sm text-brand-gray-dark sm:hidden">
+              <span className="text-sm text-brand-gray-dark min-w-[40px] text-center sm:hidden">
                 {currentPage}/{numPages}
               </span>
+              <button
+                onClick={goToNext}
+                disabled={currentPage >= numPages}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label="Next page"
+              >
+                <ChevronRight size={18} className="text-brand-purple" />
+              </button>
+            </div>
 
-              {/* Zoom controls — visible in both modes */}
-              <div className="flex items-center gap-1 ml-2">
-                <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom out">
-                  <ZoomOut size={16} className="text-gray-600" />
-                </button>
-                <button onClick={() => setZoom(1)} className="px-1.5 py-0.5 hover:bg-gray-100 rounded transition-colors min-w-[40px] text-center" title="Reset zoom">
-                  <span className="text-xs font-medium text-gray-500">{Math.round(zoom * 100)}%</span>
-                </button>
-                <button onClick={() => setZoom(z => Math.min(3, z + 0.25))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
-                  <ZoomIn size={16} className="text-gray-600" />
-                </button>
-              </div>
-
-              {/* Open PDF in new tab */}
+            {/* Right: zoom + utilities */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button onClick={() => setZoom(z => Math.max(0.3, +(z - 0.15).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom out">
+                <ZoomOut size={16} className="text-gray-600" />
+              </button>
+              <button onClick={() => setZoom(1)} className="px-1 py-0.5 hover:bg-gray-100 rounded transition-colors min-w-[36px] text-center" title="Reset zoom">
+                <span className="text-xs font-medium text-gray-500">{Math.round(zoom * 100)}%</span>
+              </button>
+              <button onClick={() => setZoom(z => Math.min(3, +(z + 0.15).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
+                <ZoomIn size={16} className="text-gray-600" />
+              </button>
               {fallbackPdfUrl && (
-                <a href={fallbackPdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded ml-1 hidden sm:block" title="Open PDF Full Screen">
+                <a href={fallbackPdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded hidden sm:block" title="Open PDF Full Screen">
                   <ExternalLink size={16} className="text-gray-600" />
                 </a>
               )}
-
-              {/* Fullscreen */}
-              <button onClick={toggleFullscreen} className="p-1.5 hover:bg-gray-100 rounded ml-1" title="Fullscreen">
+              <button onClick={toggleFullscreen} className="p-1.5 hover:bg-gray-100 rounded" title="Fullscreen">
                 {isFullscreen ? <Minimize2 size={16} className="text-gray-600" /> : <Maximize2 size={16} className="text-gray-600" />}
               </button>
             </div>
@@ -627,7 +670,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             <div className="bg-gray-800 px-4 py-2 flex items-center justify-between flex-shrink-0">
               <span className="text-white/80 text-sm font-medium">{edition.title}</span>
               <div className="flex items-center gap-3">
+                <button onClick={goToPrev} disabled={currentPage <= 1} className="p-1 hover:bg-white/10 rounded disabled:opacity-30"><ChevronLeft size={16} className="text-white" /></button>
                 <span className="text-white/60 text-sm">Page {currentPage} / {numPages}</span>
+                <button onClick={goToNext} disabled={currentPage >= numPages} className="p-1 hover:bg-white/10 rounded disabled:opacity-30"><ChevronRight size={16} className="text-white" /></button>
                 <button onClick={toggleFullscreen} className="p-1.5 hover:bg-white/10 rounded">
                   <Minimize2 size={16} className="text-white" />
                 </button>
@@ -651,6 +696,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 pdfAspectRatio={pdfAspectRatio}
                 pinch={pinch}
                 viewerScrollRef={viewerScrollRef}
+                goToPrev={goToPrev}
+                goToNext={goToNext}
               />
             ) : (
               <ReaderView
@@ -664,72 +711,10 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 isFullscreen={isFullscreen}
                 pinch={pinch}
                 viewerScrollRef={viewerScrollRef}
+                goToPrev={goToPrev}
+                goToNext={goToNext}
               />
             )}
-          </div>
-
-          {/* ── Floating Navigation Controls ── Always visible, overlaid on viewer */}
-          {/* Side arrows – always accessible regardless of zoom */}
-          <button
-            onClick={() => {
-              const newPage = Math.max(1, currentPage - 1);
-              setCurrentPage(newPage);
-              if (viewMode === 'flipbook' && flipbookRef.current) {
-                flipbookRef.current.pageFlip()?.flipPrev();
-              }
-            }}
-            disabled={currentPage <= 1}
-            className={`absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-              isFullscreen
-                ? 'bg-white/15 text-white hover:bg-white/30'
-                : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-            }`}
-            aria-label="Previous page"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button
-            onClick={() => {
-              const newPage = Math.min(numPages, currentPage + 1);
-              setCurrentPage(newPage);
-              if (viewMode === 'flipbook' && flipbookRef.current) {
-                flipbookRef.current.pageFlip()?.flipNext();
-              }
-            }}
-            disabled={currentPage >= numPages}
-            className={`absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-              isFullscreen
-                ? 'bg-white/15 text-white hover:bg-white/30'
-                : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-            }`}
-            aria-label="Next page"
-          >
-            <ChevronRight size={20} />
-          </button>
-
-          {/* Bottom floating page indicator + jump */}
-          <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm ${
-            isFullscreen ? 'bg-gray-800/80 text-white' : 'bg-white/90 border border-gray-200/50'
-          }`}>
-            <input
-              type="number"
-              min={1}
-              max={numPages}
-              value={currentPage}
-              onChange={e => {
-                const p = parseInt(e.target.value);
-                if (p >= 1 && p <= numPages) {
-                  setCurrentPage(p);
-                  if (viewMode === 'flipbook' && flipbookRef.current) {
-                    flipbookRef.current.pageFlip()?.flip(p - 1);
-                  }
-                }
-              }}
-              className={`w-12 text-center text-sm py-0.5 rounded border ${
-                isFullscreen ? 'bg-white/10 border-white/20 text-white' : 'border-gray-200 bg-white'
-              }`}
-            />
-            <span className={`text-sm ${isFullscreen ? 'text-white/60' : 'text-gray-500'}`}>/ {numPages}</span>
           </div>
         </div>
 
@@ -784,6 +769,8 @@ function FlipbookView({
   pdfAspectRatio,
   pinch,
   viewerScrollRef,
+  goToPrev,
+  goToNext,
 }: {
   FlipBookComponent: any;
   pageImages: Map<number, string>;
@@ -798,6 +785,8 @@ function FlipbookView({
   pdfAspectRatio: number;
   pinch: ReturnType<typeof usePinchZoom>;
   viewerScrollRef: React.RefObject<HTMLDivElement>;
+  goToPrev: () => void;
+  goToNext: () => void;
 }) {
   if (!FlipBookComponent || numPages === 0) {
     return (
@@ -810,79 +799,105 @@ function FlipbookView({
   const width = isMobile ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400) : 500;
   const height = Math.round(width * pdfAspectRatio);
 
-  // When zoomed, we overlay a transparent touch-capture layer on top of the flipbook
-  // to intercept all touch events and prevent react-pageflip from interpreting them as swipes.
-  const isZoomed = zoom > 1;
+  // Calculate container height to match VISUAL size (eliminates empty space at zoom < 1)
+  const visualHeight = Math.round((height + 20) * zoom);
+  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const maxH = isFullscreen ? vpH - 200 : Math.round(vpH * 0.78);
+  const containerH = Math.min(visualHeight, maxH);
+  const needsScroll = visualHeight > maxH;
 
   return (
-    <div
-      ref={viewerScrollRef}
-      className="overflow-auto relative"
-      style={{
-        maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '80vh',
-        touchAction: isZoomed ? 'none' : 'auto',
-      }}
-      onTouchStart={pinch.onTouchStart}
-      onTouchMove={pinch.onTouchMove}
-      onTouchEnd={pinch.onTouchEnd}
-    >
+    <div className="relative">
+      {/* Scroll wrapper — height matches visual content size */}
       <div
-        className="flex items-start justify-center"
+        ref={viewerScrollRef}
         style={{
-          transform: `scale(${zoom})`,
-          transformOrigin: 'top center',
-          minHeight: `${height + 40}px`,
+          height: containerH,
+          overflow: needsScroll ? 'auto' : 'hidden',
+          touchAction: zoom > 1 ? 'none' : 'auto',
         }}
+        onTouchStart={pinch.onTouchStart}
+        onTouchMove={pinch.onTouchMove}
+        onTouchEnd={pinch.onTouchEnd}
       >
-        {/* Touch blocker overlay — intercepts touch when zoomed or pinching to prevent page flips */}
-        {isZoomed && (
-          <div
-            className="absolute inset-0 z-30"
-            style={{ touchAction: 'none' }}
-            onTouchStart={e => { e.stopPropagation(); }}
-            onTouchMove={e => { e.stopPropagation(); }}
-          />
-        )}
-        <FlipBookComponent
-          ref={flipbookRef}
-          width={width}
-          height={height}
-          size="stretch"
-          minWidth={280}
-          maxWidth={600}
-          minHeight={Math.round(280 * pdfAspectRatio)}
-          maxHeight={Math.round(600 * pdfAspectRatio)}
-          showCover={true}
-          mobileScrollSupport={!isZoomed}
-          onFlip={(e: any) => {
-            // Only accept flip events when not pinching and not zoomed
-            if (!pinch.isPinching() && zoom <= 1) {
-              setCurrentPage((e?.data ?? 0) + 1);
-            }
+        <div
+          className="flex items-start justify-center"
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top center',
           }}
-          className="shadow-2xl"
-          useMouseEvents={!isZoomed}
-          swipeDistance={isZoomed ? 9999 : 30}
-          showPageCorners={!isZoomed}
-          flippingTime={600}
-          disableFlipByClick={isZoomed}
         >
-          {pageNumbers.map(pageNum => {
-            const imgSrc = pageImages.get(pageNum);
-            return (
-              <div key={pageNum} className="bg-white">
-                {imgSrc ? (
-                  <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </FlipBookComponent>
+          {/* Touch blocker — MOBILE ONLY when zoomed — prevents swipe-flip but bubbles to pinch handler */}
+          {isMobile && zoom > 1 && (
+            <div className="absolute inset-0 z-30" style={{ touchAction: 'none' }} />
+          )}
+          <FlipBookComponent
+            ref={flipbookRef}
+            width={width}
+            height={height}
+            size="stretch"
+            minWidth={280}
+            maxWidth={600}
+            minHeight={Math.round(280 * pdfAspectRatio)}
+            maxHeight={Math.round(600 * pdfAspectRatio)}
+            showCover={true}
+            mobileScrollSupport={zoom <= 1}
+            onFlip={(e: any) => {
+              // Accept flip events whenever not mid-pinch
+              if (!pinch.isPinching()) {
+                setCurrentPage((e?.data ?? 0) + 1);
+              }
+            }}
+            className="shadow-2xl"
+            useMouseEvents={true}
+            swipeDistance={zoom > 1 ? 9999 : 30}
+            showPageCorners={zoom <= 1}
+            flippingTime={600}
+            disableFlipByClick={false}
+          >
+            {pageNumbers.map(pageNum => {
+              const imgSrc = pageImages.get(pageNum);
+              return (
+                <div key={pageNum} className="bg-white">
+                  {imgSrc ? (
+                    <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                      <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </FlipBookComponent>
+        </div>
       </div>
+
+      {/* Side navigation arrows — positioned relative to the viewer wrapper, always visible */}
+      <button
+        onClick={goToPrev}
+        disabled={currentPage <= 1}
+        className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+          isFullscreen
+            ? 'bg-white/15 text-white hover:bg-white/30'
+            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+        }`}
+        aria-label="Previous page"
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <button
+        onClick={goToNext}
+        disabled={currentPage >= numPages}
+        className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+          isFullscreen
+            ? 'bg-white/15 text-white hover:bg-white/30'
+            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+        }`}
+        aria-label="Next page"
+      >
+        <ChevronRight size={20} />
+      </button>
     </div>
   );
 }
@@ -899,6 +914,8 @@ function ReaderView({
   isFullscreen,
   pinch,
   viewerScrollRef,
+  goToPrev,
+  goToNext,
 }: {
   pageImages: Map<number, string>;
   numPages: number;
@@ -910,44 +927,73 @@ function ReaderView({
   isFullscreen: boolean;
   pinch: ReturnType<typeof usePinchZoom>;
   viewerScrollRef: React.RefObject<HTMLDivElement>;
+  goToPrev: () => void;
+  goToNext: () => void;
 }) {
   const imgSrc = pageImages.get(currentPage);
-  const isZoomed = zoom > 1;
 
   return (
-    <div
-      ref={viewerScrollRef}
-      className="overflow-auto"
-      style={{
-        maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '80vh',
-        touchAction: isZoomed ? 'none' : 'auto',
-      }}
-      onTouchStart={(e) => { pinch.onTouchStart(e); handleTouchStart(e); }}
-      onTouchMove={pinch.onTouchMove}
-      onTouchEnd={(e) => { pinch.onTouchEnd(e); handleTouchEnd(e); }}
-    >
+    <div className="relative">
       <div
-        className="flex items-start justify-center transition-transform duration-200"
+        ref={viewerScrollRef}
+        className="overflow-auto"
         style={{
-          transform: `scale(${zoom})`,
-          transformOrigin: 'top center',
+          maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '78vh',
+          touchAction: zoom > 1 ? 'none' : 'auto',
         }}
+        onTouchStart={(e) => { pinch.onTouchStart(e); handleTouchStart(e); }}
+        onTouchMove={pinch.onTouchMove}
+        onTouchEnd={(e) => { pinch.onTouchEnd(e); handleTouchEnd(e); }}
       >
-        <div className="shadow-2xl rounded-lg overflow-hidden bg-white">
-          {imgSrc ? (
-            <img
-              src={imgSrc}
-              alt={`Page ${currentPage}`}
-              className="max-w-full h-auto block"
-              style={{ maxHeight: isFullscreen ? '80vh' : '75vh' }}
-            />
-          ) : (
-            <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">
-              <Loader2 className="w-10 h-10 animate-spin text-brand-purple/30" />
-            </div>
-          )}
+        <div
+          className="flex items-start justify-center transition-transform duration-200"
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top center',
+          }}
+        >
+          <div className="shadow-2xl rounded-lg overflow-hidden bg-white">
+            {imgSrc ? (
+              <img
+                src={imgSrc}
+                alt={`Page ${currentPage}`}
+                className="max-w-full h-auto block"
+                style={{ maxHeight: isFullscreen ? '80vh' : '75vh' }}
+              />
+            ) : (
+              <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">
+                <Loader2 className="w-10 h-10 animate-spin text-brand-purple/30" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Side navigation arrows */}
+      <button
+        onClick={goToPrev}
+        disabled={currentPage <= 1}
+        className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+          isFullscreen
+            ? 'bg-white/15 text-white hover:bg-white/30'
+            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+        }`}
+        aria-label="Previous page"
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <button
+        onClick={goToNext}
+        disabled={currentPage >= numPages}
+        className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+          isFullscreen
+            ? 'bg-white/15 text-white hover:bg-white/30'
+            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+        }`}
+        aria-label="Next page"
+      >
+        <ChevronRight size={20} />
+      </button>
     </div>
   );
 }
