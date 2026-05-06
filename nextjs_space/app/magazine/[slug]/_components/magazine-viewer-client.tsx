@@ -10,6 +10,88 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import ShareButtons from './share-buttons';
 
+// ─── Pinch-zoom & gesture utilities ──────────────────────────────────
+function getTouchDistance(t1: React.Touch, t2: React.Touch) {
+  return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+}
+
+function usePinchZoom(
+  zoom: number,
+  setZoom: React.Dispatch<React.SetStateAction<number>>,
+  containerRef: React.RefObject<HTMLDivElement>,
+) {
+  const gestureRef = useRef<{
+    isPinching: boolean;
+    startDist: number;
+    startZoom: number;
+    lastPanX: number;
+    lastPanY: number;
+    startTouchX: number;
+    startTouchY: number;
+  }>({
+    isPinching: false,
+    startDist: 0,
+    startZoom: 1,
+    lastPanX: 0,
+    lastPanY: 0,
+    startTouchX: 0,
+    startTouchY: 0,
+  });
+
+  // Return whether we are mid-pinch (to block page flips)
+  const isPinching = useCallback(() => gestureRef.current.isPinching, []);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Two fingers → start pinch zoom
+      gestureRef.current.isPinching = true;
+      gestureRef.current.startDist = getTouchDistance(e.touches[0], e.touches[1]);
+      gestureRef.current.startZoom = zoom;
+      e.stopPropagation();
+    } else if (e.touches.length === 1 && zoom > 1) {
+      // Single finger when zoomed → start pan
+      gestureRef.current.lastPanX = e.touches[0].clientX;
+      gestureRef.current.lastPanY = e.touches[0].clientY;
+      gestureRef.current.startTouchX = e.touches[0].clientX;
+      gestureRef.current.startTouchY = e.touches[0].clientY;
+    }
+  }, [zoom]);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && gestureRef.current.isPinching) {
+      // Pinch zoom in progress
+      const dist = getTouchDistance(e.touches[0], e.touches[1]);
+      const scale = dist / gestureRef.current.startDist;
+      const newZoom = Math.max(0.5, Math.min(3, gestureRef.current.startZoom * scale));
+      setZoom(newZoom);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.touches.length === 1 && zoom > 1 && containerRef.current) {
+      // Pan when zoomed
+      const dx = gestureRef.current.lastPanX - e.touches[0].clientX;
+      const dy = gestureRef.current.lastPanY - e.touches[0].clientY;
+      containerRef.current.scrollLeft += dx;
+      containerRef.current.scrollTop += dy;
+      gestureRef.current.lastPanX = e.touches[0].clientX;
+      gestureRef.current.lastPanY = e.touches[0].clientY;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, [zoom, setZoom, containerRef]);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      // Give a small delay before clearing isPinching so the flipbook
+      // touchEnd handler doesn't interpret the lift as a swipe
+      setTimeout(() => {
+        gestureRef.current.isPinching = false;
+      }, 100);
+    }
+  }, []);
+
+  return { onTouchStart, onTouchMove, onTouchEnd, isPinching };
+}
+
 interface EditionData {
   id: string;
   title: string;
@@ -51,6 +133,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [renderingPages, setRenderingPages] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const flipbookRef = useRef<any>(null);
+  const viewerScrollRef = useRef<HTMLDivElement>(null!); // non-null assertion for ref compatibility
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [FlipBookComponent, setFlipBookComponent] = useState<any>(null);
@@ -58,6 +141,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
   // Real PDF page aspect ratio (height / width)
   const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414); // default A4, updated after first render
+
+  // Pinch-zoom hook for mobile gesture handling
+  const pinch = usePinchZoom(zoom, setZoom, viewerScrollRef);
 
   // Detect mobile
   useEffect(() => {
@@ -271,14 +357,17 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  // Touch/swipe handling for reader mode
+  // Touch/swipe handling for reader mode — blocked when zoomed or pinching
   const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    if (zoom > 1 || pinch.isPinching()) return; // don't track swipe when zoomed
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setTouchStart({ x: touch.clientX, y: touch.clientY });
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart) return;
+    if (!touchStart || zoom > 1 || pinch.isPinching()) { setTouchStart(null); return; }
     const touch = e.changedTouches[0];
     const dx = touch.clientX - touchStart.x;
     const dy = touch.clientY - touchStart.y;
@@ -533,7 +622,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         </div>
 
         {/* Main Viewer */}
-        <div ref={containerRef} className={`${isFullscreen ? 'bg-gray-900 flex flex-col' : ''}`}>
+        <div ref={containerRef} className={`relative ${isFullscreen ? 'bg-gray-900 flex flex-col' : ''}`}>
           {isFullscreen && (
             <div className="bg-gray-800 px-4 py-2 flex items-center justify-between flex-shrink-0">
               <span className="text-white/80 text-sm font-medium">{edition.title}</span>
@@ -560,6 +649,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 isMobile={isMobile}
                 zoom={zoom}
                 pdfAspectRatio={pdfAspectRatio}
+                pinch={pinch}
+                viewerScrollRef={viewerScrollRef}
               />
             ) : (
               <ReaderView
@@ -571,72 +662,74 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 handleTouchStart={handleTouchStart}
                 handleTouchEnd={handleTouchEnd}
                 isFullscreen={isFullscreen}
+                pinch={pinch}
+                viewerScrollRef={viewerScrollRef}
               />
             )}
           </div>
 
-          {/* Navigation bar */}
-          <div className={`${isFullscreen ? 'bg-gray-800' : 'bg-white border-t border-gray-200'} px-4 py-3 flex-shrink-0`}>
-            <div className="max-w-[1400px] mx-auto flex items-center justify-center gap-4">
-              <button
-                onClick={() => {
-                  const newPage = Math.max(1, currentPage - 1);
-                  setCurrentPage(newPage);
-                  if (viewMode === 'flipbook' && flipbookRef.current) {
-                    flipbookRef.current.pageFlip()?.flipPrev();
-                  }
-                }}
-                disabled={currentPage <= 1}
-                className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                  isFullscreen
-                    ? 'bg-white/10 text-white hover:bg-white/20 disabled:opacity-30'
-                    : 'bg-brand-purple text-white hover:bg-brand-purple-light disabled:opacity-30'
-                }`}
-              >
-                <ChevronLeft size={16} /> Prev
-              </button>
+          {/* ── Floating Navigation Controls ── Always visible, overlaid on viewer */}
+          {/* Side arrows – always accessible regardless of zoom */}
+          <button
+            onClick={() => {
+              const newPage = Math.max(1, currentPage - 1);
+              setCurrentPage(newPage);
+              if (viewMode === 'flipbook' && flipbookRef.current) {
+                flipbookRef.current.pageFlip()?.flipPrev();
+              }
+            }}
+            disabled={currentPage <= 1}
+            className={`absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+              isFullscreen
+                ? 'bg-white/15 text-white hover:bg-white/30'
+                : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+            }`}
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            onClick={() => {
+              const newPage = Math.min(numPages, currentPage + 1);
+              setCurrentPage(newPage);
+              if (viewMode === 'flipbook' && flipbookRef.current) {
+                flipbookRef.current.pageFlip()?.flipNext();
+              }
+            }}
+            disabled={currentPage >= numPages}
+            className={`absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+              isFullscreen
+                ? 'bg-white/15 text-white hover:bg-white/30'
+                : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+            }`}
+            aria-label="Next page"
+          >
+            <ChevronRight size={20} />
+          </button>
 
-              {/* Page jump */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  max={numPages}
-                  value={currentPage}
-                  onChange={e => {
-                    const p = parseInt(e.target.value);
-                    if (p >= 1 && p <= numPages) {
-                      setCurrentPage(p);
-                      if (viewMode === 'flipbook' && flipbookRef.current) {
-                        flipbookRef.current.pageFlip()?.flip(p - 1);
-                      }
-                    }
-                  }}
-                  className={`w-14 text-center text-sm py-1 rounded border ${
-                    isFullscreen ? 'bg-white/10 border-white/20 text-white' : 'border-gray-200'
-                  }`}
-                />
-                <span className={`text-sm ${isFullscreen ? 'text-white/60' : 'text-gray-500'}`}>/ {numPages}</span>
-              </div>
-
-              <button
-                onClick={() => {
-                  const newPage = Math.min(numPages, currentPage + 1);
-                  setCurrentPage(newPage);
+          {/* Bottom floating page indicator + jump */}
+          <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm ${
+            isFullscreen ? 'bg-gray-800/80 text-white' : 'bg-white/90 border border-gray-200/50'
+          }`}>
+            <input
+              type="number"
+              min={1}
+              max={numPages}
+              value={currentPage}
+              onChange={e => {
+                const p = parseInt(e.target.value);
+                if (p >= 1 && p <= numPages) {
+                  setCurrentPage(p);
                   if (viewMode === 'flipbook' && flipbookRef.current) {
-                    flipbookRef.current.pageFlip()?.flipNext();
+                    flipbookRef.current.pageFlip()?.flip(p - 1);
                   }
-                }}
-                disabled={currentPage >= numPages}
-                className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                  isFullscreen
-                    ? 'bg-white/10 text-white hover:bg-white/20 disabled:opacity-30'
-                    : 'bg-brand-purple text-white hover:bg-brand-purple-light disabled:opacity-30'
-                }`}
-              >
-                Next <ChevronRight size={16} />
-              </button>
-            </div>
+                }
+              }}
+              className={`w-12 text-center text-sm py-0.5 rounded border ${
+                isFullscreen ? 'bg-white/10 border-white/20 text-white' : 'border-gray-200 bg-white'
+              }`}
+            />
+            <span className={`text-sm ${isFullscreen ? 'text-white/60' : 'text-gray-500'}`}>/ {numPages}</span>
           </div>
         </div>
 
@@ -676,7 +769,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   );
 }
 
-// Flipbook View Component
+// ─── Flipbook View Component ─────────────────────────────────────────
 function FlipbookView({
   FlipBookComponent,
   pageImages,
@@ -689,6 +782,8 @@ function FlipbookView({
   isMobile,
   zoom,
   pdfAspectRatio,
+  pinch,
+  viewerScrollRef,
 }: {
   FlipBookComponent: any;
   pageImages: Map<number, string>;
@@ -701,6 +796,8 @@ function FlipbookView({
   isMobile: boolean;
   zoom: number;
   pdfAspectRatio: number;
+  pinch: ReturnType<typeof usePinchZoom>;
+  viewerScrollRef: React.RefObject<HTMLDivElement>;
 }) {
   if (!FlipBookComponent || numPages === 0) {
     return (
@@ -710,23 +807,42 @@ function FlipbookView({
     );
   }
 
-  const width = isMobile ? Math.min(window.innerWidth - 32, 400) : 500;
+  const width = isMobile ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400) : 500;
   const height = Math.round(width * pdfAspectRatio);
+
+  // When zoomed, we overlay a transparent touch-capture layer on top of the flipbook
+  // to intercept all touch events and prevent react-pageflip from interpreting them as swipes.
+  const isZoomed = zoom > 1;
 
   return (
     <div
-      className="overflow-auto"
-      style={{ minHeight: isFullscreen ? 'calc(100vh - 200px)' : undefined }}
+      ref={viewerScrollRef}
+      className="overflow-auto relative"
+      style={{
+        maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '80vh',
+        touchAction: isZoomed ? 'none' : 'auto',
+      }}
+      onTouchStart={pinch.onTouchStart}
+      onTouchMove={pinch.onTouchMove}
+      onTouchEnd={pinch.onTouchEnd}
     >
       <div
         className="flex items-start justify-center"
         style={{
           transform: `scale(${zoom})`,
           transformOrigin: 'top center',
-          minHeight: isFullscreen ? 'calc(100vh - 200px)' : `${height + 20}px`,
-          paddingTop: zoom <= 1 ? `${Math.max(0, (isFullscreen ? (window.innerHeight - 200 - height) / 2 : 0))}px` : '0',
+          minHeight: `${height + 40}px`,
         }}
       >
+        {/* Touch blocker overlay — intercepts touch when zoomed or pinching to prevent page flips */}
+        {isZoomed && (
+          <div
+            className="absolute inset-0 z-30"
+            style={{ touchAction: 'none' }}
+            onTouchStart={e => { e.stopPropagation(); }}
+            onTouchMove={e => { e.stopPropagation(); }}
+          />
+        )}
         <FlipBookComponent
           ref={flipbookRef}
           width={width}
@@ -737,13 +853,19 @@ function FlipbookView({
           minHeight={Math.round(280 * pdfAspectRatio)}
           maxHeight={Math.round(600 * pdfAspectRatio)}
           showCover={true}
-          mobileScrollSupport={true}
-          onFlip={(e: any) => setCurrentPage((e?.data ?? 0) + 1)}
+          mobileScrollSupport={!isZoomed}
+          onFlip={(e: any) => {
+            // Only accept flip events when not pinching and not zoomed
+            if (!pinch.isPinching() && zoom <= 1) {
+              setCurrentPage((e?.data ?? 0) + 1);
+            }
+          }}
           className="shadow-2xl"
-          useMouseEvents={true}
-          swipeDistance={30}
-          showPageCorners={true}
+          useMouseEvents={!isZoomed}
+          swipeDistance={isZoomed ? 9999 : 30}
+          showPageCorners={!isZoomed}
           flippingTime={600}
+          disableFlipByClick={isZoomed}
         >
           {pageNumbers.map(pageNum => {
             const imgSrc = pageImages.get(pageNum);
@@ -765,7 +887,7 @@ function FlipbookView({
   );
 }
 
-// Reader View Component
+// ─── Reader View Component ───────────────────────────────────────────
 function ReaderView({
   pageImages,
   numPages,
@@ -775,6 +897,8 @@ function ReaderView({
   handleTouchStart,
   handleTouchEnd,
   isFullscreen,
+  pinch,
+  viewerScrollRef,
 }: {
   pageImages: Map<number, string>;
   numPages: number;
@@ -784,15 +908,23 @@ function ReaderView({
   handleTouchStart: (e: React.TouchEvent) => void;
   handleTouchEnd: (e: React.TouchEvent) => void;
   isFullscreen: boolean;
+  pinch: ReturnType<typeof usePinchZoom>;
+  viewerScrollRef: React.RefObject<HTMLDivElement>;
 }) {
   const imgSrc = pageImages.get(currentPage);
+  const isZoomed = zoom > 1;
 
   return (
     <div
+      ref={viewerScrollRef}
       className="overflow-auto"
-      style={{ maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '80vh' }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      style={{
+        maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '80vh',
+        touchAction: isZoomed ? 'none' : 'auto',
+      }}
+      onTouchStart={(e) => { pinch.onTouchStart(e); handleTouchStart(e); }}
+      onTouchMove={pinch.onTouchMove}
+      onTouchEnd={(e) => { pinch.onTouchEnd(e); handleTouchEnd(e); }}
     >
       <div
         className="flex items-start justify-center transition-transform duration-200"
