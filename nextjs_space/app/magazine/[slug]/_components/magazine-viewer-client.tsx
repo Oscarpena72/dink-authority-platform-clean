@@ -18,71 +18,44 @@ function getTouchDistance(t1: React.Touch, t2: React.Touch) {
 function usePinchZoom(
   zoom: number,
   setZoom: React.Dispatch<React.SetStateAction<number>>,
-  containerRef: React.RefObject<HTMLDivElement>,
+  _containerRef: React.RefObject<HTMLDivElement>,
 ) {
   const gestureRef = useRef<{
     isPinching: boolean;
     startDist: number;
     startZoom: number;
-    lastPanX: number;
-    lastPanY: number;
-    startTouchX: number;
-    startTouchY: number;
   }>({
     isPinching: false,
     startDist: 0,
     startZoom: 1,
-    lastPanX: 0,
-    lastPanY: 0,
-    startTouchX: 0,
-    startTouchY: 0,
   });
 
-  // Return whether we are mid-pinch (to block page flips)
   const isPinching = useCallback(() => gestureRef.current.isPinching, []);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // Two fingers → start pinch zoom
       gestureRef.current.isPinching = true;
       gestureRef.current.startDist = getTouchDistance(e.touches[0], e.touches[1]);
       gestureRef.current.startZoom = zoom;
       e.stopPropagation();
-    } else if (e.touches.length === 1 && zoom > 1) {
-      // Single finger when zoomed → start pan
-      gestureRef.current.lastPanX = e.touches[0].clientX;
-      gestureRef.current.lastPanY = e.touches[0].clientY;
-      gestureRef.current.startTouchX = e.touches[0].clientX;
-      gestureRef.current.startTouchY = e.touches[0].clientY;
     }
+    // Single-finger pan is handled by native overflow scrolling (touchAction: pan-x pan-y)
   }, [zoom]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && gestureRef.current.isPinching) {
-      // Pinch zoom in progress
       const dist = getTouchDistance(e.touches[0], e.touches[1]);
       const scale = dist / gestureRef.current.startDist;
       const newZoom = Math.max(0.5, Math.min(3, gestureRef.current.startZoom * scale));
       setZoom(newZoom);
       e.preventDefault();
       e.stopPropagation();
-    } else if (e.touches.length === 1 && zoom > 1 && containerRef.current) {
-      // Pan when zoomed
-      const dx = gestureRef.current.lastPanX - e.touches[0].clientX;
-      const dy = gestureRef.current.lastPanY - e.touches[0].clientY;
-      containerRef.current.scrollLeft += dx;
-      containerRef.current.scrollTop += dy;
-      gestureRef.current.lastPanX = e.touches[0].clientX;
-      gestureRef.current.lastPanY = e.touches[0].clientY;
-      e.preventDefault();
-      e.stopPropagation();
     }
-  }, [zoom, setZoom, containerRef]);
+    // Single-finger moves use native scrolling — no manual pan needed
+  }, [setZoom]);
 
   const onTouchEnd = useCallback((e: React.TouchEvent) => {
     if (e.touches.length < 2) {
-      // Give a small delay before clearing isPinching so the flipbook
-      // touchEnd handler doesn't interpret the lift as a swipe
       setTimeout(() => {
         gestureRef.current.isPinching = false;
       }, 100);
@@ -800,77 +773,78 @@ function FlipbookView({
   const width = isMobile ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400) : 500;
   const height = Math.round(width * pdfAspectRatio);
 
-  // Calculate container height to match VISUAL size (eliminates empty space at zoom < 1)
-  const visualHeight = Math.round((height + 20) * zoom);
+  const isZoomed = zoom > 1;
+  // CSS transform: scale() doesn't change layout dimensions.
+  // Negative-margin trick compensates so the scroll container sees the *visual* size.
+  const mbPx = Math.round(height * (zoom - 1)); // negative shrinks layout when zoom<1, positive expands when zoom>1
+  const mrPx = isZoomed ? Math.round(width * (zoom - 1)) : 0;
+
   const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const maxH = isFullscreen ? vpH - 200 : Math.round(vpH * 0.78);
-  const containerH = Math.min(visualHeight, maxH);
-  const needsScroll = visualHeight > maxH;
+  const availableH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 120);
 
   return (
     <div className="relative">
-      {/* Scroll wrapper — height matches visual content size */}
+      {/* Scroll wrapper — overflow:auto always so zoomed content is pannable */}
       <div
         ref={viewerScrollRef}
         style={{
-          height: containerH,
-          overflow: needsScroll ? 'auto' : 'hidden',
-          touchAction: zoom > 1 ? 'none' : 'auto',
+          maxHeight: availableH,
+          overflow: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: isZoomed ? 'pan-x pan-y' : 'auto',
         }}
         onTouchStart={pinch.onTouchStart}
         onTouchMove={pinch.onTouchMove}
         onTouchEnd={pinch.onTouchEnd}
       >
-        <div
-          className="flex items-start justify-center"
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top center',
-          }}
-        >
-          {/* Touch blocker — MOBILE ONLY when zoomed — prevents swipe-flip but bubbles to pinch handler */}
-          {isMobile && zoom > 1 && (
-            <div className="absolute inset-0 z-30" style={{ touchAction: 'none' }} />
-          )}
-          <FlipBookComponent
-            ref={flipbookRef}
-            width={width}
-            height={height}
-            size="stretch"
-            minWidth={280}
-            maxWidth={600}
-            minHeight={Math.round(280 * pdfAspectRatio)}
-            maxHeight={Math.round(600 * pdfAspectRatio)}
-            showCover={true}
-            mobileScrollSupport={zoom <= 1}
-            onFlip={(e: any) => {
-              // Accept flip events whenever not mid-pinch
-              if (!pinch.isPinching()) {
-                setCurrentPage((e?.data ?? 0) + 1);
-              }
+        <div className={`flex items-start ${isZoomed ? 'justify-start' : 'justify-center'}`}>
+          <div
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: isZoomed ? 'top left' : 'top center',
+              marginBottom: mbPx,
+              marginRight: mrPx,
             }}
-            className="shadow-2xl"
-            useMouseEvents={true}
-            swipeDistance={zoom > 1 ? 9999 : 30}
-            showPageCorners={zoom <= 1}
-            flippingTime={600}
-            disableFlipByClick={false}
           >
-            {pageNumbers.map(pageNum => {
-              const imgSrc = pageImages.get(pageNum);
-              return (
-                <div key={pageNum} className="bg-white">
-                  {imgSrc ? (
-                    <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                      <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </FlipBookComponent>
+            <FlipBookComponent
+              ref={flipbookRef}
+              width={width}
+              height={height}
+              size="stretch"
+              minWidth={280}
+              maxWidth={600}
+              minHeight={Math.round(280 * pdfAspectRatio)}
+              maxHeight={Math.round(600 * pdfAspectRatio)}
+              showCover={true}
+              mobileScrollSupport={!isZoomed}
+              onFlip={(e: any) => {
+                if (!pinch.isPinching()) {
+                  setCurrentPage((e?.data ?? 0) + 1);
+                }
+              }}
+              className="shadow-2xl"
+              useMouseEvents={true}
+              swipeDistance={isZoomed ? 9999 : 30}
+              showPageCorners={!isZoomed}
+              flippingTime={600}
+              disableFlipByClick={false}
+            >
+              {pageNumbers.map(pageNum => {
+                const imgSrc = pageImages.get(pageNum);
+                return (
+                  <div key={pageNum} className="bg-white">
+                    {imgSrc ? (
+                      <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                        <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </FlipBookComponent>
+          </div>
         </div>
       </div>
 
@@ -932,6 +906,12 @@ function ReaderView({
   goToNext: () => void;
 }) {
   const imgSrc = pageImages.get(currentPage);
+  const isZoomed = zoom > 1;
+  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const availableH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 120);
+  // Base width for the reader image (no CSS transform — use real dimensions for proper scroll)
+  const baseW = typeof window !== 'undefined' ? Math.min(window.innerWidth - 40, 600) : 500;
+  const imgW = Math.round(baseW * zoom);
 
   return (
     <div className="relative">
@@ -939,27 +919,22 @@ function ReaderView({
         ref={viewerScrollRef}
         className="overflow-auto"
         style={{
-          maxHeight: isFullscreen ? 'calc(100vh - 200px)' : '78vh',
-          touchAction: zoom > 1 ? 'none' : 'auto',
+          maxHeight: availableH,
+          WebkitOverflowScrolling: 'touch',
+          touchAction: isZoomed ? 'pan-x pan-y' : 'auto',
         }}
         onTouchStart={(e) => { pinch.onTouchStart(e); handleTouchStart(e); }}
         onTouchMove={pinch.onTouchMove}
         onTouchEnd={(e) => { pinch.onTouchEnd(e); handleTouchEnd(e); }}
       >
-        <div
-          className="flex items-start justify-center transition-transform duration-200"
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top center',
-          }}
-        >
-          <div className="shadow-2xl rounded-lg overflow-hidden bg-white">
+        <div className={`flex items-start ${isZoomed ? 'justify-start' : 'justify-center'} p-2`}>
+          <div className="shadow-2xl rounded-lg overflow-hidden bg-white flex-shrink-0">
             {imgSrc ? (
               <img
                 src={imgSrc}
                 alt={`Page ${currentPage}`}
-                className="max-w-full h-auto block"
-                style={{ maxHeight: isFullscreen ? '80vh' : '75vh' }}
+                className="block"
+                style={{ width: imgW, height: 'auto', maxWidth: 'none' }}
               />
             ) : (
               <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">

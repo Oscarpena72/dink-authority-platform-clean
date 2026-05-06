@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
           tokenPayload: JSON.stringify({ userId: (session.user as any)?.id ?? 'unknown' }),
         };
       },
-      onUploadCompleted: async ({ blob }) => {
+      onUploadCompleted: async ({ blob }: { blob: any }) => {
         // Optional: save to DB or log
         console.log('[blob-upload] completed:', blob.url, blob.pathname);
       },
