@@ -4,13 +4,13 @@ import type { Metadata } from 'next';
 import MagazineArchiveClient from './_components/magazine-archive-client';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteUrl = process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com';
+  const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
   return {
-    title: 'Magazine Archive | Dink Authority',
-    description: 'Browse all editions of Dink Authority Magazine. Read the latest and past issues online.',
+    title: 'Pickleball Magazine – All Editions | Dink Authority',
+    description: 'Browse every issue of Dink Authority, a leading pickleball magazine featuring top players, tournaments, tips, and stories from the global pickleball community.',
     openGraph: {
-      title: 'Magazine Archive | Dink Authority',
-      description: 'Browse all editions of Dink Authority Magazine.',
+      title: 'Pickleball Magazine – All Editions | Dink Authority',
+      description: 'Browse every issue of Dink Authority, a leading pickleball magazine featuring top players, tournaments, and global pickleball stories.',
       url: `${siteUrl}/magazine`,
       type: 'website',
     },

@@ -20,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: siteUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    { url: `${siteUrl}/magazine`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     { url: `${siteUrl}/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
@@ -35,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${siteUrl}/magazine/${e?.slug ?? ''}`,
       lastModified: e?.updatedAt ?? new Date(),
       changeFrequency: 'monthly' as const,
-      priority: 0.7,
+      priority: 0.85,
     })),
   ];
 }

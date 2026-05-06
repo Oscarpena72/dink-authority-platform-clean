@@ -9,22 +9,42 @@ interface Props {
   params: { slug: string };
 }
 
+/** Build an SEO-optimized title: "Month Year Pickleball Magazine Issue – Cover Athlete | Dink Authority" */
+function buildSeoTitle(edition: { publishDate: Date; coverAthlete: string | null; issueNumber: string | null; title: string }): string {
+  const dateStr = edition.publishDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const athlete = edition.coverAthlete || edition.title.split('–')[0]?.trim() || 'Featured Edition';
+  return `${dateStr} Pickleball Magazine Issue – ${athlete} | Dink Authority`;
+}
+
+/** Build SEO meta description */
+function buildSeoDescription(edition: { publishDate: Date; coverAthlete: string | null; seoDescription: string | null; description: string | null; title: string }): string {
+  if (edition.seoDescription) return edition.seoDescription;
+  const dateStr = edition.publishDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const athlete = edition.coverAthlete || edition.title;
+  return `Discover the ${dateStr} issue of Dink Authority, a leading pickleball magazine featuring ${athlete}, top players, tournaments, and global pickleball stories.`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
-  if (!edition) return { title: 'Magazine - Dink Authority' };
+  if (!edition) return { title: 'Pickleball Magazine – Dink Authority' };
 
   const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
   const pageUrl = `${siteUrl}/magazine/${edition.slug}`;
   const ogImageUrl = edition.slug
     ? `${siteUrl}/api/og-image?type=magazine&slug=${encodeURIComponent(edition.slug)}`
     : (edition.coverUrl ?? `${siteUrl}/og-image.png`);
-  const description = edition.description ?? `Read ${edition.title} - Dink Authority Magazine`;
+
+  const title = buildSeoTitle(edition);
+  const description = buildSeoDescription(edition);
 
   return {
-    title: `${edition.title} | Dink Authority Magazine`,
+    title,
     description,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
-      title: edition.title,
+      title,
       description,
       url: pageUrl,
       siteName: 'Dink Authority',
@@ -35,13 +55,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           width: 1200,
           height: 630,
           type: 'image/jpeg',
-          alt: edition.title,
+          alt: title,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: edition.title,
+      title,
       description,
       images: [ogImageUrl],
     },
@@ -51,6 +71,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MagazineViewerPage({ params }: Props) {
   const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
   if (!edition) notFound();
+
+  const dateStr = edition.publishDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const serialized = {
     id: edition.id,
@@ -65,6 +87,9 @@ export default async function MagazineViewerPage({ params }: Props) {
     externalUrl: edition.externalUrl,
     isCurrent: edition.isCurrent,
     publishDate: edition.publishDate.toISOString(),
+    coverAthlete: edition.coverAthlete,
+    seoContent: edition.seoContent,
+    seoH1: `${dateStr} Pickleball Magazine – ${edition.coverAthlete || edition.title.split('–')[0]?.trim() || 'Featured Edition'}`,
   };
 
   return <MagazineViewerClient edition={serialized} />;

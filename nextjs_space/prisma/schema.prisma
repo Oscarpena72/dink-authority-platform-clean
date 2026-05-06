@@ -319,24 +319,27 @@ model CommunityCorrespondent {
 }
 
 model MagazineEdition {
-  id           String   @id @default(cuid())
-  title        String
-  issueNumber  String?
-  coverUrl     String?
-  description  String?
-  pdfUrl       String?
-  externalUrl  String?
-  isCurrent    Boolean  @default(false)
-  publishDate  DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  pdfCloudPath String?
-  pdfPageCount Int?
-  slug         String?  @unique
-  countries    String   @default("[\"central\"]")
-  viewCount    Int      @default(0)
-  lastViewedAt DateTime?
-  currentFor   String   @default("[]")
+  id             String   @id @default(cuid())
+  title          String
+  issueNumber    String?
+  coverUrl       String?
+  description    String?
+  pdfUrl         String?
+  externalUrl    String?
+  isCurrent      Boolean  @default(false)
+  publishDate    DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  pdfCloudPath   String?
+  pdfPageCount   Int?
+  slug           String?  @unique
+  countries      String   @default("[\"central\"]")
+  viewCount      Int      @default(0)
+  lastViewedAt   DateTime?
+  currentFor     String   @default("[]")
+  coverAthlete   String?
+  seoDescription String?
+  seoContent     String?
 
   @@index([publishDate])
 }

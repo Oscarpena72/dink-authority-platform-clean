@@ -23,6 +23,9 @@ interface EditionData {
   externalUrl: string | null;
   isCurrent: boolean;
   publishDate: string;
+  coverAthlete?: string | null;
+  seoContent?: string | null;
+  seoH1?: string | null;
 }
 
 type ViewMode = 'flipbook' | 'reader';
@@ -352,7 +355,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                     {edition.issueNumber && (
                       <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
                     )}
-                    <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.title}</h1>
+                    <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h1>
                     <p className="text-white/60 text-sm mt-1">
                       {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
@@ -443,13 +446,14 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 {edition.issueNumber && (
                   <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
                 )}
-                <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.title}</h1>
+                <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h1>
                 <p className="text-white/60 text-sm mt-1">
                   {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {edition.issueNumber && <span className="ml-2">· {edition.issueNumber}</span>}
                 </p>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <ShareButtons url={shareUrl} title={edition.title} description={edition.description ?? undefined} />
+                <ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />
               </div>
             </motion.div>
           </div>
@@ -631,13 +635,13 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             <div className="max-w-[1400px] mx-auto px-4 py-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <CTACard
-                  icon={<ShareButtons url={shareUrl} title={edition.title} description={edition.description ?? undefined} />}
+                  icon={<ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />}
                   customButton
                 />
                 <CTACard
                   icon={<Newspaper size={20} />}
                   label="Latest Articles"
-                  href="/articles"
+                  href="/news"
                 />
                 <CTACard
                   icon={<Mail size={20} />}
@@ -652,6 +656,27 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
               </div>
             </div>
           </div>
+        )}
+
+        {/* SEO Content Section — below viewer, clean editorial design */}
+        {!isFullscreen && edition.seoContent && (
+          <section className="bg-brand-gray border-t border-gray-200">
+            <div className="max-w-[900px] mx-auto px-4 py-10 md:py-14">
+              <div
+                className="prose prose-sm md:prose-base prose-gray max-w-none text-brand-gray-dark/80 leading-relaxed [&>p]:mb-4 [&>p:first-child]:text-base [&>p:first-child]:font-medium [&>p:first-child]:text-brand-gray-dark"
+                dangerouslySetInnerHTML={{ __html: edition.seoContent }}
+              />
+              <div className="mt-8 pt-6 border-t border-gray-200 flex flex-wrap items-center gap-4">
+                <Link href="/magazine" className="text-brand-purple font-medium text-sm hover:text-brand-purple-light transition-colors">
+                  ← Browse all editions of our <span className="underline">pickleball magazine</span>
+                </Link>
+                <span className="text-gray-300 hidden md:inline">|</span>
+                <Link href="/magazine" className="text-brand-purple/70 text-sm hover:text-brand-purple transition-colors">
+                  Dink Authority — a <span className="underline">leading pickleball magazine</span>
+                </Link>
+              </div>
+            </div>
+          </section>
         )}
       </div>
       {!isFullscreen && <Footer />}
