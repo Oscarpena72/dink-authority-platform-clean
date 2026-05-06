@@ -133,7 +133,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [renderingPages, setRenderingPages] = useState<Set<number>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const flipbookRef = useRef<any>(null);
-  const viewerScrollRef = useRef<HTMLDivElement>(null!); // non-null assertion for ref compatibility
+  const viewerScrollRef = useRef<HTMLDivElement>(null) as React.MutableRefObject<HTMLDivElement>;
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [FlipBookComponent, setFlipBookComponent] = useState<any>(null);
@@ -164,7 +164,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     if (baseHeight > available) {
       setZoom(parseFloat(Math.max(0.35, available / baseHeight).toFixed(2)));
     }
-  }, [pdfLib, pdfAspectRatio, isMobile]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pdfLib, pdfAspectRatio, isMobile, setZoom]);
 
   // Navigation helpers — used by toolbar and side buttons
   const goToPrev = useCallback(() => {
