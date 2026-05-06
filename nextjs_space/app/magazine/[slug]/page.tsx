@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import MagazineViewerClient from './_components/magazine-viewer-client';
 import type { Metadata } from 'next';
 
@@ -92,5 +93,47 @@ export default async function MagazineViewerPage({ params }: Props) {
     seoH1: `${dateStr} Pickleball Magazine – ${edition.coverAthlete || edition.title.split('–')[0]?.trim() || 'Featured Edition'}`,
   };
 
-  return <MagazineViewerClient edition={serialized} />;
+  /* ---------- Build first-paragraph fallback if no seoContent ---------- */
+  const athlete = edition.coverAthlete || edition.title.split('–')[0]?.trim() || 'Featured Edition';
+  const firstParagraph = `Check out the ${dateStr} issue of Dink Authority, a leading pickleball magazine featuring ${athlete}, highlighting the biggest players, tournaments, and stories in the sport.`;
+
+  return (
+    <>
+      {/* ===== SERVER-RENDERED SEO BLOCK — visible in initial HTML for Google ===== */}
+      <section className="bg-brand-purple text-white">
+        <div className="max-w-[1400px] mx-auto px-4 pt-6 pb-2">
+          <h1 className="font-heading font-bold text-2xl md:text-3xl">
+            {serialized.seoH1}
+          </h1>
+          <p className="text-white/80 text-sm md:text-base mt-2 max-w-3xl leading-relaxed">
+            {firstParagraph}
+          </p>
+        </div>
+      </section>
+
+      {/* ===== VIEWER — untouched, loaded client-side ===== */}
+      <MagazineViewerClient edition={serialized} />
+
+      {/* ===== SERVER-RENDERED SEO CONTENT BELOW VIEWER ===== */}
+      {edition.seoContent && (
+        <section className="bg-gray-50 border-t border-gray-200">
+          <div className="max-w-[900px] mx-auto px-4 py-10 md:py-14">
+            <div
+              className="prose prose-sm md:prose-base prose-gray max-w-none text-gray-600 leading-relaxed [&>p]:mb-4 [&>p:first-child]:text-base [&>p:first-child]:font-medium [&>p:first-child]:text-gray-700"
+              dangerouslySetInnerHTML={{ __html: edition.seoContent }}
+            />
+            <div className="mt-8 pt-6 border-t border-gray-200 flex flex-wrap items-center gap-4">
+              <Link href="/magazine" className="text-brand-purple font-medium text-sm hover:text-brand-purple-light transition-colors">
+                ← Browse all editions of our <span className="underline">pickleball magazine</span>
+              </Link>
+              <span className="text-gray-300 hidden md:inline">|</span>
+              <Link href="/magazine" className="text-brand-purple/70 text-sm hover:text-brand-purple transition-colors">
+                Dink Authority — a <span className="underline">leading pickleball magazine</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
 }
