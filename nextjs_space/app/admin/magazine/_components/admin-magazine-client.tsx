@@ -32,7 +32,7 @@ const BUILT_IN_COUNTRIES: CountryOption[] = [
 ];
 
 const EMPTY_FORM = {
-  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', pdfUrl: '' as string, pdfCloudPath: '' as string, pdfPageCount: null as number | null, currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
+  title: '', slug: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', pdfUrl: '' as string, pdfCloudPath: '' as string, pdfPageCount: null as number | null, currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
 };
 
 export default function AdminMagazineClient() {
@@ -136,6 +136,7 @@ export default function AdminMagazineClient() {
     try { parsedCurrentFor = JSON.parse(ed?.currentFor || '[]'); } catch {}
     setForm({
       title: ed?.title ?? '',
+      slug: ed?.slug ?? '',
       issueNumber: ed?.issueNumber ?? '',
       coverUrl: ed?.coverUrl ?? '',
       description: ed?.description ?? '',
@@ -476,6 +477,7 @@ export default function AdminMagazineClient() {
           <h2 className="font-heading font-bold text-lg text-brand-purple mb-4">{editingId ? 'Edit Edition' : 'New Edition'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input placeholder="Title" value={form.title} onChange={e => setForm(p => ({ ...p, title: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
+            <input placeholder="URL Slug (auto-generated if empty)" value={form.slug} onChange={e => setForm(p => ({ ...p, slug: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" title="The URL path for this edition. Leave empty to auto-generate from title." />
             <input placeholder="Issue Number (e.g. Issue #12)" value={form.issueNumber} onChange={e => setForm(p => ({ ...p, issueNumber: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input placeholder="Cover Image URL" value={form.coverUrl} onChange={e => setForm(p => ({ ...p, coverUrl: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
             <input placeholder="Digital Edition URL (Issuu / Heyzine link)" value={form.externalUrl} onChange={e => setForm(p => ({ ...p, externalUrl: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />

@@ -43,8 +43,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
     }
 
-    // Generate slug from title if not provided
+    // Preserve existing slug during edits; only regenerate for new titles without a slug
     let slug = body?.slug;
+    if (!slug) {
+      // Try to keep the existing slug from the database
+      const existing = await prisma.magazineEdition.findUnique({ where: { id: editionId }, select: { slug: true } });
+      slug = existing?.slug ?? undefined;
+    }
     if (!slug && body?.title) {
       slug = body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     }
