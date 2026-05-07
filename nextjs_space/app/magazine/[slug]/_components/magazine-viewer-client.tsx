@@ -249,9 +249,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     let cancelled = false;
     async function loadPdfJs() {
       try {
-        console.log('[pdfjs] Starting load, buffer size:', (pdfData as ArrayBuffer).byteLength);
         const pdfjsLib = await import('pdfjs-dist');
-        console.log('[pdfjs] Library imported OK');
+        // Use local worker first; CDN fallback if missing
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         // Load from ArrayBuffer - no network issues, no CORS, no range requests
         const loadingTask = pdfjsLib.getDocument({
@@ -271,13 +270,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         } catch (_) { /* keep default */ }
       } catch (err: any) {
         if (cancelled) return;
-        console.error('PDF parse error:', {
-          message: err?.message,
-          name: err?.name,
-          type: typeof err,
-          stringified: String(err),
-          stack: err?.stack?.substring(0, 500),
-        });
+        console.error('PDF viewer error:', err?.message || err);
         // Interactive viewer failed — cascade to iframe fallback if PDF URL available
         setInteractiveViewerFailed(true);
         setLoading(false);
