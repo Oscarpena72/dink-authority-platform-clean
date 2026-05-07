@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion';
 import {
   BookOpen, FileText, ChevronLeft, ChevronRight, Maximize2, Minimize2,
-  ZoomIn, ZoomOut, RotateCcw, ExternalLink, Newspaper, Mail, Megaphone, Loader2, AlertTriangle
+  ZoomIn, ZoomOut, RotateCcw, Newspaper, Mail, Megaphone, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/app/_components/header';
@@ -110,7 +110,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [FlipBookComponent, setFlipBookComponent] = useState<any>(null);
-  // Store the raw PDF URL for iframe fallback if interactive viewer fails
+  // Store PDF URL internally (not exposed to user — no download/iframe)
   const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
   // Real PDF page aspect ratio (height / width)
   const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414); // default A4, updated after first render
@@ -176,7 +176,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           throw new Error('No PDF URL returned');
         }
 
-        // Save URL for iframe fallback before attempting interactive render
+        // Store URL internally (used only for retry logic, never exposed to user)
         setFallbackPdfUrl(pdfUrl);
 
         const pdfResponse = await fetch(pdfUrl);
@@ -266,7 +266,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
       } catch (err: any) {
         if (cancelled) return;
         console.error('PDF parse error:', err);
-        // Set error but fallback iframe will be shown since fallbackPdfUrl is available
+        // Set error — clean fallback UI will be shown (no native PDF)
         setError(`Interactive viewer failed: ${err?.message || 'Unknown error'}`);
       }
     }
@@ -434,92 +434,25 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   }
 
   if (error) {
-    // If we have the PDF URL, show iframe fallback instead of dead-end error
-    if (fallbackPdfUrl) {
-      return (
-        <>
-          <Header />
-          <div className="bg-brand-gray min-h-screen">
-            {/* Magazine Header */}
-            <div className="bg-brand-purple py-6 md:py-8">
-              <div className="max-w-[1400px] mx-auto px-4">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    {edition.issueNumber && (
-                      <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
-                    )}
-                    <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h2>
-                    <p className="text-white/60 text-sm mt-1">
-                      {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} title={edition.title} description={edition.description ?? undefined} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Fallback notice */}
-            <div className="max-w-[1400px] mx-auto px-4 pt-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle size={20} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-amber-800">
-                    The interactive viewer encountered an issue. You can still read the magazine below using your browser&apos;s built-in PDF viewer.
-                  </p>
-                </div>
-                <a
-                  href={fallbackPdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white text-sm font-bold rounded-lg hover:bg-brand-purple-light transition-colors flex-shrink-0"
-                >
-                  <ExternalLink size={14} /> Open PDF Full Screen
-                </a>
-              </div>
-            </div>
-
-            {/* Iframe PDF viewer fallback */}
-            <div className="max-w-[1400px] mx-auto px-4 py-4">
-              <div className="rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
-                <iframe
-                  src={fallbackPdfUrl}
-                  className="w-full border-0"
-                  style={{ height: '85vh', minHeight: '600px' }}
-                  title={`${edition.title} - PDF Viewer`}
-                  allow="fullscreen"
-                />
-              </div>
-            </div>
-          </div>
-          <Footer />
-        </>
-      );
-    }
-
-    // No PDF URL available at all — true dead end
+    // Clean fallback — no native PDF, no download, no iframe
     return (
       <>
         <Header />
-        <div className="min-h-[60vh] bg-brand-gray flex items-center justify-center">
+        <div className="min-h-[70vh] bg-brand-gray flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-8">
-            <BookOpen size={48} className="text-brand-purple/30 mx-auto mb-4" />
-            <h2 className="font-heading font-bold text-xl text-brand-purple mb-2">Magazine Unavailable</h2>
-            <p className="text-brand-gray-dark mb-4">{error}</p>
-            {edition.externalUrl && (
-              <a href={edition.externalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-neon text-brand-purple-dark font-bold rounded-lg hover:bg-brand-neon-dim">
-                Read on External Site
-              </a>
-            )}
-            <div className="mt-4">
-              <button
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 border border-brand-purple text-brand-purple font-medium rounded-lg hover:bg-brand-purple hover:text-white transition-colors"
-              >
-                <RotateCcw size={16} /> Try Again
-              </button>
+            <div className="w-16 h-16 bg-brand-purple/10 rounded-full flex items-center justify-center mx-auto mb-5">
+              <BookOpen size={32} className="text-brand-purple/50" />
             </div>
+            <h2 className="font-heading font-bold text-xl text-brand-purple mb-3">
+              We&apos;re having trouble loading the interactive reader.
+            </h2>
+            <p className="text-brand-gray-dark mb-6">Please refresh the page.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white font-bold rounded-lg hover:bg-brand-purple-light transition-colors"
+            >
+              <RotateCcw size={16} /> Reload reader
+            </button>
           </div>
         </div>
         <Footer />
@@ -616,11 +549,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
               <button onClick={() => setZoom(z => Math.min(3, +(z + 0.15).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
                 <ZoomIn size={16} className="text-gray-600" />
               </button>
-              {fallbackPdfUrl && (
-                <a href={fallbackPdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded hidden sm:block" title="Open PDF Full Screen">
-                  <ExternalLink size={16} className="text-gray-600" />
-                </a>
-              )}
+              {/* No external PDF link — custom viewer only */}
               <button onClick={toggleFullscreen} className="p-1.5 hover:bg-gray-100 rounded" title="Fullscreen">
                 {isFullscreen ? <Minimize2 size={16} className="text-gray-600" /> : <Maximize2 size={16} className="text-gray-600" />}
               </button>
