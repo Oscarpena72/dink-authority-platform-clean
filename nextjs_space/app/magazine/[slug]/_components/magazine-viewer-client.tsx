@@ -772,83 +772,152 @@ function FlipbookView({
 
   const width = isMobile ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400) : 500;
   const height = Math.round(width * pdfAspectRatio);
-
   const isZoomed = zoom > 1;
-  // CSS transform: scale() doesn't change layout dimensions.
-  // Negative-margin trick compensates so the scroll container sees the *visual* size.
-  const mbPx = Math.round(height * (zoom - 1)); // negative shrinks layout when zoom<1, positive expands when zoom>1
-  const mrPx = isZoomed ? Math.round(width * (zoom - 1)) : 0;
 
-  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const availableH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 120);
+  // ── When zoomed in, show just the current page as a plain image ──
+  // react-pageflip captures touch events internally, blocking native
+  // scroll/pan. A simple <img> in an overflow:auto wrapper gives users
+  // smooth two-finger pinch AND one-finger pan with no conflicts.
+  if (isZoomed) {
+    const imgSrc = pageImages.get(currentPage);
+    const imgW = Math.round(width * zoom);
+    const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const scrollH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 180);
+
+    return (
+      <div className="relative">
+        <div
+          ref={viewerScrollRef}
+          style={{
+            maxHeight: scrollH,
+            overflow: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x pan-y',
+          }}
+          onTouchStart={pinch.onTouchStart}
+          onTouchMove={pinch.onTouchMove}
+          onTouchEnd={pinch.onTouchEnd}
+        >
+          <div className="flex justify-start p-1">
+            <div className="shadow-2xl bg-white flex-shrink-0">
+              {imgSrc ? (
+                <img
+                  src={imgSrc}
+                  alt={`Page ${currentPage}`}
+                  className="block"
+                  style={{ width: imgW, height: 'auto', maxWidth: 'none' }}
+                  draggable={false}
+                />
+              ) : (
+                <div style={{ width: imgW, height: Math.round(imgW * pdfAspectRatio) }} className="flex items-center justify-center bg-gray-50">
+                  <Loader2 className="w-10 h-10 animate-spin text-brand-purple/30" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Side navigation arrows */}
+        <button
+          onClick={goToPrev}
+          disabled={currentPage <= 1}
+          className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+            isFullscreen
+              ? 'bg-white/15 text-white hover:bg-white/30'
+              : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+          }`}
+          aria-label="Previous page"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={goToNext}
+          disabled={currentPage >= numPages}
+          className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
+            isFullscreen
+              ? 'bg-white/15 text-white hover:bg-white/30'
+              : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
+          }`}
+          aria-label="Next page"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+    );
+  }
+
+  // ── Normal zoom (≤ 1): show the react-pageflip flipbook ──
+  // NO maxHeight / overflow restriction — content flows in the page
+  // naturally. The browser's own scroll handles everything.
+  // CSS scale + margin trick keeps layout size = visual size.
+  const scaledH = Math.round(height * zoom);
+  const scaledW = Math.round(width * zoom);
+  const mbPx = scaledH - height; // compensate layout vs visual size
+  const mrPx = scaledW - width;
 
   return (
     <div className="relative">
-      {/* Scroll wrapper — overflow:auto always so zoomed content is pannable */}
       <div
         ref={viewerScrollRef}
-        style={{
-          maxHeight: availableH,
+        className="flex justify-center"
+        style={isFullscreen ? {
+          maxHeight: (typeof window !== 'undefined' ? window.innerHeight : 800) - 100,
           overflow: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          touchAction: isZoomed ? 'pan-x pan-y' : 'auto',
-        }}
+        } : undefined}
         onTouchStart={pinch.onTouchStart}
         onTouchMove={pinch.onTouchMove}
         onTouchEnd={pinch.onTouchEnd}
       >
-        <div className={`flex items-start ${isZoomed ? 'justify-start' : 'justify-center'}`}>
-          <div
-            style={{
-              transform: `scale(${zoom})`,
-              transformOrigin: isZoomed ? 'top left' : 'top center',
-              marginBottom: mbPx,
-              marginRight: mrPx,
+        <div
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top center',
+            marginBottom: mbPx,
+            marginRight: mrPx,
+          }}
+        >
+          <FlipBookComponent
+            ref={flipbookRef}
+            width={width}
+            height={height}
+            size="stretch"
+            minWidth={280}
+            maxWidth={600}
+            minHeight={Math.round(280 * pdfAspectRatio)}
+            maxHeight={Math.round(600 * pdfAspectRatio)}
+            showCover={true}
+            mobileScrollSupport={true}
+            onFlip={(e: any) => {
+              if (!pinch.isPinching()) {
+                setCurrentPage((e?.data ?? 0) + 1);
+              }
             }}
+            className="shadow-2xl"
+            useMouseEvents={true}
+            swipeDistance={30}
+            showPageCorners={true}
+            flippingTime={600}
+            disableFlipByClick={false}
           >
-            <FlipBookComponent
-              ref={flipbookRef}
-              width={width}
-              height={height}
-              size="stretch"
-              minWidth={280}
-              maxWidth={600}
-              minHeight={Math.round(280 * pdfAspectRatio)}
-              maxHeight={Math.round(600 * pdfAspectRatio)}
-              showCover={true}
-              mobileScrollSupport={!isZoomed}
-              onFlip={(e: any) => {
-                if (!pinch.isPinching()) {
-                  setCurrentPage((e?.data ?? 0) + 1);
-                }
-              }}
-              className="shadow-2xl"
-              useMouseEvents={true}
-              swipeDistance={isZoomed ? 9999 : 30}
-              showPageCorners={!isZoomed}
-              flippingTime={600}
-              disableFlipByClick={false}
-            >
-              {pageNumbers.map(pageNum => {
-                const imgSrc = pageImages.get(pageNum);
-                return (
-                  <div key={pageNum} className="bg-white">
-                    {imgSrc ? (
-                      <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                        <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </FlipBookComponent>
-          </div>
+            {pageNumbers.map(pageNum => {
+              const imgSrc = pageImages.get(pageNum);
+              return (
+                <div key={pageNum} className="bg-white">
+                  {imgSrc ? (
+                    <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                      <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </FlipBookComponent>
         </div>
       </div>
 
-      {/* Side navigation arrows — positioned relative to the viewer wrapper, always visible */}
+      {/* Side navigation arrows */}
       <button
         onClick={goToPrev}
         disabled={currentPage <= 1}
@@ -907,22 +976,24 @@ function ReaderView({
 }) {
   const imgSrc = pageImages.get(currentPage);
   const isZoomed = zoom > 1;
-  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const availableH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 120);
-  // Base width for the reader image (no CSS transform — use real dimensions for proper scroll)
   const baseW = typeof window !== 'undefined' ? Math.min(window.innerWidth - 40, 600) : 500;
   const imgW = Math.round(baseW * zoom);
+
+  // Only constrain height when zoomed (need scroll container) or fullscreen
+  const needsScrollWrapper = isZoomed || isFullscreen;
+  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const scrollH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 180);
 
   return (
     <div className="relative">
       <div
         ref={viewerScrollRef}
-        className="overflow-auto"
-        style={{
-          maxHeight: availableH,
+        style={needsScrollWrapper ? {
+          maxHeight: scrollH,
+          overflow: 'auto',
           WebkitOverflowScrolling: 'touch',
           touchAction: isZoomed ? 'pan-x pan-y' : 'auto',
-        }}
+        } : undefined}
         onTouchStart={(e) => { pinch.onTouchStart(e); handleTouchStart(e); }}
         onTouchMove={pinch.onTouchMove}
         onTouchEnd={(e) => { pinch.onTouchEnd(e); handleTouchEnd(e); }}
@@ -935,6 +1006,7 @@ function ReaderView({
                 alt={`Page ${currentPage}`}
                 className="block"
                 style={{ width: imgW, height: 'auto', maxWidth: 'none' }}
+                draggable={false}
               />
             ) : (
               <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">
