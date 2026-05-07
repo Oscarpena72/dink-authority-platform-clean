@@ -114,7 +114,6 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
   // Real PDF page aspect ratio (height / width)
   const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414); // default A4, updated after first render
-  const autoFitApplied = useRef(false);
 
   // Pinch-zoom hook for mobile gesture handling
   const pinch = usePinchZoom(zoom, setZoom, viewerScrollRef);
@@ -127,19 +126,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Auto-fit zoom on first load: ensure entire page is visible without scrolling
-  useEffect(() => {
-    if (!pdfLib || autoFitApplied.current || typeof window === 'undefined') return;
-    autoFitApplied.current = true;
-    const baseWidth = isMobile ? Math.min(window.innerWidth - 32, 400) : 500;
-    const baseHeight = Math.round(baseWidth * pdfAspectRatio);
-    // Leave generous room: header (~160px) + toolbar (~50px) + CTA section below (~100px) + padding
-    const available = window.innerHeight - 340;
-    if (baseHeight > available && available > 200) {
-      setZoom(parseFloat(Math.max(0.5, available / baseHeight).toFixed(2)));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pdfLib, pdfAspectRatio, isMobile, setZoom]);
+  // No auto-fit zoom — show the magazine at full readable size.
+  // The browser's natural page scroll handles viewing.
+  // Users can manually zoom in/out with the toolbar controls.
 
   // Navigation helpers — used by toolbar and side buttons
   const goToPrev = useCallback(() => {
