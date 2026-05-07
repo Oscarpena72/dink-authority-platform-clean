@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, ExternalLink, Image as ImageIcon, Settings, Eye, TrendingUp, BarChart3 } from 'lucide-react';
+import { BookOpen, Plus, Pencil, Trash2, Save, X, Star, Upload, ExternalLink, Image as ImageIcon, Settings, Eye, TrendingUp, BarChart3, FileText, CheckCircle } from 'lucide-react';
 import { upload } from '@vercel/blob/client';
 
 interface EditionItem {
@@ -11,6 +11,9 @@ interface EditionItem {
   coverUrl: string | null;
   description: string | null;
   externalUrl: string | null;
+  pdfUrl: string | null;
+  pdfCloudPath: string | null;
+  pdfPageCount: number | null;
   isCurrent: boolean;
   publishDate: string;
   countries: string;
@@ -29,7 +32,7 @@ const BUILT_IN_COUNTRIES: CountryOption[] = [
 ];
 
 const EMPTY_FORM = {
-  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
+  title: '', issueNumber: '', coverUrl: '', description: '', externalUrl: '', pdfUrl: '' as string, pdfCloudPath: '' as string, pdfPageCount: null as number | null, currentFor: [] as string[], publishDate: '', countries: ['central'] as string[],
 };
 
 export default function AdminMagazineClient() {
@@ -52,6 +55,10 @@ export default function AdminMagazineClient() {
   const [savingHero, setSavingHero] = useState(false);
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false);
   const heroImageInputRef = useRef<HTMLInputElement>(null);
+
+  // PDF upload
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const pdfFileInputRef = useRef<HTMLInputElement>(null);
 
   // Dynamic country list from DB
   const [countryOptions, setCountryOptions] = useState<CountryOption[]>(BUILT_IN_COUNTRIES);
@@ -133,6 +140,9 @@ export default function AdminMagazineClient() {
       coverUrl: ed?.coverUrl ?? '',
       description: ed?.description ?? '',
       externalUrl: ed?.externalUrl ?? '',
+      pdfUrl: ed?.pdfUrl ?? '',
+      pdfCloudPath: ed?.pdfCloudPath ?? '',
+      pdfPageCount: ed?.pdfPageCount ?? null,
       currentFor: parsedCurrentFor,
       publishDate: ed?.publishDate ? new Date(ed.publishDate).toISOString().split('T')[0] : '',
       countries: parsedCountries,
@@ -211,6 +221,64 @@ export default function AdminMagazineClient() {
     }
     setUploadingHeroImage(false);
     if (heroImageInputRef.current) heroImageInputRef.current.value = '';
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Please select a PDF file.');
+      return;
+    }
+    setUploadingPdf(true);
+    try {
+      // Upload via Vercel Blob
+      const blob = await upload(`magazine-pdfs/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload/blob-token',
+      });
+      // Count pages using pdfjs-dist
+      let pageCount: number | null = null;
+      try {
+        const pdfjsLib = await import('pdfjs-dist');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        pageCount = pdfDoc.numPages;
+      } catch (pcErr) {
+        console.warn('Could not count PDF pages:', pcErr);
+      }
+      setForm(prev => ({ ...prev, pdfUrl: blob.url, pdfCloudPath: blob.url, pdfPageCount: pageCount }));
+    } catch {
+      // Fallback to direct upload
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload/direct', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Upload failed');
+        const { url } = await res.json();
+        let pageCount: number | null = null;
+        try {
+          const pdfjsLib = await import('pdfjs-dist');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+          const arrayBuffer = await file.arrayBuffer();
+          const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          pageCount = pdfDoc.numPages;
+        } catch (pcErr) {
+          console.warn('Could not count PDF pages:', pcErr);
+        }
+        setForm(prev => ({ ...prev, pdfUrl: url, pdfCloudPath: url, pdfPageCount: pageCount }));
+      } catch (err) {
+        console.error('PDF upload failed:', err);
+        alert('PDF upload failed. Please try again.');
+      }
+    }
+    setUploadingPdf(false);
+    if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
+  };
+
+  const handleRemovePdf = () => {
+    setForm(prev => ({ ...prev, pdfUrl: '', pdfCloudPath: '', pdfPageCount: null }));
   };
 
   const parseCountries = (c: string): string[] => {
@@ -414,6 +482,54 @@ export default function AdminMagazineClient() {
             <input type="date" value={form.publishDate} onChange={e => setForm(p => ({ ...p, publishDate: e?.target?.value ?? '' }))} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-brand-purple focus:outline-none" />
           </div>
 
+          {/* PDF Magazine File Upload */}
+          <div className="mt-4 p-4 border border-purple-200 rounded-lg bg-purple-50">
+            <span className="font-semibold text-sm text-brand-purple block mb-1 flex items-center gap-2">
+              <FileText size={16} className="text-brand-purple" /> PDF Magazine File
+            </span>
+            <p className="text-xs text-brand-gray-dark mb-3">Upload the PDF file for the built-in reader. This is separate from the Digital Edition URL above.</p>
+
+            {form.pdfUrl ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                  <CheckCircle size={16} className="text-green-600 flex-shrink-0" />
+                  <span className="font-medium">PDF uploaded</span>
+                  {form.pdfPageCount && <span className="text-green-600 text-xs">({form.pdfPageCount} pages)</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input ref={pdfFileInputRef} type="file" accept=".pdf,application/pdf" onChange={handlePdfUpload} className="hidden" />
+                  <button
+                    type="button"
+                    onClick={() => pdfFileInputRef.current?.click()}
+                    disabled={uploadingPdf}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-brand-purple text-white font-medium rounded-lg hover:bg-brand-purple-light text-sm disabled:opacity-50"
+                  >
+                    <Upload size={14} /> {uploadingPdf ? 'Uploading...' : 'Replace PDF'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemovePdf}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 text-sm border border-red-200"
+                  >
+                    <Trash2 size={14} /> Remove PDF
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <input ref={pdfFileInputRef} type="file" accept=".pdf,application/pdf" onChange={handlePdfUpload} className="hidden" />
+                <button
+                  type="button"
+                  onClick={() => pdfFileInputRef.current?.click()}
+                  disabled={uploadingPdf}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white font-bold rounded-lg hover:bg-brand-purple-light text-sm disabled:opacity-50"
+                >
+                  <Upload size={16} /> {uploadingPdf ? 'Uploading PDF...' : 'Upload PDF'}
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Country visibility checkboxes */}
           <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
             <span className="font-semibold text-sm text-brand-purple block mb-2">🌍 Show on these sites:</span>
@@ -575,6 +691,11 @@ export default function AdminMagazineClient() {
                     <a href={ed.externalUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-brand-neon hover:bg-brand-neon/10 rounded" title="View Digital Edition">
                       <ExternalLink size={14} />
                     </a>
+                  )}
+                  {(ed?.pdfUrl || ed?.pdfCloudPath) && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold rounded" title="PDF uploaded">
+                      <FileText size={10} /> PDF{ed?.pdfPageCount ? ` (${ed.pdfPageCount}p)` : ''}
+                    </span>
                   )}
                 </div>
               </div>
