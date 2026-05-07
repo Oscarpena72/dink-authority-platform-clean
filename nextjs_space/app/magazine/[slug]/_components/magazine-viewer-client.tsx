@@ -96,6 +96,10 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [viewMode, setViewMode] = useState<ViewMode>('flipbook');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Cascading fallback: flipbook → reader → iframe → error
+  const [flipbookFailed, setFlipbookFailed] = useState(false);
+  const [interactiveViewerFailed, setInteractiveViewerFailed] = useState(false);
+  const [iframeFallbackFailed, setIframeFallbackFailed] = useState(false);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -266,24 +270,27 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
       } catch (err: any) {
         if (cancelled) return;
         console.error('PDF parse error:', err);
-        // Set error — clean fallback UI will be shown (no native PDF)
-        setError(`Interactive viewer failed: ${err?.message || 'Unknown error'}`);
+        // Interactive viewer failed — cascade to iframe fallback if PDF URL available
+        setInteractiveViewerFailed(true);
+        setLoading(false);
       }
     }
     loadPdfJs();
     return () => { cancelled = true; };
   }, [pdfData]);
 
-  // Load flipbook component dynamically
+  // Load flipbook component dynamically — auto-fallback to Reader if it fails
   useEffect(() => {
-    if (viewMode === 'flipbook') {
+    if (viewMode === 'flipbook' && !flipbookFailed) {
       import('react-pageflip').then(mod => {
         setFlipBookComponent(() => mod.default);
       }).catch(() => {
-        console.error('Failed to load react-pageflip');
+        console.error('Failed to load react-pageflip — falling back to Reader');
+        setFlipbookFailed(true);
+        setViewMode('reader');
       });
     }
-  }, [viewMode]);
+  }, [viewMode, flipbookFailed]);
 
   // Render a specific page to canvas then convert to image
   const renderPage = useCallback(async (pageNum: number) => {
@@ -410,7 +417,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
 
   const pageNumbers = useMemo(() => Array.from({ length: numPages }, (_, i) => i + 1), [numPages]);
 
-  if (loading || (pdfData && !pdfLib && !error)) {
+  if (loading || (pdfData && !pdfLib && !error && !interactiveViewerFailed)) {
     return (
       <div className="min-h-screen bg-brand-gray flex items-center justify-center">
         <div className="text-center max-w-xs mx-auto">
@@ -433,8 +440,58 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     );
   }
 
-  if (error) {
-    // Clean fallback — no native PDF, no download, no iframe
+  // ─── FALLBACK LEVEL 3: Clean iframe (interactive viewer failed but PDF URL available) ───
+  if ((error || interactiveViewerFailed) && fallbackPdfUrl && !iframeFallbackFailed) {
+    // Append #toolbar=0 to suppress browser PDF toolbar (download/print/etc)
+    const cleanPdfUrl = fallbackPdfUrl.includes('#')
+      ? fallbackPdfUrl
+      : `${fallbackPdfUrl}#toolbar=0&navpanes=0&scrollbar=1`;
+
+    return (
+      <>
+        <Header />
+        <div className="bg-brand-gray min-h-screen">
+          {/* Magazine Header */}
+          <div className="bg-brand-purple py-6 md:py-8">
+            <div className="max-w-[1400px] mx-auto px-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  {edition.issueNumber && (
+                    <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
+                  )}
+                  <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h2>
+                  <p className="text-white/60 text-sm mt-1">
+                    {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} title={edition.title} description={edition.description ?? undefined} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Clean iframe viewer — no toolbar, no download, no print */}
+          <div className="max-w-[1400px] mx-auto px-4 py-4">
+            <div className="rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
+              <iframe
+                src={cleanPdfUrl}
+                className="w-full border-0"
+                style={{ height: '85vh', minHeight: '600px' }}
+                title={`${edition.title} - Magazine Viewer`}
+                allow="fullscreen"
+                onError={() => setIframeFallbackFailed(true)}
+              />
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // ─── FALLBACK LEVEL 4: Last resort error (everything failed) ───
+  if (error || (interactiveViewerFailed && (!fallbackPdfUrl || iframeFallbackFailed))) {
     return (
       <>
         <Header />
@@ -491,11 +548,14 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             {/* Left: view mode toggle */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
               <button
-                onClick={() => setViewMode('flipbook')}
+                onClick={() => !flipbookFailed && setViewMode('flipbook')}
+                disabled={flipbookFailed}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   viewMode === 'flipbook'
                     ? 'bg-brand-purple text-white shadow-sm'
-                    : 'text-gray-600 hover:text-brand-purple'
+                    : flipbookFailed
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:text-brand-purple'
                 }`}
               >
                 <BookOpen size={14} />
