@@ -62,8 +62,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Generate slug from title
-    const slug = (body?.title ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    // Use custom slug if provided, otherwise generate from title
+    const rawSlug = body?.slug || body?.title || '';
+    const slug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
     const edition = await prisma.magazineEdition.create({
       data: {
