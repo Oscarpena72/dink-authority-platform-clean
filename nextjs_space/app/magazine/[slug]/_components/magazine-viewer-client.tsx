@@ -380,22 +380,22 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     setTouchStart(null);
   };
 
-  // Keyboard navigation
+  // Keyboard navigation — use goToPrev/goToNext so flip animation triggers
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setCurrentPage(p => Math.min(p + 1, numPages));
+        goToNext();
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        setCurrentPage(p => Math.max(p - 1, 1));
+        goToPrev();
       } else if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [numPages, toggleFullscreen]);
+  }, [numPages, toggleFullscreen, goToNext, goToPrev]);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -750,7 +750,9 @@ function FlipbookView({
     );
   }
 
-  const width = isMobile ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400) : 500;
+  const width = isMobile
+    ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400)
+    : Math.min(Math.round((typeof window !== 'undefined' ? window.innerWidth - 120 : 1200) / 2), 600);
   const height = Math.round(width * pdfAspectRatio);
   const isZoomed = zoom > 1;
 
@@ -837,10 +839,13 @@ function FlipbookView({
       <div
         ref={viewerScrollRef}
         className="flex justify-center"
-        style={isFullscreen ? {
-          maxHeight: (typeof window !== 'undefined' ? window.innerHeight : 800) - 100,
-          overflow: 'auto',
-        } : undefined}
+        style={{
+          perspective: '2000px',
+          ...(isFullscreen ? {
+            maxHeight: (typeof window !== 'undefined' ? window.innerHeight : 800) - 100,
+            overflow: 'auto',
+          } : {}),
+        }}
         onTouchStart={pinch.onTouchStart}
         onTouchMove={pinch.onTouchMove}
         onTouchEnd={pinch.onTouchEnd}
