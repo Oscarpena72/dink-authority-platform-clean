@@ -133,9 +133,10 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     autoFitApplied.current = true;
     const baseWidth = isMobile ? Math.min(window.innerWidth - 32, 400) : 500;
     const baseHeight = Math.round(baseWidth * pdfAspectRatio);
-    const available = window.innerHeight - 280; // header + toolbar + padding
-    if (baseHeight > available) {
-      setZoom(parseFloat(Math.max(0.35, available / baseHeight).toFixed(2)));
+    // Leave generous room: header (~160px) + toolbar (~50px) + CTA section below (~100px) + padding
+    const available = window.innerHeight - 340;
+    if (baseHeight > available && available > 200) {
+      setZoom(parseFloat(Math.max(0.5, available / baseHeight).toFixed(2)));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pdfLib, pdfAspectRatio, isMobile, setZoom]);
@@ -846,14 +847,11 @@ function FlipbookView({
     );
   }
 
-  // ── Normal zoom (≤ 1): show the react-pageflip flipbook ──
-  // NO maxHeight / overflow restriction — content flows in the page
-  // naturally. The browser's own scroll handles everything.
-  // CSS scale + margin trick keeps layout size = visual size.
-  const scaledH = Math.round(height * zoom);
-  const scaledW = Math.round(width * zoom);
-  const mbPx = scaledH - height; // compensate layout vs visual size
-  const mrPx = scaledW - width;
+  // ── Normal zoom (≤ 1): render flipbook at actual scaled dimensions ──
+  // NO CSS transform — pass the zoomed width/height directly to
+  // react-pageflip so layout size = visual size. No clipping.
+  const zoomedW = Math.round(width * zoom);
+  const zoomedH = Math.round(height * zoom);
 
   return (
     <div className="relative">
@@ -868,53 +866,40 @@ function FlipbookView({
         onTouchMove={pinch.onTouchMove}
         onTouchEnd={pinch.onTouchEnd}
       >
-        <div
-          style={{
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top center',
-            marginBottom: mbPx,
-            marginRight: mrPx,
+        <FlipBookComponent
+          ref={flipbookRef}
+          width={zoomedW}
+          height={zoomedH}
+          size="fixed"
+          showCover={true}
+          mobileScrollSupport={true}
+          onFlip={(e: any) => {
+            if (!pinch.isPinching()) {
+              setCurrentPage((e?.data ?? 0) + 1);
+            }
           }}
+          className="shadow-2xl"
+          useMouseEvents={true}
+          swipeDistance={30}
+          showPageCorners={true}
+          flippingTime={600}
+          disableFlipByClick={false}
         >
-          <FlipBookComponent
-            ref={flipbookRef}
-            width={width}
-            height={height}
-            size="stretch"
-            minWidth={280}
-            maxWidth={600}
-            minHeight={Math.round(280 * pdfAspectRatio)}
-            maxHeight={Math.round(600 * pdfAspectRatio)}
-            showCover={true}
-            mobileScrollSupport={true}
-            onFlip={(e: any) => {
-              if (!pinch.isPinching()) {
-                setCurrentPage((e?.data ?? 0) + 1);
-              }
-            }}
-            className="shadow-2xl"
-            useMouseEvents={true}
-            swipeDistance={30}
-            showPageCorners={true}
-            flippingTime={600}
-            disableFlipByClick={false}
-          >
-            {pageNumbers.map(pageNum => {
-              const imgSrc = pageImages.get(pageNum);
-              return (
-                <div key={pageNum} className="bg-white">
-                  {imgSrc ? (
-                    <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                      <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </FlipBookComponent>
-        </div>
+          {pageNumbers.map(pageNum => {
+            const imgSrc = pageImages.get(pageNum);
+            return (
+              <div key={pageNum} className="bg-white">
+                {imgSrc ? (
+                  <img src={imgSrc} alt={`Page ${pageNum}`} style={{ width: '100%', height: '100%', objectFit: 'fill' }} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </FlipBookComponent>
       </div>
 
       {/* Side navigation arrows */}
