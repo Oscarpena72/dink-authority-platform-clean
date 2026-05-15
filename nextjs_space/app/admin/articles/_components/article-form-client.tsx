@@ -36,7 +36,7 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
     banner3Link: article?.banner3Link ?? '',
     metaTitle: article?.metaTitle ?? '',
     metaDescription: article?.metaDescription ?? '',
-    publishedAt: article?.publishedAt ? new Date(article.publishedAt).toISOString().slice(0, 16) : '',
+    publishedAt: article?.publishedAt ? new Date(article.publishedAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
