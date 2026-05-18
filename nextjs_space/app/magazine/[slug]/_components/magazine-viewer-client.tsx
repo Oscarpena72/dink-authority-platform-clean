@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion';
 import {
   BookOpen, FileText, ChevronLeft, ChevronRight, Maximize2, Minimize2,
-  ZoomIn, ZoomOut, RotateCcw, Newspaper, Mail, Megaphone, Loader2
+  ZoomIn, ZoomOut, RotateCcw, Newspaper, Mail, Megaphone, Loader2, Move
 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/app/_components/header';
@@ -18,51 +18,103 @@ function getTouchDistance(t1: React.Touch, t2: React.Touch) {
 function usePinchZoom(
   zoom: number,
   setZoom: React.Dispatch<React.SetStateAction<number>>,
-  _containerRef: React.RefObject<HTMLDivElement>,
 ) {
   const gestureRef = useRef<{
     isPinching: boolean;
     startDist: number;
     startZoom: number;
+    pinchEndTimer: ReturnType<typeof setTimeout> | null;
   }>({
     isPinching: false,
     startDist: 0,
     startZoom: 1,
+    pinchEndTimer: null,
   });
 
   const isPinching = useCallback(() => gestureRef.current.isPinching, []);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Clear any pending end timer
+      if (gestureRef.current.pinchEndTimer) {
+        clearTimeout(gestureRef.current.pinchEndTimer);
+        gestureRef.current.pinchEndTimer = null;
+      }
       gestureRef.current.isPinching = true;
       gestureRef.current.startDist = getTouchDistance(e.touches[0], e.touches[1]);
       gestureRef.current.startZoom = zoom;
       e.stopPropagation();
     }
-    // Single-finger pan is handled by native overflow scrolling (touchAction: pan-x pan-y)
   }, [zoom]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && gestureRef.current.isPinching) {
       const dist = getTouchDistance(e.touches[0], e.touches[1]);
       const scale = dist / gestureRef.current.startDist;
-      const newZoom = Math.max(0.5, Math.min(3, gestureRef.current.startZoom * scale));
+      const newZoom = Math.max(0.5, Math.min(4, gestureRef.current.startZoom * scale));
       setZoom(newZoom);
       e.preventDefault();
       e.stopPropagation();
     }
-    // Single-finger moves use native scrolling — no manual pan needed
   }, [setZoom]);
 
   const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length < 2) {
-      setTimeout(() => {
+    if (e.touches.length < 2 && gestureRef.current.isPinching) {
+      // Delay clearing isPinching so swipe handlers don't fire right after pinch
+      gestureRef.current.pinchEndTimer = setTimeout(() => {
         gestureRef.current.isPinching = false;
-      }, 100);
+        gestureRef.current.pinchEndTimer = null;
+      }, 300);
     }
   }, []);
 
   return { onTouchStart, onTouchMove, onTouchEnd, isPinching };
+}
+
+// ─── Mouse drag pan (desktop zoom panning) ───────────────────────────
+function useMouseDragPan(
+  scrollRef: React.RefObject<HTMLDivElement>,
+  isZoomed: boolean,
+) {
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!isZoomed || !scrollRef.current) return;
+    // Only left click
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: scrollRef.current.scrollLeft,
+      scrollTop: scrollRef.current.scrollTop,
+    };
+    e.preventDefault();
+  }, [isZoomed, scrollRef]);
+
+  useEffect(() => {
+    if (!isZoomed) {
+      setIsDragging(false);
+      return;
+    }
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !scrollRef.current) return;
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      scrollRef.current.scrollLeft = dragStart.current.scrollLeft - dx;
+      scrollRef.current.scrollTop = dragStart.current.scrollTop - dy;
+    };
+    const onMouseUp = () => setIsDragging(false);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [isDragging, isZoomed, scrollRef]);
+
+  return { onMouseDown, isDragging };
 }
 
 interface EditionData {
@@ -96,7 +148,6 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [viewMode, setViewMode] = useState<ViewMode>('flipbook');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Cascading fallback: flipbook → reader → iframe → error
   const [flipbookFailed, setFlipbookFailed] = useState(false);
   const [interactiveViewerFailed, setInteractiveViewerFailed] = useState(false);
   const [iframeFallbackFailed, setIframeFallbackFailed] = useState(false);
@@ -114,13 +165,16 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const [isMobile, setIsMobile] = useState(false);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [FlipBookComponent, setFlipBookComponent] = useState<any>(null);
-  // Store PDF URL internally (not exposed to user — no download/iframe)
   const [fallbackPdfUrl, setFallbackPdfUrl] = useState<string | null>(null);
-  // Real PDF page aspect ratio (height / width)
-  const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414); // default A4, updated after first render
+  const [pdfAspectRatio, setPdfAspectRatio] = useState(1.414);
+
+  const isZoomed = zoom > 1.05; // Small threshold to avoid float precision issues
 
   // Pinch-zoom hook for mobile gesture handling
-  const pinch = usePinchZoom(zoom, setZoom, viewerScrollRef);
+  const pinch = usePinchZoom(zoom, setZoom);
+
+  // Mouse drag pan for desktop zoom
+  const mouseDrag = useMouseDragPan(viewerScrollRef, isZoomed);
 
   // Detect mobile
   useEffect(() => {
@@ -130,37 +184,41 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // No auto-fit zoom — show the magazine at full readable size.
-  // The browser's natural page scroll handles viewing.
-  // Users can manually zoom in/out with the toolbar controls.
-
-  // Navigation helpers — used by toolbar and side buttons
+  // Navigation helpers
   const goToPrev = useCallback(() => {
-    if (currentPage <= 1) return;
+    if (currentPage <= 1 || isZoomed) return; // Block nav when zoomed
     setCurrentPage(p => Math.max(1, p - 1));
     if (viewMode === 'flipbook' && flipbookRef.current) {
       flipbookRef.current.pageFlip()?.flipPrev();
     }
-  }, [currentPage, viewMode]);
+  }, [currentPage, viewMode, isZoomed]);
 
   const goToNext = useCallback(() => {
-    if (currentPage >= numPages) return;
+    if (currentPage >= numPages || isZoomed) return; // Block nav when zoomed
     setCurrentPage(p => Math.min(numPages, p + 1));
     if (viewMode === 'flipbook' && flipbookRef.current) {
       flipbookRef.current.pageFlip()?.flipNext();
     }
-  }, [currentPage, numPages, viewMode]);
+  }, [currentPage, numPages, viewMode, isZoomed]);
 
-  // Both modes (flipbook & reader) work on all devices — no forced switching
+  // Force-navigate (bypasses zoom lock — for arrow buttons when zoomed)
+  const forceGoToPrev = useCallback(() => {
+    if (currentPage <= 1) return;
+    setCurrentPage(p => Math.max(1, p - 1));
+  }, [currentPage]);
 
-  // Fetch PDF and load as ArrayBuffer for reliable cross-device support
+  const forceGoToNext = useCallback(() => {
+    if (currentPage >= numPages) return;
+    setCurrentPage(p => Math.min(numPages, p + 1));
+  }, [currentPage, numPages]);
+
+  // Fetch PDF and load as ArrayBuffer
   const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchPdf() {
       try {
-        // Get the PDF URL (public URL or signed URL)
         const checkRes = await fetch(`/api/magazine/pdf-url?slug=${encodeURIComponent(edition.slug)}`);
         if (!checkRes.ok) {
           if (edition.externalUrl) {
@@ -174,23 +232,16 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
         const data = await checkRes.json();
         if (data.pageCount) setNumPages(data.pageCount);
 
-        // Download PDF directly from the URL (public S3 URL or signed URL)
         const pdfUrl = data.url;
-        if (!pdfUrl) {
-          throw new Error('No PDF URL returned');
-        }
+        if (!pdfUrl) throw new Error('No PDF URL returned');
 
-        // Store URL internally (used only for retry logic, never exposed to user)
         setFallbackPdfUrl(pdfUrl);
 
         const pdfResponse = await fetch(pdfUrl);
         if (!pdfResponse.ok) {
-          // Fallback: try the proxy endpoint (works when S3 credentials are available)
           const proxyUrl = `/api/magazine/pdf-proxy?slug=${encodeURIComponent(edition.slug)}`;
           const proxyResponse = await fetch(proxyUrl);
-          if (!proxyResponse.ok) {
-            throw new Error(`PDF download failed: ${pdfResponse.status}`);
-          }
+          if (!proxyResponse.ok) throw new Error(`PDF download failed: ${pdfResponse.status}`);
           const buffer = await proxyResponse.arrayBuffer();
           if (cancelled) return;
           setLoadProgress(100);
@@ -198,7 +249,6 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           return;
         }
 
-        // Read with progress tracking
         const contentLength = pdfResponse.headers.get('content-length');
         const total = contentLength ? parseInt(contentLength, 10) : 0;
 
@@ -206,7 +256,6 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           const reader = pdfResponse.body.getReader();
           const chunks: Uint8Array[] = [];
           let received = 0;
-
           while (true) {
             const { done, value } = await reader.read();
             if (done || cancelled) break;
@@ -214,10 +263,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             received += value.length;
             setLoadProgress(Math.round((received / total) * 100));
           }
-
           if (cancelled) return;
-
-          // Combine chunks into single ArrayBuffer
           const combined = new Uint8Array(received);
           let offset = 0;
           for (const chunk of chunks) {
@@ -226,7 +272,6 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           }
           setPdfData(combined.buffer);
         } else {
-          // Fallback: read entire response at once
           const buffer = await pdfResponse.arrayBuffer();
           if (cancelled) return;
           setLoadProgress(100);
@@ -243,35 +288,27 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => { cancelled = true; };
   }, [edition.slug, edition.externalUrl]);
 
-  // Load pdfjs from ArrayBuffer data
+  // Load pdfjs from ArrayBuffer
   useEffect(() => {
     if (!pdfData) return;
     let cancelled = false;
     async function loadPdfJs() {
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        // Use local worker first; CDN fallback if missing
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-        // Load from ArrayBuffer - no network issues, no CORS, no range requests
-        const loadingTask = pdfjsLib.getDocument({
-          data: new Uint8Array(pdfData as ArrayBuffer),
-        });
+        const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(pdfData as ArrayBuffer) });
         const pdf = await loadingTask.promise;
         if (cancelled) return;
         setPdfLib(pdf);
         setNumPages(pdf.numPages);
-        // Detect real page dimensions from first page
         try {
           const firstPage = await pdf.getPage(1);
           const vp = firstPage.getViewport({ scale: 1 });
-          if (vp.width > 0 && vp.height > 0) {
-            setPdfAspectRatio(vp.height / vp.width);
-          }
+          if (vp.width > 0 && vp.height > 0) setPdfAspectRatio(vp.height / vp.width);
         } catch (_) { /* keep default */ }
       } catch (err: any) {
         if (cancelled) return;
         console.error('PDF viewer error:', err?.message || err);
-        // Interactive viewer failed — cascade to iframe fallback if PDF URL available
         setInteractiveViewerFailed(true);
         setLoading(false);
       }
@@ -280,7 +317,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => { cancelled = true; };
   }, [pdfData]);
 
-  // Load flipbook component dynamically — auto-fallback to Reader if it fails
+  // Load flipbook component dynamically
   useEffect(() => {
     if (viewMode === 'flipbook' && !flipbookFailed) {
       import('react-pageflip').then(mod => {
@@ -296,22 +333,18 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   // Render a specific page to canvas then convert to image
   const renderPage = useCallback(async (pageNum: number) => {
     if (!pdfLib || pageImages.has(pageNum) || renderingPages.has(pageNum)) return;
-
     setRenderingPages(prev => new Set(prev).add(pageNum));
-
     try {
       const page = await pdfLib.getPage(pageNum);
-      const scale = 2; // High res for quality
+      const scale = 2.5; // Higher res for zoom quality
       const viewport = page.getViewport({ scale });
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-
       await page.render({ canvasContext: ctx, viewport }).promise;
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
       setPageImages(prev => {
         const next = new Map(prev);
         next.set(pageNum, dataUrl);
@@ -343,13 +376,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   const toggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
     if (!isFullscreen) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
-      }
+      if (containerRef.current.requestFullscreen) containerRef.current.requestFullscreen();
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      if (document.exitFullscreen) document.exitFullscreen();
     }
   }, [isFullscreen]);
 
@@ -359,63 +388,45 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  // Touch/swipe handling for reader mode — blocked when zoomed or pinching
+  // Touch/swipe for reader mode — completely blocked when zoomed or pinching
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (zoom > 1 || pinch.isPinching()) return; // don't track swipe when zoomed
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      setTouchStart({ x: touch.clientX, y: touch.clientY });
-    }
+    if (isZoomed || pinch.isPinching() || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || zoom > 1 || pinch.isPinching()) { setTouchStart(null); return; }
+    if (!touchStart || isZoomed || pinch.isPinching()) { setTouchStart(null); return; }
     const touch = e.changedTouches[0];
     const dx = touch.clientX - touchStart.x;
     const dy = touch.clientY - touchStart.y;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
       if (dx < 0 && currentPage < numPages) setCurrentPage(p => p + 1);
       if (dx > 0 && currentPage > 1) setCurrentPage(p => p - 1);
     }
     setTouchStart(null);
   };
 
-  // Keyboard navigation — use goToPrev/goToNext so flip animation triggers
+  // Keyboard navigation — blocked when zoomed
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        goToNext();
+        if (!isZoomed) goToNext();
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        goToPrev();
+        if (!isZoomed) goToPrev();
       } else if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
+      } else if (e.key === 'Escape' && isZoomed) {
+        setZoom(1);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [numPages, toggleFullscreen, goToNext, goToPrev]);
+  }, [numPages, toggleFullscreen, goToNext, goToPrev, isZoomed]);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-
-  // Flipbook page component
-  const FlipPage = React.forwardRef<HTMLDivElement, { pageNum: number }>(({ pageNum }, ref) => {
-    const imgSrc = pageImages.get(pageNum);
-    return (
-      <div ref={ref} className="bg-white shadow-md">
-        {imgSrc ? (
-          <img src={imgSrc} alt={`Page ${pageNum}`} className="w-full h-full object-contain" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-purple/30" />
-          </div>
-        )}
-      </div>
-    );
-  });
-  FlipPage.displayName = 'FlipPage';
-
   const pageNumbers = useMemo(() => Array.from({ length: numPages }, (_, i) => i + 1), [numPages]);
 
   if (loading || (pdfData && !pdfLib && !error && !interactiveViewerFailed)) {
@@ -427,10 +438,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           {loadProgress > 0 && (
             <div className="mt-3">
               <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="bg-brand-neon h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${loadProgress}%` }}
-                />
+                <div className="bg-brand-neon h-2.5 rounded-full transition-all duration-300" style={{ width: `${loadProgress}%` }} />
               </div>
               <p className="text-brand-gray-dark text-xs mt-2">{loadProgress}% downloaded</p>
             </div>
@@ -441,29 +449,20 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     );
   }
 
-  // ─── FALLBACK LEVEL 3: Clean iframe (interactive viewer failed but PDF URL available) ───
+  // ─── FALLBACK LEVEL 3: Clean iframe ───
   if ((error || interactiveViewerFailed) && fallbackPdfUrl && !iframeFallbackFailed) {
-    // Append #toolbar=0 to suppress browser PDF toolbar (download/print/etc)
-    const cleanPdfUrl = fallbackPdfUrl.includes('#')
-      ? fallbackPdfUrl
-      : `${fallbackPdfUrl}#toolbar=0&navpanes=0&scrollbar=1`;
-
+    const cleanPdfUrl = fallbackPdfUrl.includes('#') ? fallbackPdfUrl : `${fallbackPdfUrl}#toolbar=0&navpanes=0&scrollbar=1`;
     return (
       <>
         <Header />
         <div className="bg-brand-gray min-h-screen">
-          {/* Magazine Header */}
           <div className="bg-brand-purple py-6 md:py-8">
             <div className="max-w-[1400px] mx-auto px-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  {edition.issueNumber && (
-                    <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
-                  )}
+                  {edition.issueNumber && <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>}
                   <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h2>
-                  <p className="text-white/60 text-sm mt-1">
-                    {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                  </p>
+                  <p className="text-white/60 text-sm mt-1">{new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} title={edition.title} description={edition.description ?? undefined} />
@@ -471,18 +470,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
               </div>
             </div>
           </div>
-
-          {/* Clean iframe viewer — no toolbar, no download, no print */}
           <div className="max-w-[1400px] mx-auto px-4 py-4">
             <div className="rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
-              <iframe
-                src={cleanPdfUrl}
-                className="w-full border-0"
-                style={{ height: '85vh', minHeight: '600px' }}
-                title={`${edition.title} - Magazine Viewer`}
-                allow="fullscreen"
-                onError={() => setIframeFallbackFailed(true)}
-              />
+              <iframe src={cleanPdfUrl} className="w-full border-0" style={{ height: '85vh', minHeight: '600px' }} title={`${edition.title} - Magazine Viewer`} allow="fullscreen" onError={() => setIframeFallbackFailed(true)} />
             </div>
           </div>
         </div>
@@ -491,7 +481,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
     );
   }
 
-  // ─── FALLBACK LEVEL 4: Last resort error (everything failed) ───
+  // ─── FALLBACK LEVEL 4: Last resort error ───
   if (error || (interactiveViewerFailed && (!fallbackPdfUrl || iframeFallbackFailed))) {
     return (
       <>
@@ -501,14 +491,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             <div className="w-16 h-16 bg-brand-purple/10 rounded-full flex items-center justify-center mx-auto mb-5">
               <BookOpen size={32} className="text-brand-purple/50" />
             </div>
-            <h2 className="font-heading font-bold text-xl text-brand-purple mb-3">
-              We&apos;re having trouble loading the interactive reader.
-            </h2>
+            <h2 className="font-heading font-bold text-xl text-brand-purple mb-3">We&apos;re having trouble loading the interactive reader.</h2>
             <p className="text-brand-gray-dark mb-6">Please refresh the page.</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white font-bold rounded-lg hover:bg-brand-purple-light transition-colors"
-            >
+            <button onClick={() => window.location.reload()} className="inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white font-bold rounded-lg hover:bg-brand-purple-light transition-colors">
               <RotateCcw size={16} /> Reload reader
             </button>
           </div>
@@ -527,9 +512,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           <div className="max-w-[1400px] mx-auto px-4">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                {edition.issueNumber && (
-                  <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>
-                )}
+                {edition.issueNumber && <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>}
                 <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h2>
                 <p className="text-white/60 text-sm mt-1">
                   {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -543,8 +526,8 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           </div>
         </div>
 
-        {/* View Mode Toggle + Navigation + Controls — sticky toolbar */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        {/* Toolbar — sticky */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-[1400px] mx-auto px-4 py-2 flex items-center justify-between gap-2">
             {/* Left: view mode toggle */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
@@ -554,9 +537,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   viewMode === 'flipbook'
                     ? 'bg-brand-purple text-white shadow-sm'
-                    : flipbookFailed
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-600 hover:text-brand-purple'
+                    : flipbookFailed ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-brand-purple'
                 }`}
               >
                 <BookOpen size={14} />
@@ -564,19 +545,17 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
               <button
                 onClick={() => setViewMode('reader')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'reader'
-                    ? 'bg-brand-purple text-white shadow-sm'
-                    : 'text-gray-600 hover:text-brand-purple'
+                  viewMode === 'reader' ? 'bg-brand-purple text-white shadow-sm' : 'text-gray-600 hover:text-brand-purple'
                 }`}
               >
                 <FileText size={14} /> <span className="hidden sm:inline">Reader</span>
               </button>
             </div>
 
-            {/* Center: page navigation — ALWAYS visible */}
+            {/* Center: page navigation */}
             <div className="flex items-center gap-1 flex-shrink-0">
               <button
-                onClick={goToPrev}
+                onClick={isZoomed ? forceGoToPrev : goToPrev}
                 disabled={currentPage <= 1}
                 className="p-1.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-30 disabled:pointer-events-none"
                 aria-label="Previous page"
@@ -590,7 +569,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
                 {currentPage}/{numPages}
               </span>
               <button
-                onClick={goToNext}
+                onClick={isZoomed ? forceGoToNext : goToNext}
                 disabled={currentPage >= numPages}
                 className="p-1.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-30 disabled:pointer-events-none"
                 aria-label="Next page"
@@ -601,74 +580,109 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
 
             {/* Right: zoom + utilities */}
             <div className="flex items-center gap-1 flex-shrink-0">
-              <button onClick={() => setZoom(z => Math.max(0.3, +(z - 0.15).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom out">
+              <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.2).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom out">
                 <ZoomOut size={16} className="text-gray-600" />
               </button>
-              <button onClick={() => setZoom(1)} className="px-1 py-0.5 hover:bg-gray-100 rounded transition-colors min-w-[36px] text-center" title="Reset zoom">
-                <span className="text-xs font-medium text-gray-500">{Math.round(zoom * 100)}%</span>
+              <button
+                onClick={() => setZoom(1)}
+                className={`px-1.5 py-0.5 rounded transition-colors min-w-[42px] text-center ${
+                  isZoomed ? 'bg-brand-purple/10 hover:bg-brand-purple/20' : 'hover:bg-gray-100'
+                }`}
+                title="Reset zoom"
+              >
+                <span className={`text-xs font-bold ${isZoomed ? 'text-brand-purple' : 'text-gray-500'}`}>
+                  {Math.round(zoom * 100)}%
+                </span>
               </button>
-              <button onClick={() => setZoom(z => Math.min(3, +(z + 0.15).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
+              <button onClick={() => setZoom(z => Math.min(4, +(z + 0.2).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
                 <ZoomIn size={16} className="text-gray-600" />
               </button>
-              {/* No external PDF link — custom viewer only */}
+              <div className="w-px h-5 bg-gray-200 mx-1 hidden sm:block" />
               <button onClick={toggleFullscreen} className="p-1.5 hover:bg-gray-100 rounded" title="Fullscreen">
                 {isFullscreen ? <Minimize2 size={16} className="text-gray-600" /> : <Maximize2 size={16} className="text-gray-600" />}
               </button>
             </div>
           </div>
+
+          {/* Zoom mode indicator */}
+          {isZoomed && (
+            <div className="bg-brand-purple/5 border-t border-brand-purple/10 px-4 py-1.5 flex items-center justify-center gap-2">
+              <Move size={12} className="text-brand-purple" />
+              <span className="text-xs text-brand-purple font-medium">
+                {isMobile ? 'Drag to pan · Pinch to zoom · Tap arrows to navigate' : 'Click + drag to pan · Use arrows to navigate'}
+              </span>
+              <button onClick={() => setZoom(1)} className="ml-2 text-xs bg-brand-purple text-white px-2 py-0.5 rounded hover:bg-brand-purple-light transition-colors">
+                Reset
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Main Viewer */}
-        <div ref={containerRef} className={`relative ${isFullscreen ? 'bg-gray-900 flex flex-col' : ''}`}>
+        <div ref={containerRef} className={`relative ${isFullscreen ? 'bg-[#1a1a2e] flex flex-col' : ''}`}>
           {isFullscreen && (
-            <div className="bg-gray-800 px-4 py-2 flex items-center justify-between flex-shrink-0">
-              <span className="text-white/80 text-sm font-medium">{edition.title}</span>
-              <div className="flex items-center gap-3">
-                <button onClick={goToPrev} disabled={currentPage <= 1} className="p-1 hover:bg-white/10 rounded disabled:opacity-30"><ChevronLeft size={16} className="text-white" /></button>
-                <span className="text-white/60 text-sm">Page {currentPage} / {numPages}</span>
-                <button onClick={goToNext} disabled={currentPage >= numPages} className="p-1 hover:bg-white/10 rounded disabled:opacity-30"><ChevronRight size={16} className="text-white" /></button>
-                <button onClick={toggleFullscreen} className="p-1.5 hover:bg-white/10 rounded">
-                  <Minimize2 size={16} className="text-white" />
-                </button>
+            <div className="bg-[#12122a] px-4 py-2 flex items-center justify-between flex-shrink-0">
+              <span className="text-white/80 text-sm font-medium truncate mr-4">{edition.title}</span>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.2).toFixed(2)))} className="p-1 hover:bg-white/10 rounded"><ZoomOut size={14} className="text-white/70" /></button>
+                <span className="text-white/60 text-xs font-bold min-w-[36px] text-center">{Math.round(zoom * 100)}%</span>
+                <button onClick={() => setZoom(z => Math.min(4, +(z + 0.2).toFixed(2)))} className="p-1 hover:bg-white/10 rounded"><ZoomIn size={14} className="text-white/70" /></button>
+                <div className="w-px h-4 bg-white/20" />
+                <button onClick={isZoomed ? forceGoToPrev : goToPrev} disabled={currentPage <= 1} className="p-1 hover:bg-white/10 rounded disabled:opacity-30"><ChevronLeft size={16} className="text-white" /></button>
+                <span className="text-white/60 text-sm">{currentPage} / {numPages}</span>
+                <button onClick={isZoomed ? forceGoToNext : goToNext} disabled={currentPage >= numPages} className="p-1 hover:bg-white/10 rounded disabled:opacity-30"><ChevronRight size={16} className="text-white" /></button>
+                <div className="w-px h-4 bg-white/20" />
+                <button onClick={() => setZoom(1)} className="px-2 py-0.5 hover:bg-white/10 rounded text-xs text-white/70">Reset</button>
+                <button onClick={toggleFullscreen} className="p-1.5 hover:bg-white/10 rounded"><Minimize2 size={16} className="text-white" /></button>
               </div>
             </div>
           )}
 
-          <div className={`max-w-[1400px] mx-auto px-4 py-3 ${isFullscreen ? 'flex-1 flex items-center justify-center' : ''}`}>
-            {viewMode === 'flipbook' ? (
-              <FlipbookView
-                FlipBookComponent={FlipBookComponent}
-                pageImages={pageImages}
-                numPages={numPages}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                flipbookRef={flipbookRef}
-                pageNumbers={pageNumbers}
-                isFullscreen={isFullscreen}
-                isMobile={isMobile}
-                zoom={zoom}
-                pdfAspectRatio={pdfAspectRatio}
-                pinch={pinch}
-                viewerScrollRef={viewerScrollRef}
-                goToPrev={goToPrev}
-                goToNext={goToNext}
-              />
-            ) : (
-              <ReaderView
-                pageImages={pageImages}
-                numPages={numPages}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                zoom={zoom}
-                handleTouchStart={handleTouchStart}
-                handleTouchEnd={handleTouchEnd}
-                isFullscreen={isFullscreen}
-                pinch={pinch}
-                viewerScrollRef={viewerScrollRef}
-                goToPrev={goToPrev}
-                goToNext={goToNext}
-              />
-            )}
+          <div className={`max-w-[1400px] mx-auto px-2 md:px-4 py-3 ${isFullscreen ? 'flex-1 flex items-center justify-center' : ''}`}>
+            {/* Dark viewer background for premium feel */}
+            <div className={`rounded-xl overflow-hidden ${
+              isFullscreen ? '' : 'bg-[#2a2a3e] shadow-2xl border border-gray-800/30 p-2 md:p-4'
+            }`}>
+              {viewMode === 'flipbook' ? (
+                <FlipbookView
+                  FlipBookComponent={FlipBookComponent}
+                  pageImages={pageImages}
+                  numPages={numPages}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  flipbookRef={flipbookRef}
+                  pageNumbers={pageNumbers}
+                  isFullscreen={isFullscreen}
+                  isMobile={isMobile}
+                  zoom={zoom}
+                  isZoomed={isZoomed}
+                  pdfAspectRatio={pdfAspectRatio}
+                  pinch={pinch}
+                  mouseDrag={mouseDrag}
+                  viewerScrollRef={viewerScrollRef}
+                  forceGoToPrev={forceGoToPrev}
+                  forceGoToNext={forceGoToNext}
+                />
+              ) : (
+                <ReaderView
+                  pageImages={pageImages}
+                  numPages={numPages}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  zoom={zoom}
+                  isZoomed={isZoomed}
+                  handleTouchStart={handleTouchStart}
+                  handleTouchEnd={handleTouchEnd}
+                  isFullscreen={isFullscreen}
+                  pinch={pinch}
+                  mouseDrag={mouseDrag}
+                  viewerScrollRef={viewerScrollRef}
+                  forceGoToPrev={forceGoToPrev}
+                  forceGoToNext={forceGoToNext}
+                  pdfAspectRatio={pdfAspectRatio}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -677,31 +691,14 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
           <div className="bg-white border-t border-gray-200">
             <div className="max-w-[1400px] mx-auto px-4 py-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <CTACard
-                  icon={<ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />}
-                  customButton
-                />
-                <CTACard
-                  icon={<Newspaper size={20} />}
-                  label="Latest Articles"
-                  href="/news"
-                />
-                <CTACard
-                  icon={<Mail size={20} />}
-                  label="Subscribe"
-                  href="/#newsletter"
-                />
-                <CTACard
-                  icon={<Megaphone size={20} />}
-                  label="Advertise With Us"
-                  href="/contact"
-                />
+                <CTACard icon={<ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />} customButton />
+                <CTACard icon={<Newspaper size={20} />} label="Latest Articles" href="/news" />
+                <CTACard icon={<Mail size={20} />} label="Subscribe" href="/#newsletter" />
+                <CTACard icon={<Megaphone size={20} />} label="Advertise With Us" href="/contact" />
               </div>
             </div>
           </div>
         )}
-
-        {/* SEO Content Section moved to server component (page.tsx) for HTML-initial rendering */}
       </div>
       {!isFullscreen && <Footer />}
     </>
@@ -710,21 +707,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
 
 // ─── Flipbook View Component ─────────────────────────────────────────
 function FlipbookView({
-  FlipBookComponent,
-  pageImages,
-  numPages,
-  currentPage,
-  setCurrentPage,
-  flipbookRef,
-  pageNumbers,
-  isFullscreen,
-  isMobile,
-  zoom,
-  pdfAspectRatio,
-  pinch,
-  viewerScrollRef,
-  goToPrev,
-  goToNext,
+  FlipBookComponent, pageImages, numPages, currentPage, setCurrentPage,
+  flipbookRef, pageNumbers, isFullscreen, isMobile, zoom, isZoomed,
+  pdfAspectRatio, pinch, mouseDrag, viewerScrollRef, forceGoToPrev, forceGoToNext,
 }: {
   FlipBookComponent: any;
   pageImages: Map<number, string>;
@@ -736,11 +721,13 @@ function FlipbookView({
   isFullscreen: boolean;
   isMobile: boolean;
   zoom: number;
+  isZoomed: boolean;
   pdfAspectRatio: number;
   pinch: ReturnType<typeof usePinchZoom>;
+  mouseDrag: ReturnType<typeof useMouseDragPan>;
   viewerScrollRef: React.RefObject<HTMLDivElement>;
-  goToPrev: () => void;
-  goToNext: () => void;
+  forceGoToPrev: () => void;
+  forceGoToNext: () => void;
 }) {
   if (!FlipBookComponent || numPages === 0) {
     return (
@@ -750,21 +737,18 @@ function FlipbookView({
     );
   }
 
+  // Use more available width on desktop for a premium feel
   const width = isMobile
-    ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 400)
-    : Math.min(Math.round((typeof window !== 'undefined' ? window.innerWidth - 120 : 1200) / 2), 600);
+    ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 420)
+    : Math.min(Math.round((typeof window !== 'undefined' ? window.innerWidth - 80 : 1200) / 2), 680);
   const height = Math.round(width * pdfAspectRatio);
-  const isZoomed = zoom > 1;
 
-  // ── When zoomed in, show just the current page as a plain image ──
-  // react-pageflip captures touch events internally, blocking native
-  // scroll/pan. A simple <img> in an overflow:auto wrapper gives users
-  // smooth two-finger pinch AND one-finger pan with no conflicts.
+  // When zoomed: show current page as pannable image (bypasses react-pageflip completely)
   if (isZoomed) {
     const imgSrc = pageImages.get(currentPage);
     const imgW = Math.round(width * zoom);
     const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-    const scrollH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 180);
+    const scrollH = isFullscreen ? vpH - 100 : Math.max(400, vpH - 200);
 
     return (
       <div className="relative">
@@ -775,18 +759,20 @@ function FlipbookView({
             overflow: 'auto',
             WebkitOverflowScrolling: 'touch',
             touchAction: 'pan-x pan-y',
+            cursor: mouseDrag.isDragging ? 'grabbing' : 'grab',
           }}
+          onMouseDown={mouseDrag.onMouseDown}
           onTouchStart={pinch.onTouchStart}
           onTouchMove={pinch.onTouchMove}
           onTouchEnd={pinch.onTouchEnd}
         >
-          <div className="flex justify-start p-1">
-            <div className="shadow-2xl bg-white flex-shrink-0">
+          <div className="flex justify-center p-1">
+            <div className="shadow-2xl bg-white flex-shrink-0 rounded-sm overflow-hidden">
               {imgSrc ? (
                 <img
                   src={imgSrc}
                   alt={`Page ${currentPage}`}
-                  className="block"
+                  className="block select-none"
                   style={{ width: imgW, height: 'auto', maxWidth: 'none' }}
                   draggable={false}
                 />
@@ -799,38 +785,19 @@ function FlipbookView({
           </div>
         </div>
 
-        {/* Side navigation arrows */}
-        <button
-          onClick={goToPrev}
-          disabled={currentPage <= 1}
-          className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-            isFullscreen
-              ? 'bg-white/15 text-white hover:bg-white/30'
-              : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-          }`}
-          aria-label="Previous page"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <button
-          onClick={goToNext}
-          disabled={currentPage >= numPages}
-          className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-            isFullscreen
-              ? 'bg-white/15 text-white hover:bg-white/30'
-              : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-          }`}
-          aria-label="Next page"
-        >
-          <ChevronRight size={20} />
-        </button>
+        {/* Navigation arrows */}
+        <NavArrows
+          currentPage={currentPage}
+          numPages={numPages}
+          goToPrev={forceGoToPrev}
+          goToNext={forceGoToNext}
+          isFullscreen={isFullscreen}
+        />
       </div>
     );
   }
 
-  // ── Normal zoom (≤ 1): render flipbook at actual scaled dimensions ──
-  // NO CSS transform — pass the zoomed width/height directly to
-  // react-pageflip so layout size = visual size. No clipping.
+  // Normal zoom (≤ 1): premium flipbook
   const zoomedW = Math.round(width * zoom);
   const zoomedH = Math.round(height * zoom);
 
@@ -856,7 +823,7 @@ function FlipbookView({
           height={zoomedH}
           size="fixed"
           showCover={true}
-          mobileScrollSupport={true}
+          mobileScrollSupport={false}
           onFlip={(e: any) => {
             if (!pinch.isPinching()) {
               setCurrentPage((e?.data ?? 0) + 1);
@@ -864,10 +831,11 @@ function FlipbookView({
           }}
           className="shadow-2xl"
           useMouseEvents={true}
-          swipeDistance={30}
+          swipeDistance={40}
           showPageCorners={true}
           flippingTime={600}
           disableFlipByClick={false}
+          maxShadowOpacity={0.5}
         >
           {pageNumbers.map(pageNum => {
             const imgSrc = pageImages.get(pageNum);
@@ -886,72 +854,47 @@ function FlipbookView({
         </FlipBookComponent>
       </div>
 
-      {/* Side navigation arrows */}
-      <button
-        onClick={goToPrev}
-        disabled={currentPage <= 1}
-        className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-          isFullscreen
-            ? 'bg-white/15 text-white hover:bg-white/30'
-            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-        }`}
-        aria-label="Previous page"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      <button
-        onClick={goToNext}
-        disabled={currentPage >= numPages}
-        className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-          isFullscreen
-            ? 'bg-white/15 text-white hover:bg-white/30'
-            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-        }`}
-        aria-label="Next page"
-      >
-        <ChevronRight size={20} />
-      </button>
+      {/* Navigation arrows */}
+      <NavArrows
+        currentPage={currentPage}
+        numPages={numPages}
+        goToPrev={forceGoToPrev}
+        goToNext={forceGoToNext}
+        isFullscreen={isFullscreen}
+      />
     </div>
   );
 }
 
 // ─── Reader View Component ───────────────────────────────────────────
 function ReaderView({
-  pageImages,
-  numPages,
-  currentPage,
-  setCurrentPage,
-  zoom,
-  handleTouchStart,
-  handleTouchEnd,
-  isFullscreen,
-  pinch,
-  viewerScrollRef,
-  goToPrev,
-  goToNext,
+  pageImages, numPages, currentPage, setCurrentPage, zoom, isZoomed,
+  handleTouchStart, handleTouchEnd, isFullscreen, pinch, mouseDrag,
+  viewerScrollRef, forceGoToPrev, forceGoToNext, pdfAspectRatio,
 }: {
   pageImages: Map<number, string>;
   numPages: number;
   currentPage: number;
   setCurrentPage: (p: number | ((p: number) => number)) => void;
   zoom: number;
+  isZoomed: boolean;
   handleTouchStart: (e: React.TouchEvent) => void;
   handleTouchEnd: (e: React.TouchEvent) => void;
   isFullscreen: boolean;
   pinch: ReturnType<typeof usePinchZoom>;
+  mouseDrag: ReturnType<typeof useMouseDragPan>;
   viewerScrollRef: React.RefObject<HTMLDivElement>;
-  goToPrev: () => void;
-  goToNext: () => void;
+  forceGoToPrev: () => void;
+  forceGoToNext: () => void;
+  pdfAspectRatio: number;
 }) {
   const imgSrc = pageImages.get(currentPage);
-  const isZoomed = zoom > 1;
-  const baseW = typeof window !== 'undefined' ? Math.min(window.innerWidth - 40, 600) : 500;
+  const baseW = typeof window !== 'undefined' ? Math.min(window.innerWidth - 40, 700) : 600;
   const imgW = Math.round(baseW * zoom);
 
-  // Only constrain height when zoomed (need scroll container) or fullscreen
   const needsScrollWrapper = isZoomed || isFullscreen;
   const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const scrollH = isFullscreen ? vpH - 100 : Math.max(300, vpH - 180);
+  const scrollH = isFullscreen ? vpH - 100 : Math.max(400, vpH - 200);
 
   return (
     <div className="relative">
@@ -962,23 +905,25 @@ function ReaderView({
           overflow: 'auto',
           WebkitOverflowScrolling: 'touch',
           touchAction: isZoomed ? 'pan-x pan-y' : 'auto',
+          cursor: isZoomed ? (mouseDrag.isDragging ? 'grabbing' : 'grab') : 'auto',
         } : undefined}
-        onTouchStart={(e) => { pinch.onTouchStart(e); handleTouchStart(e); }}
+        onMouseDown={isZoomed ? mouseDrag.onMouseDown : undefined}
+        onTouchStart={(e) => { pinch.onTouchStart(e); if (!isZoomed) handleTouchStart(e); }}
         onTouchMove={pinch.onTouchMove}
-        onTouchEnd={(e) => { pinch.onTouchEnd(e); handleTouchEnd(e); }}
+        onTouchEnd={(e) => { pinch.onTouchEnd(e); if (!isZoomed) handleTouchEnd(e); }}
       >
         <div className={`flex items-start ${isZoomed ? 'justify-start' : 'justify-center'} p-2`}>
-          <div className="shadow-2xl rounded-lg overflow-hidden bg-white flex-shrink-0">
+          <div className="shadow-2xl rounded-sm overflow-hidden bg-white flex-shrink-0">
             {imgSrc ? (
               <img
                 src={imgSrc}
                 alt={`Page ${currentPage}`}
-                className="block"
+                className="block select-none"
                 style={{ width: imgW, height: 'auto', maxWidth: 'none' }}
                 draggable={false}
               />
             ) : (
-              <div className="w-[400px] h-[566px] flex items-center justify-center bg-gray-50">
+              <div style={{ width: Math.min(baseW, 500), height: Math.round(Math.min(baseW, 500) * pdfAspectRatio) }} className="flex items-center justify-center bg-gray-50">
                 <Loader2 className="w-10 h-10 animate-spin text-brand-purple/30" />
               </div>
             )}
@@ -986,36 +931,48 @@ function ReaderView({
         </div>
       </div>
 
-      {/* Side navigation arrows */}
-      <button
-        onClick={goToPrev}
-        disabled={currentPage <= 1}
-        className={`absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-          isFullscreen
-            ? 'bg-white/15 text-white hover:bg-white/30'
-            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-        }`}
-        aria-label="Previous page"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      <button
-        onClick={goToNext}
-        disabled={currentPage >= numPages}
-        className={`absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all disabled:opacity-20 disabled:pointer-events-none ${
-          isFullscreen
-            ? 'bg-white/15 text-white hover:bg-white/30'
-            : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50'
-        }`}
-        aria-label="Next page"
-      >
-        <ChevronRight size={20} />
-      </button>
+      {/* Navigation arrows */}
+      <NavArrows
+        currentPage={currentPage}
+        numPages={numPages}
+        goToPrev={forceGoToPrev}
+        goToNext={forceGoToNext}
+        isFullscreen={isFullscreen}
+      />
     </div>
   );
 }
 
-// CTA Card Component
+// ─── Reusable navigation arrows ──────────────────────────────────────
+function NavArrows({ currentPage, numPages, goToPrev, goToNext, isFullscreen }: {
+  currentPage: number;
+  numPages: number;
+  goToPrev: () => void;
+  goToNext: () => void;
+  isFullscreen: boolean;
+}) {
+  const btnClass = (disabled: boolean) =>
+    `absolute top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all ${
+      disabled ? 'opacity-20 pointer-events-none' : ''
+    } ${
+      isFullscreen
+        ? 'bg-white/15 text-white hover:bg-white/30'
+        : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50 hover:shadow-xl'
+    }`;
+
+  return (
+    <>
+      <button onClick={goToPrev} disabled={currentPage <= 1} className={`${btnClass(currentPage <= 1)} left-1 md:left-3`} aria-label="Previous page">
+        <ChevronLeft size={22} />
+      </button>
+      <button onClick={goToNext} disabled={currentPage >= numPages} className={`${btnClass(currentPage >= numPages)} right-1 md:right-3`} aria-label="Next page">
+        <ChevronRight size={22} />
+      </button>
+    </>
+  );
+}
+
+// ─── CTA Card Component ──────────────────────────────────────────────
 function CTACard({ icon, label, href, customButton }: { icon: React.ReactNode; label?: string; href?: string; customButton?: boolean }) {
   if (customButton) {
     return (
