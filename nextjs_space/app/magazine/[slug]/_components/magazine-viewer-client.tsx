@@ -506,38 +506,38 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
   return (
     <>
       <Header />
-      <div className="bg-brand-gray min-h-screen">
-        {/* Magazine Header */}
-        <div className="bg-brand-purple py-6 md:py-8">
-          <div className="max-w-[1400px] mx-auto px-4">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                {edition.issueNumber && <span className="text-brand-neon text-xs font-bold uppercase tracking-widest">{edition.issueNumber}</span>}
-                <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mt-1">{edition.seoH1 || edition.title}</h2>
-                <p className="text-white/60 text-sm mt-1">
+      {/* Full-bleed immersive dark viewer */}
+      <div className="bg-[#0f0f1a] min-h-screen flex flex-col">
+        {/* Compact magazine title bar */}
+        <div className="bg-[#16162a] border-b border-white/5">
+          <div className="max-w-[1400px] mx-auto px-4 py-3">
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {edition.issueNumber && <span className="text-brand-neon text-[10px] font-bold uppercase tracking-[0.2em] bg-brand-neon/10 px-2 py-0.5 rounded-full flex-shrink-0">{edition.issueNumber}</span>}
+                <h2 className="font-heading font-bold text-lg md:text-xl text-white truncate">{edition.seoH1 || edition.title}</h2>
+                <span className="text-white/40 text-xs hidden md:inline flex-shrink-0">
                   {new Date(edition.publishDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                  {edition.issueNumber && <span className="ml-2">· {edition.issueNumber}</span>}
-                </p>
+                </span>
               </div>
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />
               </div>
             </motion.div>
           </div>
         </div>
 
-        {/* Toolbar — sticky */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-          <div className="max-w-[1400px] mx-auto px-4 py-2 flex items-center justify-between gap-2">
+        {/* Toolbar — dark themed, integrated */}
+        <div className="bg-[#1a1a30] border-b border-white/5 sticky top-0 z-50">
+          <div className="max-w-[1400px] mx-auto px-4 py-1.5 flex items-center justify-between gap-2">
             {/* Left: view mode toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
+            <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5 flex-shrink-0">
               <button
                 onClick={() => !flipbookFailed && setViewMode('flipbook')}
                 disabled={flipbookFailed}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   viewMode === 'flipbook'
-                    ? 'bg-brand-purple text-white shadow-sm'
-                    : flipbookFailed ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-brand-purple'
+                    ? 'bg-brand-neon text-[#0f0f1a] shadow-md shadow-brand-neon/20'
+                    : flipbookFailed ? 'text-white/20 cursor-not-allowed' : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <BookOpen size={14} />
@@ -545,7 +545,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
               <button
                 onClick={() => setViewMode('reader')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'reader' ? 'bg-brand-purple text-white shadow-sm' : 'text-gray-600 hover:text-brand-purple'
+                  viewMode === 'reader' ? 'bg-brand-neon text-[#0f0f1a] shadow-md shadow-brand-neon/20' : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <FileText size={14} /> <span className="hidden sm:inline">Reader</span>
@@ -553,75 +553,75 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             </div>
 
             {/* Center: page navigation */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 onClick={isZoomed ? forceGoToPrev : goToPrev}
                 disabled={currentPage <= 1}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors disabled:opacity-20 disabled:pointer-events-none"
                 aria-label="Previous page"
               >
-                <ChevronLeft size={18} className="text-brand-purple" />
+                <ChevronLeft size={18} className="text-white/80" />
               </button>
-              <span className="text-sm text-brand-gray-dark min-w-[80px] text-center hidden sm:inline">
+              <span className="text-sm text-white/50 min-w-[80px] text-center hidden sm:inline font-medium">
                 Page {currentPage} of {numPages}
               </span>
-              <span className="text-sm text-brand-gray-dark min-w-[40px] text-center sm:hidden">
+              <span className="text-sm text-white/50 min-w-[40px] text-center sm:hidden font-medium">
                 {currentPage}/{numPages}
               </span>
               <button
                 onClick={isZoomed ? forceGoToNext : goToNext}
                 disabled={currentPage >= numPages}
-                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors disabled:opacity-20 disabled:pointer-events-none"
                 aria-label="Next page"
               >
-                <ChevronRight size={18} className="text-brand-purple" />
+                <ChevronRight size={18} className="text-white/80" />
               </button>
             </div>
 
             {/* Right: zoom + utilities */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.2).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom out">
-                <ZoomOut size={16} className="text-gray-600" />
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.2).toFixed(2)))} className="p-1.5 hover:bg-white/10 rounded transition-colors" title="Zoom out">
+                <ZoomOut size={16} className="text-white/60" />
               </button>
               <button
                 onClick={() => setZoom(1)}
                 className={`px-1.5 py-0.5 rounded transition-colors min-w-[42px] text-center ${
-                  isZoomed ? 'bg-brand-purple/10 hover:bg-brand-purple/20' : 'hover:bg-gray-100'
+                  isZoomed ? 'bg-brand-neon/15 hover:bg-brand-neon/25' : 'hover:bg-white/10'
                 }`}
                 title="Reset zoom"
               >
-                <span className={`text-xs font-bold ${isZoomed ? 'text-brand-purple' : 'text-gray-500'}`}>
+                <span className={`text-xs font-bold ${isZoomed ? 'text-brand-neon' : 'text-white/50'}`}>
                   {Math.round(zoom * 100)}%
                 </span>
               </button>
-              <button onClick={() => setZoom(z => Math.min(4, +(z + 0.2).toFixed(2)))} className="p-1.5 hover:bg-gray-100 rounded transition-colors" title="Zoom in">
-                <ZoomIn size={16} className="text-gray-600" />
+              <button onClick={() => setZoom(z => Math.min(4, +(z + 0.2).toFixed(2)))} className="p-1.5 hover:bg-white/10 rounded transition-colors" title="Zoom in">
+                <ZoomIn size={16} className="text-white/60" />
               </button>
-              <div className="w-px h-5 bg-gray-200 mx-1 hidden sm:block" />
-              <button onClick={toggleFullscreen} className="p-1.5 hover:bg-gray-100 rounded" title="Fullscreen">
-                {isFullscreen ? <Minimize2 size={16} className="text-gray-600" /> : <Maximize2 size={16} className="text-gray-600" />}
+              <div className="w-px h-4 bg-white/10 mx-1 hidden sm:block" />
+              <button onClick={toggleFullscreen} className="p-1.5 hover:bg-white/10 rounded" title="Fullscreen">
+                {isFullscreen ? <Minimize2 size={16} className="text-white/60" /> : <Maximize2 size={16} className="text-white/60" />}
               </button>
             </div>
           </div>
 
           {/* Zoom mode indicator */}
           {isZoomed && (
-            <div className="bg-brand-purple/5 border-t border-brand-purple/10 px-4 py-1.5 flex items-center justify-center gap-2">
-              <Move size={12} className="text-brand-purple" />
-              <span className="text-xs text-brand-purple font-medium">
+            <div className="bg-brand-neon/5 border-t border-brand-neon/10 px-4 py-1 flex items-center justify-center gap-2">
+              <Move size={12} className="text-brand-neon" />
+              <span className="text-[11px] text-brand-neon/80 font-medium">
                 {isMobile ? 'Drag to pan · Pinch to zoom · Tap arrows to navigate' : 'Click + drag to pan · Use arrows to navigate'}
               </span>
-              <button onClick={() => setZoom(1)} className="ml-2 text-xs bg-brand-purple text-white px-2 py-0.5 rounded hover:bg-brand-purple-light transition-colors">
+              <button onClick={() => setZoom(1)} className="ml-2 text-[11px] bg-brand-neon text-[#0f0f1a] px-2 py-0.5 rounded font-semibold hover:bg-brand-neon-dim transition-colors">
                 Reset
               </button>
             </div>
           )}
         </div>
 
-        {/* Main Viewer */}
-        <div ref={containerRef} className={`relative ${isFullscreen ? 'bg-[#1a1a2e] flex flex-col' : ''}`}>
+        {/* Main Viewer — the magazine IS the page */}
+        <div ref={containerRef} className={`relative flex-1 ${isFullscreen ? 'bg-[#0a0a16] flex flex-col' : ''}`}>
           {isFullscreen && (
-            <div className="bg-[#12122a] px-4 py-2 flex items-center justify-between flex-shrink-0">
+            <div className="bg-[#0a0a16] px-4 py-2 flex items-center justify-between flex-shrink-0 border-b border-white/5">
               <span className="text-white/80 text-sm font-medium truncate mr-4">{edition.title}</span>
               <div className="flex items-center gap-3 flex-shrink-0">
                 <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.2).toFixed(2)))} className="p-1 hover:bg-white/10 rounded"><ZoomOut size={14} className="text-white/70" /></button>
@@ -638,11 +638,9 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             </div>
           )}
 
-          <div className={`max-w-[1400px] mx-auto px-2 md:px-4 py-3 ${isFullscreen ? 'flex-1 flex items-center justify-center' : ''}`}>
-            {/* Dark viewer background for premium feel */}
-            <div className={`rounded-xl overflow-hidden ${
-              isFullscreen ? '' : 'bg-[#2a2a3e] shadow-2xl border border-gray-800/30 p-2 md:p-4'
-            }`}>
+          <div className={`mx-auto px-0 py-2 md:py-4 ${isFullscreen ? 'flex-1 flex items-center justify-center' : 'flex items-center justify-center'}`}>
+            {/* No extra wrapper box — magazine floats directly on the dark surface */}
+            <div className={`overflow-hidden ${isFullscreen ? '' : ''}`}>
               {viewMode === 'flipbook' ? (
                 <FlipbookView
                   FlipBookComponent={FlipBookComponent}
@@ -688,13 +686,13 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
 
         {/* CTA Section */}
         {!isFullscreen && (
-          <div className="bg-white border-t border-gray-200">
-            <div className="max-w-[1400px] mx-auto px-4 py-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <CTACard icon={<ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />} customButton />
-                <CTACard icon={<Newspaper size={20} />} label="Latest Articles" href="/news" />
-                <CTACard icon={<Mail size={20} />} label="Subscribe" href="/#newsletter" />
-                <CTACard icon={<Megaphone size={20} />} label="Advertise With Us" href="/contact" />
+          <div className="bg-[#16162a] border-t border-white/5">
+            <div className="max-w-[1400px] mx-auto px-4 py-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <CTACard icon={<ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />} customButton dark />
+                <CTACard icon={<Newspaper size={20} />} label="Latest Articles" href="/news" dark />
+                <CTACard icon={<Mail size={20} />} label="Subscribe" href="/#newsletter" dark />
+                <CTACard icon={<Megaphone size={20} />} label="Advertise With Us" href="/contact" dark />
               </div>
             </div>
           </div>
@@ -740,8 +738,9 @@ function FlipbookView({
   // Calculate page dimensions that FIT the visible viewport (no vertical scrolling)
   const vpW = typeof window !== 'undefined' ? window.innerWidth : 1200;
   const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  // Reserve space for header (~64px), toolbar (~48px), padding (~40px), page counter (~32px)
-  const reservedH = isFullscreen ? 80 : 200;
+  // Reserve: title bar (~44px), toolbar (~40px), padding (~28px), nav arrows margin (~20px)
+  // In new dark layout these are much more compact
+  const reservedH = isFullscreen ? 60 : 150;
   const availH = Math.max(300, vpH - reservedH);
 
   let width: number;
@@ -854,7 +853,7 @@ function FlipbookView({
               setCurrentPage((e?.data ?? 0) + 1);
             }
           }}
-          className="shadow-2xl"
+          className="shadow-[0_8px_60px_rgba(0,0,0,0.6)]"
           useMouseEvents={true}
           swipeDistance={40}
           showPageCorners={true}
@@ -916,7 +915,7 @@ function ReaderView({
   const imgSrc = pageImages.get(currentPage);
   const rvpW = typeof window !== 'undefined' ? window.innerWidth : 600;
   const rvpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const rReservedH = isFullscreen ? 80 : 200;
+  const rReservedH = isFullscreen ? 60 : 150;
   const rAvailH = Math.max(300, rvpH - rReservedH);
   // Fit page within viewport: check both width and height
   const rMaxW = Math.min(rvpW - 40, 700);
@@ -975,21 +974,17 @@ function ReaderView({
 }
 
 // ─── Reusable navigation arrows ──────────────────────────────────────
-function NavArrows({ currentPage, numPages, goToPrev, goToNext, isFullscreen }: {
+function NavArrows({ currentPage, numPages, goToPrev, goToNext }: {
   currentPage: number;
   numPages: number;
   goToPrev: () => void;
   goToNext: () => void;
-  isFullscreen: boolean;
+  isFullscreen?: boolean;
 }) {
   const btnClass = (disabled: boolean) =>
-    `absolute top-1/2 -translate-y-1/2 z-40 p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-all ${
-      disabled ? 'opacity-20 pointer-events-none' : ''
-    } ${
-      isFullscreen
-        ? 'bg-white/15 text-white hover:bg-white/30'
-        : 'bg-white/90 text-brand-purple hover:bg-white border border-gray-200/50 hover:shadow-xl'
-    }`;
+    `absolute top-1/2 -translate-y-1/2 z-40 p-2.5 md:p-3 rounded-full transition-all ${
+      disabled ? 'opacity-15 pointer-events-none' : ''
+    } bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/10 hover:border-white/20`;
 
   return (
     <>
@@ -1004,10 +999,13 @@ function NavArrows({ currentPage, numPages, goToPrev, goToNext, isFullscreen }: 
 }
 
 // ─── CTA Card Component ──────────────────────────────────────────────
-function CTACard({ icon, label, href, customButton }: { icon: React.ReactNode; label?: string; href?: string; customButton?: boolean }) {
+function CTACard({ icon, label, href, customButton, dark }: { icon: React.ReactNode; label?: string; href?: string; customButton?: boolean; dark?: boolean }) {
+  const bg = dark ? 'bg-white/5 hover:bg-white/10 border border-white/5' : 'bg-brand-gray hover:bg-brand-purple hover:text-white';
+  const textColor = dark ? 'text-white/70 group-hover:text-white' : 'text-brand-purple group-hover:text-white';
+  const iconColor = dark ? 'text-brand-neon' : 'text-brand-purple group-hover:text-brand-neon';
   if (customButton) {
     return (
-      <div className="flex items-center justify-center p-4 bg-brand-gray rounded-xl">
+      <div className={`flex items-center justify-center p-3 rounded-lg ${bg}`}>
         {icon}
       </div>
     );
@@ -1015,10 +1013,10 @@ function CTACard({ icon, label, href, customButton }: { icon: React.ReactNode; l
   return (
     <Link
       href={href ?? '#'}
-      className="flex items-center gap-3 p-4 bg-brand-gray rounded-xl hover:bg-brand-purple hover:text-white group transition-all"
+      className={`flex items-center gap-3 p-3 rounded-lg group transition-all ${bg}`}
     >
-      <span className="text-brand-purple group-hover:text-brand-neon transition-colors">{icon}</span>
-      <span className="font-medium text-sm text-brand-purple group-hover:text-white transition-colors">{label}</span>
+      <span className={`transition-colors ${iconColor}`}>{icon}</span>
+      <span className={`font-medium text-sm transition-colors ${textColor}`}>{label}</span>
     </Link>
   );
 }
