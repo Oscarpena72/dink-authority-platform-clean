@@ -737,17 +737,44 @@ function FlipbookView({
     );
   }
 
-  // Use more available width on desktop for a premium feel
-  const width = isMobile
-    ? Math.min(typeof window !== 'undefined' ? window.innerWidth - 32 : 360, 420)
-    : Math.min(Math.round((typeof window !== 'undefined' ? window.innerWidth - 80 : 1200) / 2), 680);
-  const height = Math.round(width * pdfAspectRatio);
+  // Calculate page dimensions that FIT the visible viewport (no vertical scrolling)
+  const vpW = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  // Reserve space for header (~64px), toolbar (~48px), padding (~40px), page counter (~32px)
+  const reservedH = isFullscreen ? 80 : 200;
+  const availH = Math.max(300, vpH - reservedH);
+
+  let width: number;
+  let height: number;
+  if (isMobile) {
+    const maxW = Math.min(vpW - 32, 420);
+    const hFromW = Math.round(maxW * pdfAspectRatio);
+    if (hFromW > availH) {
+      // Height-constrained: shrink to fit viewport
+      height = availH;
+      width = Math.round(height / pdfAspectRatio);
+    } else {
+      width = maxW;
+      height = hFromW;
+    }
+  } else {
+    // Desktop: two-page spread, each page is half the available width
+    const maxPageW = Math.min(Math.round((vpW - 80) / 2), 680);
+    const hFromW = Math.round(maxPageW * pdfAspectRatio);
+    if (hFromW > availH) {
+      // Height-constrained: shrink to fit
+      height = availH;
+      width = Math.round(height / pdfAspectRatio);
+    } else {
+      width = maxPageW;
+      height = hFromW;
+    }
+  }
 
   // When zoomed: show current page as pannable image (bypasses react-pageflip completely)
   if (isZoomed) {
     const imgSrc = pageImages.get(currentPage);
     const imgW = Math.round(width * zoom);
-    const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
     const scrollH = isFullscreen ? vpH - 100 : Math.max(400, vpH - 200);
 
     return (
@@ -805,13 +832,11 @@ function FlipbookView({
     <div className="relative">
       <div
         ref={viewerScrollRef}
-        className="flex justify-center"
+        className="flex justify-center items-center"
         style={{
           perspective: '2000px',
-          ...(isFullscreen ? {
-            maxHeight: (typeof window !== 'undefined' ? window.innerHeight : 800) - 100,
-            overflow: 'auto',
-          } : {}),
+          maxHeight: isFullscreen ? vpH - 100 : availH + 16,
+          overflow: 'hidden',
         }}
         onTouchStart={pinch.onTouchStart}
         onTouchMove={pinch.onTouchMove}
@@ -889,12 +914,18 @@ function ReaderView({
   pdfAspectRatio: number;
 }) {
   const imgSrc = pageImages.get(currentPage);
-  const baseW = typeof window !== 'undefined' ? Math.min(window.innerWidth - 40, 700) : 600;
+  const rvpW = typeof window !== 'undefined' ? window.innerWidth : 600;
+  const rvpH = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const rReservedH = isFullscreen ? 80 : 200;
+  const rAvailH = Math.max(300, rvpH - rReservedH);
+  // Fit page within viewport: check both width and height
+  const rMaxW = Math.min(rvpW - 40, 700);
+  const rHFromW = Math.round(rMaxW * pdfAspectRatio);
+  const baseW = rHFromW > rAvailH ? Math.round(rAvailH / pdfAspectRatio) : rMaxW;
   const imgW = Math.round(baseW * zoom);
 
   const needsScrollWrapper = isZoomed || isFullscreen;
-  const vpH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const scrollH = isFullscreen ? vpH - 100 : Math.max(400, vpH - 200);
+  const scrollH = isFullscreen ? rvpH - 100 : Math.max(400, rvpH - 200);
 
   return (
     <div className="relative">
