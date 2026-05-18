@@ -508,6 +508,10 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
       <Header />
       {/* Full-bleed immersive dark viewer */}
       <div className="bg-[#0f0f1a] min-h-screen flex flex-col">
+        {/* === TEST MARKER — REMOVE AFTER CONFIRMATION === */}
+        <div className="bg-[#39FF14] text-black font-bold text-center py-3 text-lg tracking-widest">
+          VIEWER TEST BUILD 195cf98
+        </div>
         {/* Compact magazine title bar */}
         <div className="bg-[#16162a] border-b border-white/5">
           <div className="max-w-[1400px] mx-auto px-4 py-3">
