@@ -92,11 +92,6 @@ model Article {
   updatedAt    DateTime  @updatedAt
   author       User?     @relation(fields: [authorId], references: [id])
 
-  // Brevo notification tracking
-  notificationSentAt    DateTime?
-  notificationChannel   String?
-  brevoCampaignId       String?
-
   @@index([status, publishedAt])
   @@index([category])
   @@index([slug])

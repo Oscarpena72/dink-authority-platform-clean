@@ -15,7 +15,7 @@ export default async function EditArticlePage({ params }: { params: { id: string
     publishedAt: article?.publishedAt?.toISOString?.() ?? null,
     createdAt: article?.createdAt?.toISOString?.() ?? null,
     updatedAt: article?.updatedAt?.toISOString?.() ?? null,
-    notificationSentAt: article?.notificationSentAt?.toISOString?.() ?? null,
+
   };
 
   return <ArticleFormClient article={serialized} />;

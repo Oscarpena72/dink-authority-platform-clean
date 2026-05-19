@@ -52,7 +52,6 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
   const [showNotifyConfirm, setShowNotifyConfirm] = useState(false);
   const [notifySending, setNotifySending] = useState(false);
   const [notifyResult, setNotifyResult] = useState<{ success?: boolean; message?: string } | null>(null);
-  const alreadyNotified = !!article?.notificationSentAt;
 
   useEffect(() => {
     setForm((prev: any) => ({ ...prev, galleryImages: JSON.stringify(galleryUrls.filter(Boolean)) }));
@@ -316,18 +315,7 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                   <Bell size={18} /> Notify Subscribers
                 </h3>
 
-                {alreadyNotified && !notifyResult?.success ? (
-                  <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm text-amber-800 font-semibold">Already notified</p>
-                      <p className="text-xs text-amber-600 mt-1">
-                        Sent on {new Date(article.notificationSentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        {article.notificationChannel && ` via ${article.notificationChannel}`}
-                      </p>
-                    </div>
-                  </div>
-                ) : notifyResult?.success ? (
+                {notifyResult?.success ? (
                   <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
                     <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
                     <p className="text-sm text-green-800">{notifyResult.message}</p>

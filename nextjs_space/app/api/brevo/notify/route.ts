@@ -27,14 +27,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 });
     }
 
-    // Check if notification was already sent for this article
-    if (article.notificationSentAt) {
-      return NextResponse.json(
-        { error: `Notification already sent on ${article.notificationSentAt.toISOString()}` },
-        { status: 409 }
-      );
-    }
-
     // Build article URL
     const baseUrl = 'https://dinkauthoritymagazine.com';
     const categoryMap: Record<string, string> = {
@@ -61,16 +53,6 @@ export async function POST(req: NextRequest) {
       // TODO: Implement SMS sending via Brevo when ready
       console.log('[Brevo SMS] SMS notification infrastructure ready but not active yet.');
     }
-
-    // Mark article as notified
-    await prisma.article.update({
-      where: { id: articleId },
-      data: {
-        notificationSentAt: new Date(),
-        notificationChannel: channel || 'email',
-        brevoCampaignId: result?.campaignId?.toString() || null,
-      },
-    });
 
     return NextResponse.json({
       success: true,
