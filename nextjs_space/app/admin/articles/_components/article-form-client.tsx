@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, ArrowLeft, Image as ImageIcon, Loader2, Eye, Crosshair, RotateCcw, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, ArrowLeft, Image as ImageIcon, Loader2, Eye, Crosshair, RotateCcw, Plus, X, ChevronDown, ChevronUp, Bell, Send, Mail, MessageSquare, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const CATEGORIES = ['news', 'tips', 'pro-players', 'juniors', 'enthusiasts', 'places', 'results', 'magazine', 'editorial'];
 
@@ -46,6 +46,14 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
   const [showSeo, setShowSeo] = useState(false);
   const [showBanners, setShowBanners] = useState(false);
 
+  // Notify Subscribers state
+  const [notifyChannel, setNotifyChannel] = useState<'email' | 'sms' | 'both'>('email');
+  const [showNotifyPreview, setShowNotifyPreview] = useState(false);
+  const [showNotifyConfirm, setShowNotifyConfirm] = useState(false);
+  const [notifySending, setNotifySending] = useState(false);
+  const [notifyResult, setNotifyResult] = useState<{ success?: boolean; message?: string } | null>(null);
+  const alreadyNotified = !!article?.notificationSentAt;
+
   useEffect(() => {
     setForm((prev: any) => ({ ...prev, galleryImages: JSON.stringify(galleryUrls.filter(Boolean)) }));
   }, [galleryUrls]);
@@ -74,6 +82,29 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
       setError('Network error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendNotification = async () => {
+    setNotifySending(true);
+    setNotifyResult(null);
+    try {
+      const res = await fetch('/api/brevo/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articleId: article?.id, channel: notifyChannel }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNotifyResult({ success: true, message: data.message || 'Notification sent!' });
+        setShowNotifyConfirm(false);
+      } else {
+        setNotifyResult({ success: false, message: data.error || 'Failed to send notification.' });
+      }
+    } catch {
+      setNotifyResult({ success: false, message: 'Network error. Please try again.' });
+    } finally {
+      setNotifySending(false);
     }
   };
 
@@ -277,6 +308,123 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                 {saving ? 'Saving...' : 'Save Article'}
               </button>
             </div>
+
+            {/* Notify Subscribers — only for existing published articles */}
+            {isEdit && article?.status === 'published' && (
+              <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
+                <h3 className="font-heading font-bold text-brand-purple text-lg flex items-center gap-2">
+                  <Bell size={18} /> Notify Subscribers
+                </h3>
+
+                {alreadyNotified && !notifyResult?.success ? (
+                  <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm text-amber-800 font-semibold">Already notified</p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        Sent on {new Date(article.notificationSentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {article.notificationChannel && ` via ${article.notificationChannel}`}
+                      </p>
+                    </div>
+                  </div>
+                ) : notifyResult?.success ? (
+                  <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
+                    <p className="text-sm text-green-800">{notifyResult.message}</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Channel Selection */}
+                    <div>
+                      <label className="block text-sm font-semibold text-brand-purple mb-2">Channel</label>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="notifyChannel" value="email" checked={notifyChannel === 'email'} onChange={() => setNotifyChannel('email')} className="accent-brand-purple" />
+                          <Mail size={14} className="text-brand-purple" />
+                          <span className="text-sm text-gray-700">Email</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer opacity-50">
+                          <input type="radio" name="notifyChannel" value="sms" disabled className="accent-brand-purple" />
+                          <MessageSquare size={14} className="text-gray-400" />
+                          <span className="text-sm text-gray-400">SMS <span className="text-xs">(coming soon)</span></span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer opacity-50">
+                          <input type="radio" name="notifyChannel" value="both" disabled className="accent-brand-purple" />
+                          <Send size={14} className="text-gray-400" />
+                          <span className="text-sm text-gray-400">Both <span className="text-xs">(coming soon)</span></span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Preview Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setShowNotifyPreview(!showNotifyPreview)}
+                      className="text-sm text-brand-purple hover:text-brand-neon transition-colors flex items-center gap-1"
+                    >
+                      <Eye size={14} /> {showNotifyPreview ? 'Hide Preview' : 'Preview Message'}
+                    </button>
+
+                    {showNotifyPreview && (
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                        <p className="text-xs font-bold text-brand-purple uppercase tracking-wider">Email Preview</p>
+                        <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2">
+                          <p className="text-xs text-gray-400">Subject: <span className="text-gray-700">New on Dink Authority: {form?.title || 'Untitled'}</span></p>
+                          <hr className="border-gray-100" />
+                          <p className="text-xs text-gray-400 uppercase tracking-wider">New on Dink Authority Magazine</p>
+                          <p className="text-sm font-bold text-gray-900">{form?.title || 'Untitled'}</p>
+                          <p className="text-xs text-gray-600 line-clamp-3">{form?.excerpt || 'No excerpt available.'}</p>
+                          <div className="inline-block mt-2 px-3 py-1 bg-brand-neon text-brand-purple text-xs font-bold rounded">Read More →</div>
+                          <p className="text-[10px] text-gray-400 mt-2 italic">Help grow pickleball — share this story with your friends, club or favorite pickleball group.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Confirmation */}
+                    {showNotifyConfirm ? (
+                      <div className="p-4 bg-red-50 rounded-lg border border-red-200 space-y-3">
+                        <p className="text-sm text-red-800 font-semibold flex items-center gap-2">
+                          <AlertTriangle size={14} /> Confirm Send
+                        </p>
+                        <p className="text-xs text-red-600">
+                          This will send an email notification to <strong>all subscribers</strong> on your Brevo list. This action cannot be undone.
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleSendNotification}
+                            disabled={notifySending}
+                            className="flex-1 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                          >
+                            {notifySending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                            {notifySending ? 'Sending...' : 'Send Now'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowNotifyConfirm(false)}
+                            className="flex-1 py-2 bg-white text-gray-600 text-sm font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowNotifyConfirm(true)}
+                        className="w-full py-2.5 bg-brand-neon text-brand-purple font-bold text-sm rounded-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Bell size={14} /> Notify Subscribers
+                      </button>
+                    )}
+
+                    {notifyResult && !notifyResult.success && (
+                      <p className="text-red-500 text-xs">{notifyResult.message}</p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Image Previews */}
             {form?.imageUrl && (

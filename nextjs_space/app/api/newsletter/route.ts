@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { csvResponse } from '@/lib/csv-export';
+import { syncContactToBrevo, sendWelcomeEmail } from '@/lib/brevo';
 
 export async function POST(request: Request) {
   try {
@@ -22,6 +23,17 @@ export async function POST(request: Request) {
     }
 
     await prisma.newsletterSubscriber.create({ data: { email, source } });
+
+    // Sync to Brevo (fire-and-forget)
+    syncContactToBrevo({ email, source }).catch((err) =>
+      console.error('[Brevo newsletter sync error]', err)
+    );
+
+    // Send welcome email
+    sendWelcomeEmail({ email }).catch((err) =>
+      console.error('[Brevo newsletter welcome email error]', err)
+    );
+
     return NextResponse.json({ message: 'Successfully subscribed! Welcome to Dink Authority.' });
   } catch {
     return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 });

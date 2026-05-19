@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Download, Users, Search, RefreshCw } from 'lucide-react';
+import { Download, Users, Search, RefreshCw, Upload, CheckCircle, Loader2 } from 'lucide-react';
 
 interface Subscriber {
   id: string;
@@ -24,6 +24,8 @@ export default function AdminSubscribersPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
 
   const fetchSubscribers = async () => {
     setLoading(true);
@@ -42,6 +44,20 @@ export default function AdminSubscribersPage() {
   };
 
   useEffect(() => { fetchSubscribers(); }, []);
+
+  const syncToBrevo = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch('/api/brevo/sync', { method: 'POST' });
+      const data = await res.json();
+      setSyncResult(data.message || 'Sync complete.');
+    } catch {
+      setSyncResult('Sync failed. Please try again.');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const exportCSV = () => {
     const a = document.createElement('a');
@@ -71,6 +87,15 @@ export default function AdminSubscribersPage() {
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
           <button
+            onClick={syncToBrevo}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-neon text-brand-purple text-sm font-bold rounded-lg hover:brightness-110 transition-all disabled:opacity-50"
+            title="Sync all subscribers to Brevo"
+          >
+            {syncing ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+            {syncing ? 'Syncing...' : 'Sync to Brevo'}
+          </button>
+          <button
             onClick={exportCSV}
             className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white text-sm font-medium rounded-lg hover:bg-brand-purple/90 transition-colors"
           >
@@ -78,6 +103,14 @@ export default function AdminSubscribersPage() {
           </button>
         </div>
       </div>
+
+      {syncResult && (
+        <div className="flex items-center gap-2 p-3 mb-4 bg-green-50 border border-green-200 rounded-lg">
+          <CheckCircle size={16} className="text-green-500 shrink-0" />
+          <p className="text-sm text-green-800">{syncResult}</p>
+          <button onClick={() => setSyncResult(null)} className="ml-auto text-green-400 hover:text-green-600 text-lg leading-none">&times;</button>
+        </div>
+      )}
 
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
