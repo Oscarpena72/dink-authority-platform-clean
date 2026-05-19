@@ -19,7 +19,8 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(articles ?? []);
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
+    console.error('[GET /api/articles] Error:', error?.message, error?.code, error?.meta);
+    return NextResponse.json({ error: 'Failed to fetch articles', detail: error?.message ?? 'unknown' }, { status: 500 });
   }
 }
 
