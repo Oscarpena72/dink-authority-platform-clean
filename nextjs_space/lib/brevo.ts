@@ -248,6 +248,123 @@ export async function sendArticleNotification(opts: {
   return { campaignId: campaignResult.id, sendResult };
 }
 
+/* ─── SMS ─────────────────────────────────────────────────────── */
+
+const BREVO_SMS_SENDER = process.env.BREVO_SMS_SENDER || 'DINKAUTH';
+const SMS_ENABLED = process.env.SMS_ENABLED === 'true';
+
+/**
+ * Check whether SMS sending is enabled and configured.
+ */
+export function isSmsEnabled(): boolean {
+  return SMS_ENABLED && !!BREVO_API_KEY;
+}
+
+/**
+ * Send a single transactional SMS via Brevo.
+ * recipient must be in international format, e.g. +1XXXXXXXXXX
+ */
+export async function sendTransactionalSms(opts: {
+  recipient: string;
+  content: string;
+  tag?: string;
+}): Promise<{ ok: boolean; reason?: string; messageId?: string; reference?: string; noCredits?: boolean }> {
+  if (!isSmsEnabled()) {
+    console.warn('[Brevo SMS] SMS is not enabled or API key missing.');
+    return { ok: false, reason: 'SMS not enabled' };
+  }
+  if (!BREVO_API_KEY) {
+    return { ok: false, reason: 'Brevo API key not configured' };
+  }
+  const { recipient, content, tag } = opts;
+  try {
+    const res = await fetch(`${BREVO_BASE}/transactionalSMS/sms`, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'api-key': BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender: BREVO_SMS_SENDER,
+        recipient,
+        content,
+        type: 'transactional',
+        ...(tag ? { tag } : {}),
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`[Brevo SMS] Send failed (${res.status}):`, text);
+      // Detect insufficient credits / payment required errors
+      const lower = text.toLowerCase();
+      if (res.status === 402 || lower.includes('insufficient') || lower.includes('credit') || lower.includes('payment')) {
+        return { ok: false, reason: 'SMS not available — Brevo SMS credits required.', noCredits: true };
+      }
+      return { ok: false, reason: `Brevo SMS error (${res.status})` };
+    }
+    const contentType = res.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      const data = await res.json();
+      return { ok: true, messageId: data?.messageId, reference: data?.reference };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    console.error('[Brevo SMS] Network error:', err?.message);
+    return { ok: false, reason: 'SMS delivery failed — network error' };
+  }
+}
+
+/**
+ * Send SMS to multiple recipients sequentially.
+ * Returns { sent, failed } counts.
+ */
+export async function sendBulkSms(opts: {
+  recipients: string[];
+  content: string;
+  tag?: string;
+}): Promise<{ sent: number; failed: number; reason?: string }> {
+  if (!isSmsEnabled()) {
+    return { sent: 0, failed: 0, reason: 'SMS not enabled' };
+  }
+  let sent = 0;
+  let failed = 0;
+  for (const recipient of opts.recipients) {
+    const result = await sendTransactionalSms({
+      recipient,
+      content: opts.content,
+      tag: opts.tag,
+    });
+    if (result.ok) {
+      sent++;
+    } else {
+      failed++;
+      // If no credits, stop immediately — no point trying more recipients
+      if (result.noCredits) {
+        console.warn('[Brevo SMS] No SMS credits — aborting bulk send.');
+        return { sent, failed: opts.recipients.length - sent, reason: 'SMS not available — Brevo SMS credits required.' };
+      }
+    }
+    // Rate-limit: ~100ms between sends
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  return { sent, failed };
+}
+
+/**
+ * Build a Dink Authority Alert SMS message for an article.
+ * Target: ≤160 chars when possible.
+ */
+export function buildArticleSmsMessage(title: string, url: string): string {
+  const prefix = 'Dink Authority Alert: ';
+  const suffix = ` Read now: ${url}`;
+  const maxTitleLen = 160 - prefix.length - suffix.length;
+  const truncatedTitle = title.length > maxTitleLen
+    ? title.slice(0, maxTitleLen - 1) + '…'
+    : title;
+  return `${prefix}${truncatedTitle}${suffix}`;
+}
+
 /**
  * Get all contacts from a Brevo list (for admin display/stats).
  */
@@ -265,4 +382,73 @@ export async function getBrevoListStats() {
   } catch {
     return null;
   }
+}
+
+/**
+ * Fetch all contacts with valid SMS phone numbers from Brevo List.
+ * Uses pagination (max 500 per page) to get all contacts.
+ * Returns array of phone strings in international format.
+ */
+export async function getBrevoListPhoneNumbers(listId?: number): Promise<string[]> {
+  if (!BREVO_API_KEY) {
+    console.warn('[Brevo] API key not configured — cannot fetch phone numbers');
+    return [];
+  }
+
+  const targetList = listId ?? BREVO_LIST_ID;
+  const phones: string[] = [];
+  let offset = 0;
+  const limit = 500; // max allowed by Brevo
+  let hasMore = true;
+
+  while (hasMore) {
+    try {
+      const res = await fetch(
+        `${BREVO_BASE}/contacts/lists/${targetList}/contacts?limit=${limit}&offset=${offset}`,
+        {
+          headers: {
+            'accept': 'application/json',
+            'api-key': BREVO_API_KEY,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        console.error(`[Brevo] Failed to fetch list contacts: ${res.status} ${res.statusText}`);
+        break;
+      }
+
+      const data = await res.json();
+      const contacts = data.contacts || [];
+
+      for (const contact of contacts) {
+        // SMS attribute holds phone number in Brevo
+        const sms = contact.attributes?.SMS;
+        if (sms && !contact.smsBlacklisted) {
+          // Normalize: ensure + prefix for international format
+          const normalized = String(sms).startsWith('+') ? String(sms) : `+${sms}`;
+          phones.push(normalized);
+        }
+      }
+
+      // Check if more pages exist
+      if (contacts.length < limit) {
+        hasMore = false;
+      } else {
+        offset += limit;
+      }
+
+      // Safety: cap at 10k contacts to prevent runaway pagination
+      if (offset >= 10000) {
+        console.warn('[Brevo] Hit 10k contact limit, stopping pagination');
+        hasMore = false;
+      }
+    } catch (err) {
+      console.error('[Brevo] Error fetching list contacts:', err);
+      break;
+    }
+  }
+
+  console.log(`[Brevo SMS] Found ${phones.length} phone number(s) in list ${targetList}`);
+  return phones;
 }

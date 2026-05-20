@@ -331,15 +331,15 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                           <Mail size={14} className="text-brand-purple" />
                           <span className="text-sm text-gray-700">Email</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer opacity-50">
-                          <input type="radio" name="notifyChannel" value="sms" disabled className="accent-brand-purple" />
-                          <MessageSquare size={14} className="text-gray-400" />
-                          <span className="text-sm text-gray-400">SMS <span className="text-xs">(coming soon)</span></span>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="notifyChannel" value="sms" checked={notifyChannel === 'sms'} onChange={() => setNotifyChannel('sms')} className="accent-brand-purple" />
+                          <MessageSquare size={14} className="text-brand-purple" />
+                          <span className="text-sm text-gray-700">SMS</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer opacity-50">
-                          <input type="radio" name="notifyChannel" value="both" disabled className="accent-brand-purple" />
-                          <Send size={14} className="text-gray-400" />
-                          <span className="text-sm text-gray-400">Both <span className="text-xs">(coming soon)</span></span>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="notifyChannel" value="both" checked={notifyChannel === 'both'} onChange={() => setNotifyChannel('both')} className="accent-brand-purple" />
+                          <Send size={14} className="text-brand-purple" />
+                          <span className="text-sm text-gray-700">Both</span>
                         </label>
                       </div>
                     </div>
@@ -354,7 +354,22 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                     </button>
 
                     {showNotifyPreview && (
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+                        {/* SMS Preview */}
+                        {(notifyChannel === 'sms' || notifyChannel === 'both') && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-bold text-brand-purple uppercase tracking-wider">SMS Preview</p>
+                            <div className="bg-white rounded-lg p-4 border border-gray-100">
+                              <p className="text-sm text-gray-800 font-mono">
+                                Dink Authority Alert: {(form.title || 'Article title').slice(0, 80)}{form.title?.length > 80 ? '…' : ''} Read now: dinkauthoritymagazine.com/...
+                              </p>
+                              <p className="text-xs text-gray-400 mt-2">~{Math.min(160, 24 + (form.title || '').length + 50)} chars</p>
+                            </div>
+                          </div>
+                        )}
+                        {/* Email Preview */}
+                        {(notifyChannel === 'email' || notifyChannel === 'both') && (
+                        <div className="space-y-2">
                         <p className="text-xs font-bold text-brand-purple uppercase tracking-wider">Email Preview</p>
                         <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2">
                           <p className="text-xs text-gray-400">Subject: <span className="text-gray-700">New on Dink Authority: {form?.title || 'Untitled'}</span></p>
@@ -366,6 +381,8 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                           <p className="text-[10px] text-gray-400 mt-2 italic">Help grow pickleball — share this story with your friends, club or favorite pickleball group.</p>
                         </div>
                       </div>
+                        )}
+                      </div>
                     )}
 
                     {/* Confirmation */}
@@ -375,7 +392,10 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
                           <AlertTriangle size={14} /> Confirm Send
                         </p>
                         <p className="text-xs text-red-600">
-                          This will send an email notification to <strong>all subscribers</strong> on your Brevo list. This action cannot be undone.
+                          {notifyChannel === 'email' && 'This will send an email notification to all subscribers on your Brevo list.'}
+                          {notifyChannel === 'sms' && 'This will send an SMS alert to all contacts with valid phone numbers.'}
+                          {notifyChannel === 'both' && 'This will send both an email and an SMS alert to all subscribers/contacts.'}
+                          {' '}This action cannot be undone.
                         </p>
                         <div className="flex gap-2">
                           <button

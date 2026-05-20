@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
-import { sendArticleNotification } from '@/lib/brevo';
+import { sendArticleNotification, sendBulkSms, buildArticleSmsMessage, isSmsEnabled, getBrevoListPhoneNumbers } from '@/lib/brevo';
 
 /**
- * POST /api/brevo/notify — Send article notification to all subscribers via Brevo.
+ * POST /api/brevo/notify — Send article notification to subscribers via Brevo.
  * Protected: admin only.
  * Body: { articleId, channel: 'email' | 'sms' | 'both' }
  */
@@ -36,11 +36,12 @@ export async function POST(req: NextRequest) {
     const section = categoryMap[article.category] || 'news';
     const articleUrl = `${baseUrl}/${section}/${article.slug}`;
 
-    let result: any = null;
+    let emailResult: any = null;
+    let smsResult: any = null;
 
     // Email notification
     if (channel === 'email' || channel === 'both') {
-      result = await sendArticleNotification({
+      emailResult = await sendArticleNotification({
         title: article.title,
         excerpt: article.excerpt || '',
         articleUrl,
@@ -48,16 +49,50 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // SMS — infrastructure prepared but not active
+    // SMS notification (graceful — never blocks email in 'both' mode)
     if (channel === 'sms' || channel === 'both') {
-      // TODO: Implement SMS sending via Brevo when ready
-      console.log('[Brevo SMS] SMS notification infrastructure ready but not active yet.');
+      try {
+        if (!isSmsEnabled()) {
+          smsResult = { sent: 0, failed: 0, reason: 'SMS not available — SMS is not enabled in server configuration.' };
+        } else {
+          // Fetch phone numbers from Brevo List (contacts with SMS attribute)
+          const allPhones = await getBrevoListPhoneNumbers();
+
+          if (allPhones.length === 0) {
+            smsResult = { sent: 0, failed: 0, reason: 'No contacts with phone numbers found in Brevo list.' };
+          } else {
+            const smsMessage = buildArticleSmsMessage(article.title, articleUrl);
+            smsResult = await sendBulkSms({
+              recipients: allPhones,
+              content: smsMessage,
+              tag: 'article-notification',
+            });
+          }
+        }
+      } catch (smsErr: any) {
+        console.error('[Brevo notify] SMS error (non-blocking):', smsErr?.message);
+        smsResult = { sent: 0, failed: 0, reason: 'SMS delivery failed — unexpected error.' };
+      }
+    }
+
+    // Build response message
+    const parts: string[] = [];
+    if (channel === 'email' || channel === 'both') {
+      parts.push(emailResult?.campaignId ? 'Email campaign sent' : 'Email sent');
+    }
+    if (channel === 'sms' || channel === 'both') {
+      if (smsResult?.reason) {
+        parts.push(`SMS: ${smsResult.reason}`);
+      } else if (smsResult) {
+        parts.push(`SMS sent to ${smsResult.sent} recipient(s)${smsResult.failed ? `, ${smsResult.failed} failed` : ''}`);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Notification sent successfully via ${channel || 'email'}.`,
-      campaignId: result?.campaignId,
+      message: parts.join('. ') + '.',
+      campaignId: emailResult?.campaignId,
+      smsResult,
     });
   } catch (err: any) {
     console.error('[Brevo notify API error]', err);

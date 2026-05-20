@@ -119,12 +119,11 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
   }
   if (!ogDescription) ogDescription = 'Read the latest pickleball news on Dink Authority Magazine.';
 
-  const hasArticleImage = !!article?.imageUrl;
-  const absoluteImageUrl = hasArticleImage
-    ? `${siteUrl}/api/og-image?slug=${encodeURIComponent(slug)}`
-    : `${siteUrl}/og-image.png`;
-  const directImageUrl = hasArticleImage
-    ? (article!.imageUrl!.startsWith('http') ? article!.imageUrl! : `${siteUrl}${article!.imageUrl}`)
+  // Use the direct CDN image URL for both OG and Twitter so all platforms
+  // (iMessage, Android/RCS, WhatsApp, Facebook) can fetch the image immediately
+  // without relying on an intermediary endpoint.
+  const ogImageUrl = article?.imageUrl
+    ? (article.imageUrl.startsWith('http') ? article.imageUrl : `${siteUrl}${article.imageUrl}`)
     : `${siteUrl}/og-image.png`;
 
   return {
@@ -145,7 +144,7 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
       url: articleUrl,
       siteName: 'Dink Authority Magazine',
       locale: 'en_US',
-      images: [{ url: absoluteImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine', type: 'image/jpeg' }],
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }],
       ...(article?.publishedAt ? { publishedTime: new Date(article.publishedAt).toISOString() } : {}),
       ...(article?.updatedAt ? { modifiedTime: new Date(article.updatedAt).toISOString() } : {}),
       authors: [article?.authorName || 'Dink Authority Editorial Team'],
@@ -154,7 +153,7 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
       card: 'summary_large_image',
       title: ogTitle,
       description: ogDescription,
-      images: [{ url: directImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }],
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }],
       site: '@DinkAuthority',
     },
   };

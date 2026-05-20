@@ -18,3 +18,7 @@ out
 .deploy
 .logs
 *.tsbuildinfo
+
+# Environment variables (never commit real secrets)
+nextjs_space/.env
+.env
