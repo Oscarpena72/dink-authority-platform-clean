@@ -119,11 +119,19 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
   }
   if (!ogDescription) ogDescription = 'Read the latest pickleball news on Dink Authority Magazine.';
 
-  // Use the direct CDN image URL for both OG and Twitter so all platforms
-  // (iMessage, Android/RCS, WhatsApp, Facebook) can fetch the image immediately
-  // without relying on an intermediary endpoint.
-  const ogImageUrl = article?.imageUrl
-    ? (article.imageUrl.startsWith('http') ? article.imageUrl : `${siteUrl}${article.imageUrl}`)
+  const hasArticleImage = !!article?.imageUrl;
+
+  // Primary OG image: /api/og-image serves exact 1200×630 JPEG from same domain
+  // (sharp resize + focal-point crop, 7-day cache, proper Content-Type).
+  // This gives Facebook, WhatsApp, and iMessage the premium large-image preview.
+  const ogImageUrl = hasArticleImage
+    ? `${siteUrl}/api/og-image?slug=${encodeURIComponent(slug)}`
+    : `${siteUrl}/og-image.png`;
+
+  // Direct CDN URL for twitter:image — instant, no processing latency.
+  // Also used as og:image:secure_url fallback for platforms with strict timeouts.
+  const directImageUrl = hasArticleImage
+    ? (article!.imageUrl!.startsWith('http') ? article!.imageUrl! : `${siteUrl}${article!.imageUrl}`)
     : `${siteUrl}/og-image.png`;
 
   return {
@@ -144,7 +152,16 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
       url: articleUrl,
       siteName: 'Dink Authority Magazine',
       locale: 'en_US',
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }],
+      images: [
+        {
+          url: ogImageUrl,
+          secureUrl: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: article?.title ?? 'Dink Authority Magazine',
+          type: 'image/jpeg',
+        },
+      ],
       ...(article?.publishedAt ? { publishedTime: new Date(article.publishedAt).toISOString() } : {}),
       ...(article?.updatedAt ? { modifiedTime: new Date(article.updatedAt).toISOString() } : {}),
       authors: [article?.authorName || 'Dink Authority Editorial Team'],
@@ -153,7 +170,7 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
       card: 'summary_large_image',
       title: ogTitle,
       description: ogDescription,
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }],
+      images: [{ url: directImageUrl, width: 1200, height: 630, alt: article?.title ?? 'Dink Authority Magazine' }],
       site: '@DinkAuthority',
     },
   };

@@ -31,10 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
   const pageUrl = `${siteUrl}/magazine/${edition.slug}`;
-  // Use direct cover URL instead of /api/og-image proxy for reliable previews
-  const ogImageUrl = edition.coverUrl
-    ? (edition.coverUrl.startsWith('http') ? edition.coverUrl : `${siteUrl}${edition.coverUrl}`)
-    : `${siteUrl}/og-image.png`;
+  // /api/og-image composes a branded 1200×630 cover layout on Vercel (sharp)
+  const ogImageUrl = edition.slug
+    ? `${siteUrl}/api/og-image?type=magazine&slug=${encodeURIComponent(edition.slug)}`
+    : (edition.coverUrl ?? `${siteUrl}/og-image.png`);
 
   const title = buildSeoTitle(edition);
   const description = buildSeoDescription(edition);
