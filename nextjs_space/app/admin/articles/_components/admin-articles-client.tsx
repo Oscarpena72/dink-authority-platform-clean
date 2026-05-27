@@ -9,9 +9,12 @@ export default function AdminArticlesClient() {
 
   useEffect(() => {
     fetch('/api/articles')
-      .then((r: any) => r?.json?.())
-      .then((d: any) => setArticles(d ?? []))
-      .catch(() => {})
+      .then((r: any) => {
+        if (!r?.ok) throw new Error('API error');
+        return r?.json?.();
+      })
+      .then((d: any) => setArticles(Array.isArray(d) ? d : []))
+      .catch(() => setArticles([]))
       .finally(() => setLoading(false));
   }, []);
 
