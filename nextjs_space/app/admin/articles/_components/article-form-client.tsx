@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, ArrowLeft, Image as ImageIcon, Loader2, Eye, Crosshair, RotateCcw, Plus, X, ChevronDown, ChevronUp, Bell, Send, Mail, MessageSquare, AlertTriangle, CheckCircle } from 'lucide-react';
+import SeoSearchControl from './seo-search-control';
 
 const CATEGORIES = ['news', 'tips', 'pro-players', 'juniors', 'enthusiasts', 'places', 'results', 'magazine', 'editorial'];
 
@@ -36,6 +37,12 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
     banner3Link: article?.banner3Link ?? '',
     metaTitle: article?.metaTitle ?? '',
     metaDescription: article?.metaDescription ?? '',
+    ogTitle: article?.ogTitle ?? '',
+    ogDescription: article?.ogDescription ?? '',
+    noindex: article?.noindex ?? false,
+    focusKeyword: article?.focusKeyword ?? '',
+    secondaryKeywords: article?.secondaryKeywords ?? '[]',
+    slug: article?.slug ?? '',
     publishedAt: article?.publishedAt ? new Date(article.publishedAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
   });
   const [saving, setSaving] = useState(false);
@@ -43,7 +50,6 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
   const [galleryUrls, setGalleryUrls] = useState<string[]>(() => {
     try { return JSON.parse(article?.galleryImages ?? '[]') || []; } catch { return []; }
   });
-  const [showSeo, setShowSeo] = useState(false);
   const [showBanners, setShowBanners] = useState(false);
 
   // Notify Subscribers state
@@ -243,25 +249,13 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
               </div>
             </div>
 
-            {/* SEO Section (collapsible) */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <button type="button" onClick={() => setShowSeo(!showSeo)} className="w-full flex items-center justify-between p-6">
-                <h3 className="font-heading font-bold text-brand-purple text-lg">🔍 SEO</h3>
-                {showSeo ? <ChevronUp size={20} className="text-brand-purple" /> : <ChevronDown size={20} className="text-brand-purple" />}
-              </button>
-              {showSeo && (
-                <div className="px-6 pb-6 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-brand-purple mb-2">Meta Title</label>
-                    <input name="metaTitle" value={form?.metaTitle ?? ''} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="Custom meta title (leave empty for auto)" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-brand-purple mb-2">Meta Description</label>
-                    <textarea name="metaDescription" value={form?.metaDescription ?? ''} onChange={handleChange} rows={2} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none text-sm" placeholder="Custom meta description (leave empty for auto)" />
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* SEO & Search Control */}
+            <SeoSearchControl
+              form={form}
+              setForm={setForm}
+              isEdit={isEdit}
+              articleSlug={article?.slug}
+            />
 
             {/* Inline Sponsor Banners (collapsible) */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">

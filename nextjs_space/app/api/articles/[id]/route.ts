@@ -51,6 +51,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         banner3Link: body?.banner3Link ?? existing?.banner3Link,
         metaTitle: body?.metaTitle ?? existing?.metaTitle,
         metaDescription: body?.metaDescription ?? existing?.metaDescription,
+        ogTitle: body?.ogTitle ?? existing?.ogTitle,
+        ogDescription: body?.ogDescription ?? existing?.ogDescription,
+        noindex: typeof body?.noindex === 'boolean' ? body.noindex : (existing?.noindex ?? false),
+        focusKeyword: body?.focusKeyword ?? existing?.focusKeyword,
+        secondaryKeywords: body?.secondaryKeywords ?? existing?.secondaryKeywords,
+        ...(body?.slug && body.slug !== existing?.slug ? { slug: body.slug.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '').replace(/-{2,}/g, '-') } : {}),
         publishedAt: body?.publishedAt ? new Date(body.publishedAt) : (body?.status === 'published' && !existing?.publishedAt ? new Date() : existing?.publishedAt),
       },
     });

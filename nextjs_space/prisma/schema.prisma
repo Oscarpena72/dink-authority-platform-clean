@@ -86,6 +86,11 @@ model Article {
   banner3Link       String?
   metaTitle         String?
   metaDescription   String?
+  ogTitle           String?
+  ogDescription     String?
+  noindex           Boolean   @default(false)
+  focusKeyword      String?
+  secondaryKeywords String?
   viewCount    Int       @default(0)
   publishedAt  DateTime?
   createdAt    DateTime  @default(now())

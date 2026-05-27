@@ -30,10 +30,22 @@ export async function POST(request: Request) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const slug = (body?.title ?? 'untitled')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+    // Allow custom slug from editor, fall back to auto-generated
+    let slug = body?.slug?.trim();
+    if (slug) {
+      slug = slug.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '').replace(/-{2,}/g, '-');
+    }
+    if (!slug) {
+      slug = (body?.title ?? 'untitled')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+    }
+    // Ensure uniqueness
+    const existingSlug = await prisma.article.findUnique({ where: { slug } });
+    if (existingSlug) {
+      slug = slug + '-' + Date.now().toString(36);
+    }
 
     if (body?.isHeroStory) {
       await prisma.article.updateMany({ where: { isHeroStory: true }, data: { isHeroStory: false } });
@@ -66,6 +78,11 @@ export async function POST(request: Request) {
         banner3Link: body?.banner3Link ?? null,
         metaTitle: body?.metaTitle ?? null,
         metaDescription: body?.metaDescription ?? null,
+        ogTitle: body?.ogTitle ?? null,
+        ogDescription: body?.ogDescription ?? null,
+        noindex: body?.noindex ?? false,
+        focusKeyword: body?.focusKeyword ?? null,
+        secondaryKeywords: body?.secondaryKeywords ?? null,
         publishedAt: body?.publishedAt ? new Date(body.publishedAt) : (body?.status === 'published' ? new Date() : null),
       },
     });

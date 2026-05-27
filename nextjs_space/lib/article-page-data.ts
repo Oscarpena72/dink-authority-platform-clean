@@ -109,10 +109,11 @@ export async function getArticlePageData(slug: string, sectionCategories: string
 
 /** Build metadata for an article detail page */
 export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: string, slug: string) {
-  const ogTitle = article?.metaTitle || article?.title || 'Dink Authority Magazine';
+  const ogTitle = article?.ogTitle || article?.metaTitle || article?.title || 'Dink Authority Magazine';
   const pageTitle = article?.metaTitle || (article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine');
 
-  let ogDescription = article?.metaDescription || article?.excerpt || '';
+  const ogDesc = article?.ogDescription || null;
+  let ogDescription = ogDesc || article?.metaDescription || article?.excerpt || '';
   if (!ogDescription && article?.content) {
     const textMatch = article.content.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
     ogDescription = textMatch.length > 200 ? textMatch.substring(0, 197) + '...' : textMatch;
@@ -139,7 +140,7 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
     description: ogDescription,
     alternates: { canonical: articleUrl },
     robots: {
-      index: true,
+      index: article?.noindex ? false : true,
       follow: true,
       'max-image-preview': 'large' as any,
       'max-snippet': -1,
