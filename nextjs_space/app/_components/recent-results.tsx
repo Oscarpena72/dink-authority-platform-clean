@@ -39,11 +39,11 @@ export default function RecentResults({ results, locale }: { results: ResultItem
         <div className="bg-white rounded-xl overflow-hidden border border-gray-100">
           {/* Table header */}
           <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-brand-purple text-white text-xs font-bold uppercase tracking-widest">
-            <div className="col-span-3">Tournament</div>
-            <div className="col-span-2">Division</div>
-            <div className="col-span-3">Winner</div>
-            <div className="col-span-2">Runner-Up</div>
-            <div className="col-span-2">Score</div>
+            <div className="col-span-3">{locale ? translate('results.tournament', locale) : 'Tournament'}</div>
+            <div className="col-span-2">{locale ? translate('results.division', locale) : 'Division'}</div>
+            <div className="col-span-3">{locale ? translate('results.winner', locale) : 'Winner'}</div>
+            <div className="col-span-2">{locale ? translate('results.runnerUp', locale) : 'Runner-Up'}</div>
+            <div className="col-span-2">{locale ? translate('results.score', locale) : 'Score'}</div>
           </div>
           {/* Results rows */}
           {items.map((result: ResultItem, i: number) => (

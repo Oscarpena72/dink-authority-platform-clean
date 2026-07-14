@@ -156,6 +156,11 @@ const translations = {
   // Recent Results
   'results.title': { en: 'RECENT RESULTS', es: 'RESULTADOS RECIENTES', pt: 'RESULTADOS RECENTES' },
   'results.subtitle': { en: 'Latest scores and tournament outcomes', es: 'Últimos puntajes y resultados de torneos', pt: 'Últimas pontuações e resultados de torneios' },
+  'results.tournament': { en: 'Tournament', es: 'Torneo', pt: 'Torneio' },
+  'results.division': { en: 'Division', es: 'División', pt: 'Divisão' },
+  'results.winner': { en: 'Winner', es: 'Ganador', pt: 'Vencedor' },
+  'results.runnerUp': { en: 'Runner-Up', es: 'Subcampeón', pt: 'Vice-campeão' },
+  'results.score': { en: 'Score', es: 'Marcador', pt: 'Placar' },
 
   // Magazine Section
   'magazine.title': { en: 'MAGAZINE', es: 'REVISTA', pt: 'REVISTA' },
