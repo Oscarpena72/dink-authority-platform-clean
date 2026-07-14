@@ -22,10 +22,10 @@ const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
   { labelKey: 'nav.shop', href: '/shop' },
 ];
 
-const WORLD_COUNTRIES = [
-  { name: 'Colombia', slug: 'colombia', flag: '🇨🇴' },
-  { name: 'Canada', slug: 'canada', flag: '🇨🇦' },
-  { name: 'Mexico', slug: 'mexico', flag: '🇲🇽' },
+const LANGUAGE_LINKS: { name: string; href: string; flag: string; code: Locale }[] = [
+  { name: 'English', href: '/', flag: '🇺🇸', code: 'en' },
+  { name: 'Español', href: '/es', flag: '🇪🇸', code: 'es' },
+  { name: 'Português', href: '/pt', flag: '🇧🇷', code: 'pt' },
 ];
 
 const LOCALES: Locale[] = ['en', 'es', 'pt'];
@@ -69,6 +69,10 @@ export default function Header() {
   const COUNTRY_SLUGS = ['colombia', 'canada', 'mexico'];
   const pathSegments = (pathname || '').split('/').filter(Boolean);
   const currentCountrySlug = pathSegments.length > 0 && COUNTRY_SLUGS.includes(pathSegments[0]) ? pathSegments[0] : null;
+
+  // Detect current language from URL path (e.g., /es/... → es, /pt/... → pt, else en)
+  const currentLangCode: Locale = pathSegments[0] === 'es' ? 'es' : pathSegments[0] === 'pt' ? 'pt' : 'en';
+  const currentLang = LANGUAGE_LINKS.find((l) => l.code === currentLangCode) ?? LANGUAGE_LINKS[0];
 
   // Build contextual nav items — Magazine link changes based on country context
   const contextualNavItems = NAV_ITEMS.map((item) => {
@@ -186,27 +190,29 @@ export default function Header() {
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </Link>
               ))}
-              {/* Dink Authority World dropdown */}
+              {/* Language dropdown */}
               <div className="relative" ref={worldRef}>
                 <button
                   onClick={() => setWorldOpen(!worldOpen)}
-                  className="relative px-3 xl:px-4 py-2 text-[12px] xl:text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group flex items-center gap-1 whitespace-nowrap"
+                  className="relative px-3 xl:px-4 py-2 text-[12px] xl:text-[13px] font-bold text-white/80 hover:text-brand-neon uppercase tracking-wider font-heading transition-all group flex items-center gap-1.5 whitespace-nowrap"
                 >
-                  DA World
+                  <Globe size={14} />
+                  {currentLang.name}
                   <ChevronDown size={12} className={`transition-transform ${worldOpen ? 'rotate-180' : ''}`} />
                   <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-neon scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                 </button>
                 {worldOpen && (
                   <div className="absolute right-0 mt-0 w-52 bg-brand-purple-light rounded-lg shadow-2xl z-[9999] border border-white/10 overflow-hidden">
-                    {WORLD_COUNTRIES.map((c) => (
+                    {LANGUAGE_LINKS.map((l) => (
                       <Link
-                        key={c.slug}
-                        href={`/${c.slug}`}
-                        onClick={() => setWorldOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-white hover:bg-white/10 hover:text-brand-neon transition-colors"
+                        key={l.code}
+                        href={l.href}
+                        onClick={() => { setLocale(l.code); setWorldOpen(false); }}
+                        className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors ${l.code === currentLangCode ? 'bg-white/10 text-brand-neon' : 'text-white hover:bg-white/10 hover:text-brand-neon'}`}
                       >
-                        <span className="text-lg">{c.flag}</span>
-                        {c.name}
+                        <span className="text-lg">{l.flag}</span>
+                        {l.name}
+                        {l.code === currentLangCode && <span className="ml-auto text-brand-neon">✓</span>}
                       </Link>
                     ))}
                   </div>
@@ -263,19 +269,21 @@ export default function Header() {
                   <ChevronRight size={16} className="text-white/30" />
                 </Link>
               ))}
-              {/* Dink Authority World - Mobile */}
+              {/* Language selector - Mobile */}
               <div className="mt-2 pt-2 border-t border-white/10">
-                <span className="px-4 py-2 text-[11px] text-white/40 uppercase tracking-widest font-bold block">Dink Authority World</span>
-                {WORLD_COUNTRIES.map((c) => (
+                <span className="px-4 py-2 text-[11px] text-white/40 uppercase tracking-widest font-bold block">{t('nav.language')}</span>
+                {LANGUAGE_LINKS.map((l) => (
                   <Link
-                    key={c.slug}
-                    href={`/${c.slug}`}
-                    onClick={() => setMobileOpen(false)}
-                    className="px-4 py-3 text-white hover:text-brand-neon hover:bg-white/5 rounded-lg transition-all font-heading text-sm font-bold tracking-wide flex items-center gap-3"
+                    key={l.code}
+                    href={l.href}
+                    onClick={() => { setLocale(l.code); setMobileOpen(false); }}
+                    className={`px-4 py-3 rounded-lg transition-all font-heading text-sm font-bold tracking-wide flex items-center gap-3 ${l.code === currentLangCode ? 'text-brand-neon bg-white/5' : 'text-white hover:text-brand-neon hover:bg-white/5'}`}
                   >
-                    <span className="text-lg">{c.flag}</span>
-                    {c.name}
-                    <ChevronRight size={16} className="text-white/30 ml-auto" />
+                    <span className="text-lg">{l.flag}</span>
+                    {l.name}
+                    {l.code === currentLangCode
+                      ? <span className="ml-auto text-brand-neon">✓</span>
+                      : <ChevronRight size={16} className="text-white/30 ml-auto" />}
                   </Link>
                 ))}
               </div>

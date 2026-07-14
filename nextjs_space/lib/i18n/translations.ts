@@ -24,6 +24,7 @@ const translations = {
   'nav.latam': { en: 'LATAM', es: 'LATAM', pt: 'LATAM' },
   'nav.contact': { en: 'Contact', es: 'Contacto', pt: 'Contato' },
   'nav.newsletter': { en: 'Newsletter', es: 'Boletín', pt: 'Boletim' },
+  'nav.language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
 
   // Search
   'search.placeholder': { en: 'Search articles, players, events...', es: 'Buscar artículos, jugadores, eventos...', pt: 'Buscar artigos, jogadores, eventos...' },
