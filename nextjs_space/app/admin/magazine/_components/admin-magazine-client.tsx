@@ -29,6 +29,8 @@ interface CountryOption {
 
 const BUILT_IN_COUNTRIES: CountryOption[] = [
   { key: 'central', label: 'Dink Central (Main Site)' },
+  { key: 'es', label: '🇪🇸 Español (/es)' },
+  { key: 'pt', label: '🇧🇷 Português (/pt)' },
 ];
 
 const EMPTY_FORM = {

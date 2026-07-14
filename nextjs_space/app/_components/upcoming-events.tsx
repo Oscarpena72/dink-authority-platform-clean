@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { t as translate, type Locale } from '@/lib/i18n/translations';
 
 interface EventItem {
   id: string;
@@ -13,10 +14,12 @@ interface EventItem {
   externalUrl: string | null;
 }
 
-export default function UpcomingEvents({ events }: { events: EventItem[] }) {
+export default function UpcomingEvents({ events, locale }: { events: EventItem[]; locale?: Locale }) {
   const { t } = useLanguage();
   const items = events ?? [];
   if (items.length === 0) return null;
+  const title = locale ? translate('events.title', locale) : 'Upcoming Events';
+  const subtitle = locale ? translate('events.subtitle', locale) : 'Tournaments and competitions around the world';
 
   return (
     <section className="py-14 bg-brand-purple relative overflow-hidden">
@@ -28,8 +31,8 @@ export default function UpcomingEvents({ events }: { events: EventItem[] }) {
             <Calendar size={20} className="text-brand-neon" />
           </div>
           <div>
-            <h2 className="text-2xl md:text-3xl font-heading font-bold text-white">Upcoming Events</h2>
-            <p className="text-white/50 text-sm mt-0.5">Tournaments and competitions around the world</p>
+            <h2 className="text-2xl md:text-3xl font-heading font-bold text-white">{title}</h2>
+            <p className="text-white/50 text-sm mt-0.5">{subtitle}</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

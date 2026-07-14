@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
-import LocaleLanding from '@/app/_components/locale-landing';
+import LocaleHome from '@/app/_components/locale-home';
+import { getLocaleHomeData } from '@/lib/locale-home-data';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   openGraph: { title: 'Dink Authority Magazine en Español', description: 'Noticias, jugadores y consejos de pickleball en español.', type: 'website', locale: 'es_ES' },
 };
 
-export default function EsLandingPage() {
-  return <LocaleLanding locale="es" />;
+export default async function EsLandingPage() {
+  const data = await getLocaleHomeData('es');
+  return <LocaleHome locale="es" data={data} />;
 }

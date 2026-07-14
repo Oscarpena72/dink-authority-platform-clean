@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, ChevronRight } from 'lucide-react';
+import { t as translate, type Locale } from '@/lib/i18n/translations';
 
 interface ResultItem {
   id: string;
@@ -15,9 +16,11 @@ interface ResultItem {
   externalUrl: string | null;
 }
 
-export default function RecentResults({ results }: { results: ResultItem[] }) {
+export default function RecentResults({ results, locale }: { results: ResultItem[]; locale?: Locale }) {
   const items = results ?? [];
   if (items.length === 0) return null;
+  const title = locale ? translate('results.title', locale) : 'Recent Results';
+  const subtitle = locale ? translate('results.subtitle', locale) : 'Latest scores from the professional circuit';
 
   return (
     <section className="py-14 bg-brand-gray">
@@ -28,8 +31,8 @@ export default function RecentResults({ results }: { results: ResultItem[] }) {
               <Trophy size={20} className="text-brand-accent" />
             </div>
             <div>
-              <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">Recent Results</h2>
-              <p className="text-brand-gray-dark text-sm mt-0.5">Latest scores from the professional circuit</p>
+              <h2 className="text-2xl md:text-3xl font-heading font-bold text-brand-purple">{title}</h2>
+              <p className="text-brand-gray-dark text-sm mt-0.5">{subtitle}</p>
             </div>
           </div>
         </div>
