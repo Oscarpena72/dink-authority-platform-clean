@@ -8,7 +8,7 @@ import { getArticlePath } from '@/lib/article-routes';
  */
 export default async function JuniorSlugRedirect({ params }: { params: { slug: string } }) {
   const article = await prisma.article.findFirst({
-    where: { slug: params?.slug ?? '', status: 'published', category: 'juniors' },
+    where: { slug: params?.slug ?? '', status: 'published', locale: 'en', category: 'juniors' },
     select: { slug: true, category: true },
   }).catch(() => null);
 

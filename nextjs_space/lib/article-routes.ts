@@ -35,6 +35,25 @@ export function getSectionPath(category: string): string {
   return `/${prefix}`;
 }
 
+/**
+ * Returns the URL prefix for a locale.
+ * English (default) has no prefix; es/pt get '/es' or '/pt'.
+ * e.g. localePrefix('es') → '/es', localePrefix('en') → ''
+ */
+export function localePrefix(locale?: string): string {
+  return locale && locale !== 'en' ? `/${locale}` : '';
+}
+
+/** Locale-aware article path (e.g. es + pro-players → '/es/players/slug') */
+export function getLocaleArticlePath(slug: string, category: string, locale?: string): string {
+  return `${localePrefix(locale)}/${getCategoryPrefix(category)}/${slug}`;
+}
+
+/** Locale-aware section listing path (e.g. es + tips → '/es/tips') */
+export function getLocaleSectionPath(category: string, locale?: string): string {
+  return `${localePrefix(locale)}/${getCategoryPrefix(category)}`;
+}
+
 /** Categories that belong to each route section */
 export const SECTION_CATEGORIES: Record<string, string[]> = {
   news: ['news', 'editorial', 'events', 'places'],

@@ -35,7 +35,7 @@ async function resolveContentPaths(paths: string[]): Promise<any[]> {
       const [type, slug] = parts;
       // All content types now resolve from the unified Article table
       if (type === 'articles' || type === 'tips' || type === 'juniors') {
-        const a = await prisma.article.findFirst({ where: { slug, status: 'published' }, select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, excerpt: true, publishedAt: true, authorName: true } });
+        const a = await prisma.article.findFirst({ where: { slug, status: 'published', locale: 'en' }, select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, excerpt: true, publishedAt: true, authorName: true } });
         const catPrefix: Record<string, string> = { news: 'news', editorial: 'news', events: 'news', places: 'news', 'pro-players': 'players', enthusiasts: 'players', juniors: 'players', tips: 'tips' };
         if (a) results.push({ ...a, type: 'article', path: `/${catPrefix[a.category] || 'news'}/${a.slug}`, publishedAt: a.publishedAt?.toISOString() ?? null });
       }
@@ -70,7 +70,7 @@ export default async function CountryPage({ params }: { params: { countrySlug: s
 
   try {
     featuredArticles = await prisma.article.findMany({
-      where: { isFeatured: true, status: 'published', isHeroStory: false },
+      where: { isFeatured: true, status: 'published', locale: 'en', isHeroStory: false },
       orderBy: { publishedAt: 'desc' },
       take: 4,
       select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, authorName: true },

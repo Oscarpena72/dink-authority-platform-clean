@@ -10,11 +10,13 @@ import Header from '@/app/_components/header';
 import Footer from '@/app/_components/footer';
 import StickyBanner from '@/app/_components/sticky-banner';
 import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
-import { getArticlePath } from '@/lib/article-routes';
+import { getLocaleArticlePath } from '@/lib/article-routes';
+import { t as translate, type TranslationKey, type Locale } from '@/lib/i18n/translations';
 
-export default function TipsPageClient({ tips, bannerData }: { tips: any[]; bannerData?: any }) {
-  const { t } = useLanguage();
-  const translated = useTranslatedArticles(tips ?? []);
+export default function TipsPageClient({ tips, bannerData, pageLocale, localePrefix = '' }: { tips: any[]; bannerData?: any; pageLocale?: Locale; localePrefix?: string }) {
+  const { t: ctxT } = useLanguage();
+  const t = (key: TranslationKey) => (pageLocale ? translate(key, pageLocale) : ctxT(key));
+  const translated = useTranslatedArticles(tips ?? [], !!pageLocale);
 
   return (
     <div className="min-h-screen bg-white">
@@ -53,7 +55,7 @@ export default function TipsPageClient({ tips, bannerData }: { tips: any[]; bann
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group"
               >
-                <Link href={getArticlePath(tip?.slug ?? '', tip?.category ?? 'tips')} className="block">
+                <Link href={getLocaleArticlePath(tip?.slug ?? '', tip?.category ?? 'tips', pageLocale)} className="block">
                   <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 mb-4">
                     {tip?.imageUrl && (
                       <Image

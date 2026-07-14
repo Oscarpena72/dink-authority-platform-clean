@@ -11,7 +11,7 @@ import WhatsAppButton from '@/app/_components/whatsapp-button';
 import SponsorBannerCarousel from '@/app/_components/sponsor-banner-carousel';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useTranslatedArticles } from '@/hooks/use-translated-articles';
-import type { TranslationKey } from '@/lib/i18n/translations';
+import { t as translate, type TranslationKey, type Locale } from '@/lib/i18n/translations';
 
 /** Category filter configs per section */
 const SECTION_CATEGORY_FILTERS: Record<string, { labelKey: TranslationKey; value: string }[]> = {
@@ -61,15 +61,22 @@ interface Props {
   query: string;
   category: string;
   section?: string; // 'news' | 'players' | 'tips' | undefined (for legacy /articles)
+  /** When set, this page serves a fixed language variant (/es, /pt) with server-localized content. */
+  pageLocale?: Locale;
+  /** URL prefix for internal links on localized pages (e.g. '/es'). Empty for English. */
+  localePrefix?: string;
 }
 
-export default function ArticlesPageClient({ articles, currentPage, totalPages, query, category, section }: Props) {
+export default function ArticlesPageClient({ articles, currentPage, totalPages, query, category, section, pageLocale, localePrefix = '' }: Props) {
   const router = useRouter();
-  const { t } = useLanguage();
-  const translated = useTranslatedArticles(articles ?? []);
+  const { t: ctxT } = useLanguage();
+  // On fixed-locale pages, translate UI strings to that locale; otherwise follow the client language context.
+  const t = (key: TranslationKey) => (pageLocale ? translate(key, pageLocale) : ctxT(key));
+  // Content is already localized server-side on /es and /pt pages, so skip on-the-fly translation there.
+  const translated = useTranslatedArticles(articles ?? [], !!pageLocale);
   const items = translated ?? [];
 
-  const basePath = section ? `/${section}` : '/articles';
+  const basePath = `${localePrefix}${section ? `/${section}` : '/articles'}`;
   const filters = SECTION_CATEGORY_FILTERS[section ?? 'all'] ?? SECTION_CATEGORY_FILTERS.all;
 
   const buildUrl = (params: Record<string, string>) => {
@@ -141,7 +148,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <Link href={`/${prefix}/${article?.slug ?? ''}`} className="group block">
+                    <Link href={`${localePrefix}/${prefix}/${article?.slug ?? ''}`} className="group block">
                       <div className="bg-brand-gray rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all">
                         <div className="relative aspect-[4/3] bg-brand-gray">
                           {article?.imageUrl && (

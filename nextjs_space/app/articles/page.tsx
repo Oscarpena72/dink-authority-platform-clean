@@ -9,7 +9,7 @@ export default async function ArticlesPage({ searchParams }: { searchParams: { q
   const perPage = 9;
   const skip = ((page > 0 ? page : 1) - 1) * perPage;
 
-  let where: any = { status: 'published' };
+  let where: any = { status: 'published', locale: 'en' };
   if (category) where.category = category;
   if (query) {
     where.OR = [

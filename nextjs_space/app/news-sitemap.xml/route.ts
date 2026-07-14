@@ -16,6 +16,7 @@ export async function GET() {
     articles = await prisma.article.findMany({
       where: {
         status: 'published',
+        locale: 'en',
         publishedAt: { gte: cutoff },
       },
       select: {

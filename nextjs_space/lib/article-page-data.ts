@@ -1,11 +1,14 @@
 import { prisma } from '@/lib/db';
-import { getArticlePath, getCategoryPrefix as getCategoryPrefixFn, SECTION_CATEGORIES } from '@/lib/article-routes';
+import { getArticlePath, getLocaleArticlePath, localePrefix, getCategoryPrefix as getCategoryPrefixFn, SECTION_CATEGORIES } from '@/lib/article-routes';
 
 /**
  * Shared data-fetching logic for article detail pages across /news/, /players/, /tips/ routes.
  * Returns all data needed to render an article detail page, or null if not found.
+ *
+ * @param locale Which language variant this route serves ('en' default, 'es', 'pt').
+ *   The found article must match this locale, so /es/... only serves Spanish rows.
  */
-export async function getArticlePageData(slug: string, sectionCategories: string[]) {
+export async function getArticlePageData(slug: string, sectionCategories: string[], locale: string = 'en') {
   const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
 
   let article: any = null;
@@ -17,12 +20,17 @@ export async function getArticlePageData(slug: string, sectionCategories: string
 
   if (!article) return null;
 
+  // Verify the article belongs to the requested language variant
+  if ((article.locale ?? 'en') !== locale) {
+    return null;
+  }
+
   // Verify article belongs to this section
   if (sectionCategories.length > 0 && !sectionCategories.includes(article.category)) {
     return null;
   }
 
-  const articlePath = getArticlePath(article.slug, article.category);
+  const articlePath = getLocaleArticlePath(article.slug, article.category, locale);
   const articleUrl = `${siteUrl}${articlePath}`;
 
   // Recommended articles
@@ -30,7 +38,7 @@ export async function getArticlePageData(slug: string, sectionCategories: string
   try {
     const selectFields = { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, publishedAt: true };
     const sameCat = await prisma.article.findMany({
-      where: { status: 'published', category: article.category, id: { not: article.id } },
+      where: { status: 'published', locale, category: article.category, id: { not: article.id } },
       take: 3,
       orderBy: { publishedAt: 'desc' },
       select: selectFields,
@@ -38,7 +46,7 @@ export async function getArticlePageData(slug: string, sectionCategories: string
     if ((sameCat?.length ?? 0) < 3) {
       const existingIds = [article.id, ...(sameCat ?? []).map((a: any) => a?.id)].filter(Boolean);
       const filler = await prisma.article.findMany({
-        where: { status: 'published', id: { notIn: existingIds } },
+        where: { status: 'published', locale, id: { notIn: existingIds } },
         take: 3 - (sameCat?.length ?? 0),
         orderBy: { publishedAt: 'desc' },
         select: selectFields,
@@ -120,6 +128,9 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
   }
   if (!ogDescription) ogDescription = 'Read the latest pickleball news on Dink Authority Magazine.';
 
+  const OG_LOCALE: Record<string, string> = { en: 'en_US', es: 'es_ES', pt: 'pt_BR' };
+  const ogLocale = OG_LOCALE[article?.locale ?? 'en'] ?? 'en_US';
+
   const hasArticleImage = !!article?.imageUrl;
 
   // Primary OG image: /api/og-image serves exact 1200×630 JPEG from same domain
@@ -152,7 +163,7 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
       type: 'article',
       url: articleUrl,
       siteName: 'Dink Authority Magazine',
-      locale: 'en_US',
+      locale: ogLocale,
       images: [
         {
           url: ogImageUrl,
@@ -207,13 +218,14 @@ export function buildArticleJsonLd(article: any, articleUrl: string, siteUrl: st
   // Determine breadcrumb section name
   const prefix = getCategoryPrefixFn(article?.category ?? 'news');
   const sectionName = prefix === 'players' ? 'Players' : prefix === 'tips' ? 'Tips' : 'News';
+  const lp = localePrefix(article?.locale ?? 'en');
 
   const jsonLdBreadcrumb = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
-      { '@type': 'ListItem', position: 2, name: sectionName, item: `${siteUrl}/${prefix}` },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}${lp || ''}` },
+      { '@type': 'ListItem', position: 2, name: sectionName, item: `${siteUrl}${lp}/${prefix}` },
       { '@type': 'ListItem', position: 3, name: article?.title ?? '', item: articleUrl },
     ],
   };

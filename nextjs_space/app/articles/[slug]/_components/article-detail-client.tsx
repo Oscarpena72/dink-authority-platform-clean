@@ -12,7 +12,8 @@ import UniversalVideoModule from '@/components/universal-video-module';
 import SubscribeForm from '@/app/_components/subscribe-form';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { formatEditorialContent } from '@/lib/format-editorial-content';
-import { getArticlePath } from '@/lib/article-routes';
+import { getLocaleArticlePath, getLocaleSectionPath, localePrefix as localePrefixFn } from '@/lib/article-routes';
+import { t as translate, type TranslationKey, type Locale } from '@/lib/i18n/translations';
 
 /* ── Share Buttons ── */
 function ShareButtons({ title, compact = false, articleUrl = '' }: { title: string; compact?: boolean; articleUrl?: string }) {
@@ -293,9 +294,14 @@ function TranslationBanner({ isTranslating, isTranslated, translationError, show
 }
 
 /* ── Main Component ── */
-export default function ArticleDetailClient({ article, relatedArticles, sidebarData, bannerData, articleUrl = '' }: { article: any; relatedArticles: any[]; sidebarData?: any; bannerData?: any; articleUrl?: string }) {
+export default function ArticleDetailClient({ article, relatedArticles, sidebarData, bannerData, articleUrl = '', pageLocale }: { article: any; relatedArticles: any[]; sidebarData?: any; bannerData?: any; articleUrl?: string; pageLocale?: Locale }) {
   const hasSidebar = sidebarData?.currentEdition?.coverUrl || sidebarData?.slot2 || sidebarData?.slot3;
-  const { locale, t } = useLanguage();
+  const { locale: ctxLocale, t: ctxT } = useLanguage();
+  // On fixed-locale pages (/es, /pt) the article is already served in that language,
+  // so disable the on-the-fly translation flow and render UI chrome in that language.
+  const locale = pageLocale ?? ctxLocale;
+  const t = (key: TranslationKey) => (pageLocale ? translate(key, pageLocale) : ctxT(key));
+  const lp = localePrefixFn(pageLocale);
 
   // Translation state — 2-phase: meta (title+excerpt) then content
   const [translatedMeta, setTranslatedMeta] = useState<{ title: string; excerpt: string } | null>(null);
@@ -308,7 +314,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
   // Phase 1: Fetch title+excerpt translation (fast ~3s)
   // Phase 2: Fetch content translation (slower ~15-40s)
   const fetchTranslation = useCallback(async () => {
-    if (locale === 'en' || !article?.id) {
+    if (pageLocale || locale === 'en' || !article?.id) {
       setTranslatedMeta(null);
       setTranslatedContent(null);
       setTranslationError(false);
@@ -448,9 +454,9 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               {/* Breadcrumbs */}
               <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-brand-gray-dark mb-6">
-                <Link href="/" className="hover:text-brand-purple transition-colors">{t('article.home')}</Link>
+                <Link href={lp || '/'} className="hover:text-brand-purple transition-colors">{t('article.home')}</Link>
                 <span className="text-brand-gray">/</span>
-                <Link href="/articles" className="hover:text-brand-purple transition-colors">{t('article.articles')}</Link>
+                <Link href={pageLocale ? getLocaleSectionPath(article?.category ?? 'news', pageLocale) : '/articles'} className="hover:text-brand-purple transition-colors">{t('article.articles')}</Link>
                 <span className="text-brand-gray">/</span>
                 <span className="text-brand-purple/60 truncate max-w-[200px] md:max-w-[400px]">{displayTitle}</span>
               </nav>
@@ -581,7 +587,7 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
               <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
                 {(relatedArticles ?? []).map((a: any, i: number) => (
                   <motion.div key={a?.id ?? i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}>
-                    <Link href={getArticlePath(a?.slug ?? '', a?.category ?? 'news')} className="group block">
+                    <Link href={getLocaleArticlePath(a?.slug ?? '', a?.category ?? 'news', pageLocale)} className="group block">
                       <div className="bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-brand-neon/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                         <div className="relative aspect-[4/3] bg-brand-gray">
                           {a?.imageUrl && (

@@ -69,6 +69,8 @@ model Article {
   focalPointX  Float     @default(50)
   focalPointY  Float     @default(50)
   category     String    @default("news")
+  locale        String    @default("en")
+  translationOf String?
   status       String    @default("draft")
   isFeatured   Boolean   @default(false)
   isHeroStory  Boolean   @default(false)
@@ -100,6 +102,8 @@ model Article {
   @@index([status, publishedAt])
   @@index([category])
   @@index([slug])
+  @@index([locale, category, status])
+  @@index([translationOf])
 }
 
 model Event {

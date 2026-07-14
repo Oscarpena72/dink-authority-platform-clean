@@ -13,14 +13,14 @@ export default async function HomePage() {
 
   try {
     heroArticle = await prisma.article.findFirst({
-      where: { isHeroStory: true, status: 'published' },
+      where: { isHeroStory: true, status: 'published', locale: 'en' },
       select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, authorName: true, publishedAt: true },
     });
   } catch { /* empty */ }
 
   try {
     latestArticles = await prisma.article.findMany({
-      where: { status: 'published', isHeroStory: false },
+      where: { status: 'published', locale: 'en', isHeroStory: false },
       orderBy: { publishedAt: 'desc' },
       take: 6,
       select: { id: true, title: true, slug: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, publishedAt: true, authorName: true },
@@ -29,7 +29,7 @@ export default async function HomePage() {
 
   try {
     featuredArticles = await prisma.article.findMany({
-      where: { isFeatured: true, status: 'published', isHeroStory: false },
+      where: { isFeatured: true, status: 'published', locale: 'en', isHeroStory: false },
       orderBy: { publishedAt: 'desc' },
       take: 4,
       select: { id: true, title: true, slug: true, excerpt: true, imageUrl: true, focalPointX: true, focalPointY: true, category: true, authorName: true },

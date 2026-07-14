@@ -15,7 +15,7 @@ interface ArticleWithTranslation {
  * IMPORTANT: Uses a stable cache key derived from article IDs to prevent infinite
  * re-render loops when callers pass a new array reference on every render.
  */
-export function useTranslatedArticles<T extends ArticleWithTranslation>(articles: T[]): T[] {
+export function useTranslatedArticles<T extends ArticleWithTranslation>(articles: T[], skip: boolean = false): T[] {
   const { locale } = useLanguage();
   const [translatedMap, setTranslatedMap] = useState<Record<string, { title: string; excerpt: string }>>({});
   const fetchedRef = useRef<string>(''); // Track what we've fetched to avoid re-fetching
@@ -27,7 +27,7 @@ export function useTranslatedArticles<T extends ArticleWithTranslation>(articles
   );
 
   useEffect(() => {
-    if (locale === 'en' || !articles || articles.length === 0) {
+    if (skip || locale === 'en' || !articles || articles.length === 0) {
       if (fetchedRef.current !== '') {
         setTranslatedMap({});
         fetchedRef.current = '';
@@ -68,10 +68,10 @@ export function useTranslatedArticles<T extends ArticleWithTranslation>(articles
     fetchTranslations();
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale, articleIds]);
+  }, [locale, articleIds, skip]);
 
-  // If English or no translations, return original
-  if (locale === 'en' || Object.keys(translatedMap).length === 0) return articles;
+  // If skipped, English, or no translations, return original
+  if (skip || locale === 'en' || Object.keys(translatedMap).length === 0) return articles;
 
   // Merge translations into articles
   return articles.map(article => {

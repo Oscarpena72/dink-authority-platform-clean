@@ -17,7 +17,7 @@ export default async function JuniorsPage() {
   let articles: any[] = [];
   try {
     articles = await prisma.article.findMany({
-      where: { status: 'published', category: 'juniors' },
+      where: { status: 'published', locale: 'en', category: 'juniors' },
       orderBy: { publishedAt: 'desc' },
     });
   } catch { /* empty */ }
