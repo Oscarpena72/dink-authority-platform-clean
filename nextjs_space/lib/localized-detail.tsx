@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getArticlePageData, buildArticleMetadata, buildArticleJsonLd } from '@/lib/article-page-data';
+import { getArticlePageData, buildArticleMetadata, buildArticleJsonLd, getHreflangLanguages } from '@/lib/article-page-data';
 import { SECTION_CATEGORIES, getLocaleArticlePath } from '@/lib/article-routes';
 import ArticleDetailClient from '@/app/articles/[slug]/_components/article-detail-client';
 import type { Metadata } from 'next';
@@ -13,11 +13,12 @@ export async function buildLocalizedDetailMetadata(slug: string, sectionKey: Sec
   const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
   const article = await prisma.article.findUnique({
     where: { slug: slug ?? '' },
-    select: { title: true, excerpt: true, content: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, locale: true, metaTitle: true, metaDescription: true, ogTitle: true, ogDescription: true, noindex: true },
+    select: { id: true, title: true, excerpt: true, content: true, imageUrl: true, authorName: true, publishedAt: true, updatedAt: true, category: true, locale: true, translationOf: true, metaTitle: true, metaDescription: true, ogTitle: true, ogDescription: true, noindex: true },
   }).catch(() => null);
   if (!article || (article.locale ?? 'en') !== locale) return { title: 'Article Not Found | Dink Authority Magazine' };
   const articleUrl = `${siteUrl}${getLocaleArticlePath(slug ?? '', article.category, locale)}`;
-  return buildArticleMetadata(article, articleUrl, siteUrl, slug ?? '') as Metadata;
+  const languageAlternates = await getHreflangLanguages(article as any, siteUrl);
+  return buildArticleMetadata(article, articleUrl, siteUrl, slug ?? '', languageAlternates) as Metadata;
 }
 
 /** Shared server component for localized (/es, /pt) article detail routes. */

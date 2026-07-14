@@ -115,8 +115,39 @@ export async function getArticlePageData(slug: string, sectionCategories: string
   return { article, serialized, relSerialized, sidebarData, bannerData, articleUrl, articlePath, siteUrl };
 }
 
+/**
+ * Build the hreflang `languages` map for an article by resolving its translation family.
+ * Returns undefined when the article has no published sibling in another language
+ * (a single-language article needs no alternates).
+ */
+export async function getHreflangLanguages(
+  article: { id: string; slug: string; category: string; locale?: string | null; translationOf?: string | null },
+  siteUrl: string,
+): Promise<Record<string, string> | undefined> {
+  const baseId = article.translationOf ?? article.id;
+  let family: any[] = [];
+  try {
+    family = await prisma.article.findMany({
+      where: { status: 'published', OR: [{ id: baseId }, { translationOf: baseId }] },
+      select: { slug: true, category: true, locale: true },
+    });
+  } catch { return undefined; }
+  if (!family || family.length <= 1) return undefined;
+
+  const languages: Record<string, string> = {};
+  for (const a of family) {
+    const loc = a?.locale ?? 'en';
+    languages[loc] = `${siteUrl}${getLocaleArticlePath(a.slug, a.category, loc)}`;
+  }
+  const enEntry = family.find((a) => (a?.locale ?? 'en') === 'en');
+  if (enEntry) {
+    languages['x-default'] = `${siteUrl}${getLocaleArticlePath(enEntry.slug, enEntry.category, 'en')}`;
+  }
+  return languages;
+}
+
 /** Build metadata for an article detail page */
-export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: string, slug: string) {
+export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: string, slug: string, languageAlternates?: Record<string, string>) {
   const ogTitle = article?.ogTitle || article?.metaTitle || article?.title || 'Dink Authority Magazine';
   const pageTitle = article?.metaTitle || (article?.title ? `${article.title} | Dink Authority Magazine` : 'Article | Dink Authority Magazine');
 
@@ -149,7 +180,10 @@ export function buildArticleMetadata(article: any, articleUrl: string, siteUrl: 
   return {
     title: pageTitle,
     description: ogDescription,
-    alternates: { canonical: articleUrl },
+    alternates: {
+      canonical: articleUrl,
+      ...(languageAlternates ? { languages: languageAlternates } : {}),
+    },
     robots: {
       index: article?.noindex ? false : true,
       follow: true,

@@ -157,8 +157,21 @@ const MAGAZINE_SLUG_REDIRECTS: Record<string, string> = {
   'los-reyes-de-naples-los-campeones-del-us-open-protagonizan-la-edici-n-de-mayo-de-dink-authority-magazine': 'may-2026-pickleball-magazine-issue-los-reyes-de-naples',
 };
 
+/**
+ * Legacy country landing pages → Spanish edition (301).
+ * These country-specific pages (Colombia / Mexico / Canada) are superseded by the
+ * language-based structure. All of them, and any of their sub-paths, redirect to /es.
+ */
+const COUNTRY_REDIRECT_SLUGS = ['colombia', 'mexico', 'canada'];
+
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // 0a. Redirect legacy country pages → /es (301)
+  const firstSegment = pathname.split('/')[1]?.toLowerCase();
+  if (firstSegment && COUNTRY_REDIRECT_SLUGS.includes(firstSegment)) {
+    return NextResponse.redirect(new URL('/es', request.url), 301);
+  }
 
   // 0. Redirect /magazine/[old-slug] → /magazine/[new-slug] (301)
   if (pathname.startsWith('/magazine/') && pathname !== '/magazine') {
@@ -198,5 +211,15 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/articles/:path*', '/articles', '/magazine/:path*'],
+  matcher: [
+    '/articles/:path*',
+    '/articles',
+    '/magazine/:path*',
+    '/colombia/:path*',
+    '/colombia',
+    '/mexico/:path*',
+    '/mexico',
+    '/canada/:path*',
+    '/canada',
+  ],
 };

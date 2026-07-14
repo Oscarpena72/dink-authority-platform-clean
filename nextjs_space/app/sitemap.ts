@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
-import { getArticlePath } from '@/lib/article-routes';
+import { getLocaleArticlePath } from '@/lib/article-routes';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headersList = headers();
@@ -10,8 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [articles, editions] = await Promise.all([
     prisma.article.findMany({
-      where: { status: 'published', locale: 'en' },
-      select: { slug: true, category: true, updatedAt: true },
+      where: { status: 'published' },
+      select: { slug: true, category: true, updatedAt: true, locale: true },
     }).catch(() => []),
     prisma.magazineEdition.findMany({
       select: { slug: true, updatedAt: true },
@@ -26,8 +26,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${siteUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    // Localized landing + section pages (Spanish / Portuguese)
+    { url: `${siteUrl}/es`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/es/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/es/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/es/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${siteUrl}/pt`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/pt/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pt/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pt/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    // Every published article at its locale-aware path (en / es / pt)
     ...(articles ?? []).map((a: any) => ({
-      url: `${siteUrl}${getArticlePath(a?.slug ?? '', a?.category ?? 'news')}`,
+      url: `${siteUrl}${getLocaleArticlePath(a?.slug ?? '', a?.category ?? 'news', a?.locale ?? 'en')}`,
       lastModified: a?.updatedAt ?? new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
