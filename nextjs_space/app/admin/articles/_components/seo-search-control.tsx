@@ -1,12 +1,15 @@
 "use client";
 import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Sparkles, RefreshCw, Link2, Globe, Share2, Eye, EyeOff, Tag, Loader2, Check, AlertCircle } from 'lucide-react';
+import { getCategoryPrefix, localePrefix } from '@/lib/article-routes';
 
 interface SeoSearchControlProps {
   form: any;
   setForm: (fn: (prev: any) => any) => void;
   isEdit: boolean;
   articleSlug?: string;
+  locale?: string;
+  category?: string;
 }
 
 function charIndicator(len: number, min: number, max: number) {
@@ -24,7 +27,7 @@ function slugify(text: string): string {
     .replace(/-{2,}/g, '-');
 }
 
-export default function SeoSearchControl({ form, setForm, isEdit, articleSlug }: SeoSearchControlProps) {
+export default function SeoSearchControl({ form, setForm, isEdit, articleSlug, locale = 'en', category }: SeoSearchControlProps) {
   const [expanded, setExpanded] = useState(true);
   const [showOg, setShowOg] = useState(false);
   const [showKeywords, setShowKeywords] = useState(false);
@@ -49,6 +52,9 @@ export default function SeoSearchControl({ form, setForm, isEdit, articleSlug }:
   const previewDesc = seoDesc || form?.excerpt || 'Add a meta description to control how this article appears in search results.';
   const previewSlug = slug || articleSlug || slugify(form?.title || 'article-slug');
   const siteUrl = 'dinkauthoritymagazine.com';
+  // Locale-aware URL path shown in the Google preview and the slug field prefix.
+  const catPrefix = getCategoryPrefix(category || form?.category || 'news');
+  const urlPrefix = `${localePrefix(locale)}/${catPrefix}/`;
 
   const handleFieldChange = useCallback((name: string, value: any) => {
     setForm((prev: any) => ({ ...prev, [name]: value }));
@@ -215,7 +221,7 @@ export default function SeoSearchControl({ form, setForm, isEdit, articleSlug }:
               </button>
             </div>
             <div className="flex items-center gap-0 rounded-lg border border-gray-200 focus-within:border-brand-purple focus-within:ring-1 focus-within:ring-brand-purple/20 overflow-hidden transition-all">
-              <span className="text-xs text-gray-400 bg-gray-50 px-3 py-2.5 border-r border-gray-200 whitespace-nowrap select-none">/news/</span>
+              <span className="text-xs text-gray-400 bg-gray-50 px-3 py-2.5 border-r border-gray-200 whitespace-nowrap select-none">{urlPrefix}</span>
               <input
                 value={form?.slug || ''}
                 onChange={(e) => handleFieldChange('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-'))}
@@ -247,7 +253,7 @@ export default function SeoSearchControl({ form, setForm, isEdit, articleSlug }:
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">{siteUrl}</p>
-                    <p className="text-[11px] text-gray-400 font-mono">…/{previewSlug}</p>
+                    <p className="text-[11px] text-gray-400 font-mono">{urlPrefix}{previewSlug}</p>
                   </div>
                 </div>
                 <h4 className="text-[#1a0dab] text-lg leading-snug hover:underline cursor-pointer font-normal" style={{ fontFamily: 'arial, sans-serif' }}>

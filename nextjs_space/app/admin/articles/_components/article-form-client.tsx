@@ -1,18 +1,50 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, ArrowLeft, Image as ImageIcon, Loader2, Eye, Crosshair, RotateCcw, Plus, X, ChevronDown, ChevronUp, Bell, Send, Mail, MessageSquare, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Save, ArrowLeft, Image as ImageIcon, Loader2, Eye, Crosshair, RotateCcw, Plus, X, ChevronDown, ChevronUp, Bell, Send, Mail, MessageSquare, AlertTriangle, CheckCircle, Languages, ExternalLink } from 'lucide-react';
 import SeoSearchControl from './seo-search-control';
 
 const CATEGORIES = ['news', 'tips', 'pro-players', 'juniors', 'enthusiasts', 'places', 'results', 'magazine', 'editorial'];
 
+const LOCALE_META: Record<string, { label: string; flag: string; badge: string }> = {
+  en: { label: 'English', flag: '🇺🇸', badge: 'bg-blue-100 text-blue-700 border-blue-200' },
+  es: { label: 'Español', flag: '🇪🇸', badge: 'bg-amber-100 text-amber-700 border-amber-200' },
+  pt: { label: 'Português', flag: '🇧🇷', badge: 'bg-green-100 text-green-700 border-green-200' },
+};
+
+interface LangVersion { id: string; status: string; slug: string; locale: string; }
+
 interface ArticleFormProps {
   article?: any;
+  versions?: Record<string, LangVersion>;
+  baseId?: string;
 }
 
-export default function ArticleFormClient({ article }: ArticleFormProps) {
+export default function ArticleFormClient({ article, versions = {}, baseId }: ArticleFormProps) {
   const router = useRouter();
   const isEdit = !!article;
+  const currentLocale: string = article?.locale ?? 'en';
+  const [translating, setTranslating] = useState<string | null>(null);
+  const [translateError, setTranslateError] = useState('');
+
+  const handleCreateTranslation = useCallback(async (locale: 'es' | 'pt') => {
+    if (!baseId) return;
+    setTranslating(locale);
+    setTranslateError('');
+    try {
+      const res = await fetch(`/api/articles/${baseId}/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale, autoTranslate: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'No se pudo crear la traducción');
+      router.push(`/admin/articles/${data.id}/edit`);
+    } catch (err: any) {
+      setTranslateError(err?.message || 'Algo salió mal');
+      setTranslating(null);
+    }
+  }, [baseId, router]);
   const [form, setForm] = useState({
     title: article?.title ?? '',
     content: article?.content ?? '',
@@ -132,6 +164,67 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
           <a href={`/articles/${article.slug}`} target="_blank" rel="noopener noreferrer" className="ml-auto flex items-center gap-1 text-sm text-brand-purple hover:text-brand-neon transition-colors"><Eye size={14} /> Preview</a>
         )}
       </div>
+
+      {/* Language / Translations Banner */}
+      {isEdit && (
+        <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Languages size={16} className="text-brand-purple" />
+            <h3 className="font-heading font-bold text-brand-purple text-sm">Idioma y versiones</h3>
+            <span className={`ml-1 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${LOCALE_META[currentLocale]?.badge ?? LOCALE_META.en.badge}`}>
+              {LOCALE_META[currentLocale]?.flag} {LOCALE_META[currentLocale]?.label ?? currentLocale}
+            </span>
+          </div>
+          <p className="text-[12px] text-gray-500 mb-3">
+            Cada idioma es un artículo independiente con su propio SEO. Las traducciones se crean como borrador: revisa y publica para que aparezcan en el sitio.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {(['en', 'es', 'pt'] as const).map((loc) => {
+              const v = versions[loc];
+              const isCurrent = loc === currentLocale;
+              const meta = LOCALE_META[loc];
+              if (isCurrent) {
+                return (
+                  <span key={loc} className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border ${meta.badge}`}>
+                    {meta.flag} {meta.label}
+                    <span className="text-[10px] font-normal opacity-70">(editando)</span>
+                  </span>
+                );
+              }
+              if (v) {
+                return (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => router.push(`/admin/articles/${v.id}/edit`)}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:border-brand-purple hover:text-brand-purple transition-colors"
+                  >
+                    {meta.flag} {meta.label}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${v.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{v.status === 'published' ? 'Publicado' : 'Borrador'}</span>
+                    <ExternalLink size={11} className="opacity-50" />
+                  </button>
+                );
+              }
+              if (loc === 'en') return null;
+              return (
+                <button
+                  key={loc}
+                  type="button"
+                  disabled={!!translating}
+                  onClick={() => handleCreateTranslation(loc)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-brand-purple hover:text-brand-purple transition-colors disabled:opacity-50"
+                >
+                  {translating === loc ? <Loader2 size={12} className="animate-spin" /> : <Languages size={12} />}
+                  {translating === loc ? 'Traduciendo…' : `Crear ${meta.label}`}
+                </button>
+              );
+            })}
+          </div>
+          {translateError && (
+            <p className="text-xs text-red-500 mt-2 flex items-center gap-1"><AlertTriangle size={12} /> {translateError}</p>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -255,6 +348,8 @@ export default function ArticleFormClient({ article }: ArticleFormProps) {
               setForm={setForm}
               isEdit={isEdit}
               articleSlug={article?.slug}
+              locale={currentLocale}
+              category={form.category}
             />
 
             {/* Inline Sponsor Banners (collapsible) */}
