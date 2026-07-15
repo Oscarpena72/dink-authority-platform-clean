@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { Locale, t as translate, TranslationKey } from './translations';
 
 interface LanguageContextType {
@@ -14,34 +15,51 @@ const LanguageContext = createContext<LanguageContextType>({
   t: (key: TranslationKey) => translate(key, 'en'),
 });
 
+// The URL path is the source of truth for the active locale.
+// `/es*` -> es, `/pt*` -> pt, anything else -> en.
+function localeFromPath(pathname: string | null): Locale {
+  if (!pathname) return 'en';
+  const seg = pathname.split('/')[1];
+  if (seg === 'es') return 'es';
+  if (seg === 'pt') return 'pt';
+  return 'en';
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en');
+  const pathname = usePathname();
+  const urlLocale = localeFromPath(pathname);
   const [mounted, setMounted] = useState(false);
+  // Optional in-page override (e.g. the top-bar language selector) that lasts
+  // only until the next navigation, so the URL always wins on route changes.
+  const [override, setOverride] = useState<Locale | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const saved = localStorage.getItem('dink_lang') as Locale | null;
-      if (saved && ['en', 'es', 'pt'].includes(saved)) {
-        setLocaleState(saved);
-      }
-    } catch {}
   }, []);
+
+  // Whenever the route's locale changes, drop any in-page override so the URL
+  // is authoritative. This fixes the menu "sticking" in Spanish/Portuguese when
+  // navigating back to an English route.
+  useEffect(() => {
+    setOverride(null);
+  }, [urlLocale]);
 
   const setLocale = useCallback((newLocale: Locale) => {
-    setLocaleState(newLocale);
-    try {
-      localStorage.setItem('dink_lang', newLocale);
-    } catch {}
+    setOverride(newLocale);
   }, []);
 
-  const t = useCallback((key: TranslationKey) => {
-    return translate(key, locale);
-  }, [locale]);
+  // During SSR and initial hydration always render with 'en' to match the
+  // server output and avoid hydration mismatches. After mount the locale is
+  // derived from the URL (plus any transient in-page override).
+  const effectiveLocale: Locale = mounted ? (override ?? urlLocale) : 'en';
 
-  // During SSR and initial hydration, always render with 'en' to match server
+  const t = useCallback(
+    (key: TranslationKey) => translate(key, effectiveLocale),
+    [effectiveLocale],
+  );
+
   const contextValue = {
-    locale: mounted ? locale : 'en',
+    locale: effectiveLocale,
     setLocale,
     t: mounted ? t : (key: TranslationKey) => translate(key, 'en'),
   };
