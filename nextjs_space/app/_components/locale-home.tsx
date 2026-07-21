@@ -22,7 +22,7 @@ const DATE_LOCALE: Record<Locale, string> = { en: 'en-US', es: 'es-ES', pt: 'pt-
 
 function editionReadHref(ed: LocaleEdition | null): string | null {
   if (!ed) return null;
-  if (ed.slug && ed.pdfCloudPath) return `/magazine/${ed.slug}`;
+  if (ed.slug && ed.pdfCloudPath) return `/magazine/${ed.slug.trim()}`;
   if (ed.externalUrl) return ed.externalUrl;
   return null;
 }

@@ -10,6 +10,23 @@ interface Props {
   params: { slug: string };
 }
 
+/**
+ * Find an edition by slug, tolerant of stray whitespace saved in older data.
+ * First tries an exact match; if that fails, decodes/trims the requested slug
+ * and matches against DB slugs with surrounding whitespace removed. This keeps
+ * legacy editions (whose slug may have a trailing space) reachable instead of 404.
+ */
+async function findEditionBySlug(rawSlug: string) {
+  const exact = await prisma.magazineEdition.findFirst({ where: { slug: rawSlug } });
+  if (exact) return exact;
+  let target = rawSlug;
+  try { target = decodeURIComponent(rawSlug); } catch { /* keep raw */ }
+  target = target.trim();
+  if (!target) return null;
+  const near = await prisma.magazineEdition.findMany({ where: { slug: { startsWith: target } }, take: 5 });
+  return near.find((e) => (e.slug ?? '').trim() === target) ?? null;
+}
+
 /** Build an SEO-optimized title: "Month Year Pickleball Magazine Issue – Cover Athlete | Dink Authority" */
 function buildSeoTitle(edition: { publishDate: Date; coverAthlete: string | null; issueNumber: string | null; title: string }): string {
   const dateStr = edition.publishDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -26,7 +43,7 @@ function buildSeoDescription(edition: { publishDate: Date; coverAthlete: string 
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
+  const edition = await findEditionBySlug(params.slug);
   if (!edition) return { title: 'Pickleball Magazine – Dink Authority' };
 
   const siteUrl = (process.env.SITE_URL ?? process.env.NEXTAUTH_URL ?? 'https://www.dinkauthoritymagazine.com').replace(/\/+$/, '');
@@ -71,7 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function MagazineViewerPage({ params }: Props) {
-  const edition = await prisma.magazineEdition.findFirst({ where: { slug: params.slug } });
+  const edition = await findEditionBySlug(params.slug);
   if (!edition) notFound();
 
   const dateStr = edition.publishDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
