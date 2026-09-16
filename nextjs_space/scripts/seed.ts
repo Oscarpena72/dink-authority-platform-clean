@@ -160,7 +160,7 @@ const SETTINGS: Record<string, string> = {
   site_name: 'Dink Authority Magazine',
   site_description: 'The Voice of Pickleball',
   contact_email: 'contact@dinkauthoritymagazine.com',
-  whatsapp_number: '15551234567',
+  whatsapp_number: '16892807882',
   social_instagram: 'https://instagram.com/dinkauthority',
   social_facebook: 'https://facebook.com/dinkauthority',
   social_twitter: 'https://twitter.com/dinkauthority',

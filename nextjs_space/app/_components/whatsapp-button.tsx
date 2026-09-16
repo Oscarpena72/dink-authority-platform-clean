@@ -3,7 +3,7 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react';
 
 export default function WhatsAppButton({ phoneNumber }: { phoneNumber: string | null }) {
-  const phone = phoneNumber ?? '15551234567';
+  const phone = phoneNumber ?? '16892807882';
   return (
     <a
       href={`https://wa.me/${phone}`}

@@ -185,7 +185,7 @@ export default function AdminSettingsClient() {
           <h2 className="font-heading font-bold text-brand-purple mb-4 flex items-center gap-2"><MessageCircle size={18} /> WhatsApp</h2>
           <div>
             <label className="block text-sm font-semibold text-brand-purple mb-1">WhatsApp Number (international format, no +)</label>
-            <input value={settings?.whatsapp_number ?? ''} onChange={(e: any) => handleChange('whatsapp_number', e?.target?.value ?? '')} className="w-full max-w-md px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="15551234567" />
+            <input value={settings?.whatsapp_number ?? ''} onChange={(e: any) => handleChange('whatsapp_number', e?.target?.value ?? '')} className="w-full max-w-md px-3 py-2 rounded-lg border border-gray-200 focus:border-brand-purple outline-none" placeholder="16892807882" />
           </div>
         </div>
 
