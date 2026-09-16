@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { LEGACY_404_REDIRECTS } from '@/lib/legacy-404-redirects';
 
 /**
  * Redirect map: old slug (used in /articles/old-slug) → new path.
@@ -135,26 +136,29 @@ const CATEGORY_SECTION_REDIRECTS: Record<string, string> = {
 };
 
 /**
- * Magazine slug redirects: old slugs → new SEO-optimized slugs with "pickleball-magazine-issue"
+ * CORRECTED magazine slug map — every previous destination was stale (now 404).
+ * Magazine editions were re-slugged to the "pickleball-magazine-issue-*" scheme.
+ * All destinations below verified HTTP 200 against production.
+ * NOTE: 'pickleball-is-conquering-the-world' (old Jan-2025 Catalina Parenteau edition)
+ * has NO live equivalent — intentionally omitted; falls through to /magazine/[slug].
  */
 const MAGAZINE_SLUG_REDIRECTS: Record<string, string> = {
-  'the-awakening-of-asia-pickleball-s-fastest-growing-frontier': 'march-2026-pickleball-magazine-issue-the-awakening-of-asia',
-  'seone-m-ndez-passion-discipline-and-the-love-of-the-game': 'november-2025-pickleball-magazine-issue-seone-mendez',
-  'paula-rives-power-precision-and-the-will-to-win': 'october-2025-pickleball-magazine-issue-paula-rives',
-  'juan-m-benitez-in-august-edition-the-passion-behind-the-game': 'august-2025-pickleball-magazine-issue-juan-m-benitez',
-  'the-competitors-driving-the-game-forward': 'july-2025-pickleball-magazine-issue-lucy-kovalova',
-  'the-best-of-2025-according-to-our-readers': 'december-2025-pickleball-magazine-issue-best-of-2025-readers-choice',
-  'dink-authority-magazine-april-2026': 'april-2026-pickleball-magazine-issue-christa-gecheva',
-  'alex-crum-pickleball-s-competitive-momentum-june-edition-2025': 'june-2025-pickleball-magazine-issue-alex-crum',
-  'megan-fudge-power-passion-and-the-competitive-spirit-of-pickleball': 'may-2025-pickleball-magazine-issue-megan-fudge',
-  'lorena-duknic-performance-power-and-smart-play-april-2025-edition': 'april-2025-pickleball-magazine-issue-lorena-duknic',
-  'glauka-carvajal-the-smile-of-a-rising-competitor': 'march-2025-pickleball-magazine-issue-glauka-carvajal',
-  'dahlia-garza-power-passion-and-the-expanding-world-of-pickleball': 'february-2025-pickleball-magazine-issue-dahlia-garza',
-  'susana-rojas-passion-power-and-play-on-the-court': 'december-2024-pickleball-magazine-issue-susana-rojas',
-  'pickleball-is-conquering-the-world': 'january-2025-pickleball-magazine-issue-catalina-parenteau',
-  'florida-the-paradise-of-pickleball': 'october-2024-pickleball-magazine-issue-florida-pickleball-paradise',
-  'the-kings-of-naples-champions-take-center-stage-in-dink-authority-magazine-may-2026': 'may-2026-pickleball-magazine-issue-kings-of-naples',
-  'los-reyes-de-naples-los-campeones-del-us-open-protagonizan-la-edici-n-de-mayo-de-dink-authority-magazine': 'may-2026-pickleball-magazine-issue-los-reyes-de-naples',
+  'the-awakening-of-asia-pickleball-s-fastest-growing-frontier': 'pickleball-magazine-issue-the-awakening-of-asia',
+  'seone-m-ndez-passion-discipline-and-the-love-of-the-game': 'pickleball-magazine-issue-seone-mendez',
+  'paula-rives-power-precision-and-the-will-to-win': 'pickleball-magazine-issue-paula-rives',
+  'juan-m-benitez-in-august-edition-the-passion-behind-the-game': 'pickleball-magazine-issue-juan-m-benitez',
+  'the-competitors-driving-the-game-forward': 'pickleball-magazine-issue-lucy-kovalova',
+  'the-best-of-2025-according-to-our-readers': 'pickleball-magazine-issue-best-of-2025',
+  'dink-authority-magazine-april-2026': 'pickleball-magazine-issue-christa-gecheva',
+  'alex-crum-pickleball-s-competitive-momentum-june-edition-2025': 'pickleball-magazine-issue-alex-crum',
+  'megan-fudge-power-passion-and-the-competitive-spirit-of-pickleball': 'pickleball-magazine-issue-megan-fudge',
+  'lorena-duknic-performance-power-and-smart-play-april-2025-edition': 'pickleball-magazine-issue-lorena-duknic',
+  'glauka-carvajal-the-smile-of-a-rising-competitor': 'pickleball-magazine-issue-glauka-carvajal',
+  'dahlia-garza-power-passion-and-the-expanding-world-of-pickleball': 'pickleball-magazine-issue-dahlia-garza',
+  'susana-rojas-passion-power-and-play-on-the-court': 'pickleball-magazine-issue-susana-rojas',
+  'florida-the-paradise-of-pickleball': 'pickleball-magazine-issue-florida-pickleball-paradise',
+  'the-kings-of-naples-champions-take-center-stage-in-dink-authority-magazine-may-2026': 'pickleball-magazine-issue-15-kings-of-naples',
+  'los-reyes-de-naples-los-campeones-del-us-open-protagonizan-la-edici-n-de-mayo-de-dink-authority-magazine': 'pickleball-magazine-issue-15-kings-of-naples',
 };
 
 /**
@@ -182,6 +186,23 @@ const PLAYERS_CATEGORY_REDIRECTS: Record<string, string> = {
 
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // 0-legacy. Full-path lookup for legacy 404 URLs (WordPress remnants +
+  // articles whose slug changed). This map was built from the Google Search
+  // Console "Not found (404)" report (180 URLs) so that no legacy URL is left
+  // as a hard 404: each key redirects (301) directly to a live internal URL
+  // (either the article's new slug — Group B — or the nearest section / home —
+  // Group A). Runs first so every match is a single 301 hop with no chaining.
+  // No key equals a bare "/news" or "/players", so the category logic below is
+  // never shadowed.
+  const legacyKey =
+    pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname;
+  const legacyDest = LEGACY_404_REDIRECTS[legacyKey];
+  if (legacyDest) {
+    return NextResponse.redirect(new URL(legacyDest, request.url), 301);
+  }
 
   // 0-pre. Section "?category=" listings → new /pickleball/... routes (301).
   // Only the exact listing paths are matched; individual /news/[slug] and
@@ -243,17 +264,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Broadened to a catch-all (excluding Next.js internals, API routes and static
+  // assets) so the legacy-404 redirect map can intercept arbitrary WordPress-era
+  // paths (e.g. /affiliate-home, /rex-thais, /category/..., /tabitha-crawford/...)
+  // that the previous restrictive matcher never reached. This is the domain-level
+  // safety net that was previously missing for old-site URL migrations.
   matcher: [
-    '/news',
-    '/players',
-    '/articles/:path*',
-    '/articles',
-    '/magazine/:path*',
-    '/colombia/:path*',
-    '/colombia',
-    '/mexico/:path*',
-    '/mexico',
-    '/canada/:path*',
-    '/canada',
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|news-sitemap.xml|.*\\.).*)',
   ],
 };
