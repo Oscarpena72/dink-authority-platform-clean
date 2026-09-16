@@ -20,18 +20,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: siteUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${siteUrl}/magazine`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${siteUrl}/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    // === Section listing pages, relocated under /pickleball (old paths 301-redirect here) ===
+    { url: `${siteUrl}/pickleball/magazine`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${siteUrl}/pickleball/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/pickleball/news/results`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/news/events`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/news/places`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/pickleball/players/pro-players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/players/juniors`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/players/enthusiasts`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/pickleball/shop`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     { url: `${siteUrl}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${siteUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    // Localized landing + section pages (Spanish / Portuguese)
-    { url: `${siteUrl}/es`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    // Localized landing + section pages (Spanish / Portuguese).
+    // Only the /es and /pt landing pages moved (→ /es/pickleball, /pt/pickleball);
+    // the localized section listings keep their existing paths.
+    { url: `${siteUrl}/es/pickleball`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/es/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/es/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/es/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${siteUrl}/pt`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/pt/pickleball`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/pt/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/pt/players`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/pt/tips`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },

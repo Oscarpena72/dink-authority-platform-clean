@@ -9,10 +9,10 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 import TikTokIcon from '@/components/icons/tiktok-icon';
 
 const DEFAULT_FOOTER_NAV: { labelKey: TranslationKey; href: string }[] = [
-  { labelKey: 'nav.news', href: '/articles?category=news' },
+  { labelKey: 'nav.news', href: '/pickleball/news' },
   { labelKey: 'about.title', href: '/about' },
   { labelKey: 'nav.contact', href: '/contact' },
-  { labelKey: 'nav.events', href: '/articles?category=events' },
+  { labelKey: 'nav.events', href: '/pickleball/news/events' },
 ];
 
 interface FooterPartner {

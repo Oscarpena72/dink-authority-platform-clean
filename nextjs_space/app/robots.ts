@@ -9,7 +9,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/news', '/news/', '/players', '/players/', '/tips', '/tips/', '/magazine', '/magazine/', '/about', '/contact'],
+        allow: [
+          '/',
+          // New canonical section routes under /pickleball
+          '/pickleball/', '/pickleball/news', '/pickleball/players', '/pickleball/tips', '/pickleball/magazine', '/pickleball/shop',
+          // Individual article / edition / product detail routes (unchanged)
+          '/news/', '/players/', '/tips/', '/magazine/', '/shop/',
+          '/about', '/contact',
+        ],
         disallow: ['/admin', '/admin/', '/api', '/api/', '/login', '/articles', '/articles/'],
       },
     ],

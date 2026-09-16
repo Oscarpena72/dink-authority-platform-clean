@@ -38,7 +38,7 @@ export default function LatestNews({ articles }: { articles: ArticleItem[] }) {
               <p className="text-brand-gray-dark text-sm mt-0.5">{t('latestNews.subtitle')}</p>
             </div>
           </div>
-          <Link href="/news" className="flex items-center gap-1.5 text-sm font-bold text-brand-purple hover:text-brand-purple-light transition-colors uppercase tracking-wider">
+          <Link href="/pickleball/news" className="flex items-center gap-1.5 text-sm font-bold text-brand-purple hover:text-brand-purple-light transition-colors uppercase tracking-wider">
             {t('latestNews.viewAll')} <ChevronRight size={16} className="text-brand-neon" />
           </Link>
         </div>

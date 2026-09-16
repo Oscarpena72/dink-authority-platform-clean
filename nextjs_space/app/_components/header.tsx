@@ -10,22 +10,22 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 import TikTokIcon from '@/components/icons/tiktok-icon';
 
 const NAV_ITEMS: { labelKey: TranslationKey; href: string }[] = [
-  { labelKey: 'nav.news', href: '/news' },
-  { labelKey: 'nav.proPlayers', href: '/players?category=pro-players' },
-  { labelKey: 'nav.juniors', href: '/players?category=juniors' },
-  { labelKey: 'nav.tips', href: '/tips' },
-  { labelKey: 'nav.enthusiasts', href: '/players?category=enthusiasts' },
-  { labelKey: 'nav.results', href: '/news?category=results' },
-  { labelKey: 'nav.events', href: '/news?category=events' },
-  { labelKey: 'nav.places', href: '/places' },
-  { labelKey: 'nav.magazine', href: '/magazine' },
-  { labelKey: 'nav.shop', href: '/shop' },
+  { labelKey: 'nav.news', href: '/pickleball/news' },
+  { labelKey: 'nav.proPlayers', href: '/pickleball/players/pro-players' },
+  { labelKey: 'nav.juniors', href: '/pickleball/players/juniors' },
+  { labelKey: 'nav.tips', href: '/pickleball/tips' },
+  { labelKey: 'nav.enthusiasts', href: '/pickleball/players/enthusiasts' },
+  { labelKey: 'nav.results', href: '/pickleball/news/results' },
+  { labelKey: 'nav.events', href: '/pickleball/news/events' },
+  { labelKey: 'nav.places', href: '/pickleball/news/places' },
+  { labelKey: 'nav.magazine', href: '/pickleball/magazine' },
+  { labelKey: 'nav.shop', href: '/pickleball/shop' },
 ];
 
 const LANGUAGE_LINKS: { name: string; href: string; flag: string; code: Locale }[] = [
   { name: 'English', href: '/', flag: '🇺🇸', code: 'en' },
-  { name: 'Español', href: '/es', flag: '🇪🇸', code: 'es' },
-  { name: 'Português', href: '/pt', flag: '🇧🇷', code: 'pt' },
+  { name: 'Español', href: '/es/pickleball', flag: '🇪🇸', code: 'es' },
+  { name: 'Português', href: '/pt/pickleball', flag: '🇧🇷', code: 'pt' },
 ];
 
 const LOCALES: Locale[] = ['en', 'es', 'pt'];
@@ -113,7 +113,7 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery?.trim()) {
-      router.push(`/news?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/pickleball/news?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
       setSearchQuery('');
     }

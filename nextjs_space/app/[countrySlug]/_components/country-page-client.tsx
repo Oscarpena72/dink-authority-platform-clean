@@ -306,7 +306,7 @@ export default function CountryPageClient({ country, newsItems, proItems, enthIt
           subtitle="Improve your game with expert advice"
           items={tipItems}
           icon={<Lightbulb size={20} className="text-brand-neon" />}
-          viewAllHref="/tips"
+          viewAllHref="/pickleball/tips"
           viewAllLabel={t('latestNews.viewAll')}
           bg="bg-white"
           sponsorSection="tips"

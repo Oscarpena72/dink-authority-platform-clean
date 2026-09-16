@@ -164,8 +164,40 @@ const MAGAZINE_SLUG_REDIRECTS: Record<string, string> = {
  */
 const COUNTRY_REDIRECT_SLUGS = ['colombia', 'mexico', 'canada'];
 
+/**
+ * Legacy section listing "?category=" URLs → new clean /pickleball/... sub-paths (301).
+ * These are handled in middleware (not next.config redirects) so the destination is a
+ * clean path with no leftover query string.
+ */
+const NEWS_CATEGORY_REDIRECTS: Record<string, string> = {
+  results: '/pickleball/news/results', // CHANGE 7
+  events: '/pickleball/news/events',   // CHANGE 8
+  places: '/pickleball/news/places',   // CHANGE 9
+};
+const PLAYERS_CATEGORY_REDIRECTS: Record<string, string> = {
+  'pro-players': '/pickleball/players/pro-players', // CHANGE 3
+  juniors: '/pickleball/players/juniors',           // CHANGE 4
+  enthusiasts: '/pickleball/players/enthusiasts',   // CHANGE 5
+};
+
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+
+  // 0-pre. Section "?category=" listings → new /pickleball/... routes (301).
+  // Only the exact listing paths are matched; individual /news/[slug] and
+  // /players/[slug] detail pages are never touched.
+  if (pathname === '/news') {
+    const category = searchParams.get('category');
+    if (category && NEWS_CATEGORY_REDIRECTS[category]) {
+      return NextResponse.redirect(new URL(NEWS_CATEGORY_REDIRECTS[category], request.url), 301);
+    }
+  }
+  if (pathname === '/players') {
+    const category = searchParams.get('category');
+    if (category && PLAYERS_CATEGORY_REDIRECTS[category]) {
+      return NextResponse.redirect(new URL(PLAYERS_CATEGORY_REDIRECTS[category], request.url), 301);
+    }
+  }
 
   // 0a. Redirect legacy country pages → /es (301)
   const firstSegment = pathname.split('/')[1]?.toLowerCase();
@@ -212,6 +244,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/news',
+    '/players',
     '/articles/:path*',
     '/articles',
     '/magazine/:path*',

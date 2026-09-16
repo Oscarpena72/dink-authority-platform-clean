@@ -478,7 +478,7 @@ export default function TipDetailClient({ tip, related, latestEdition, bannerDat
 
       {/* Back link */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Link href="/tips" className="inline-flex items-center gap-2 text-brand-purple hover:text-brand-purple-light font-semibold transition-colors">
+        <Link href="/pickleball/tips" className="inline-flex items-center gap-2 text-brand-purple hover:text-brand-purple-light font-semibold transition-colors">
           <ArrowLeft size={18} />
           {t('tips.backToTips')}
         </Link>

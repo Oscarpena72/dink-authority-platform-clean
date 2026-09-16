@@ -133,11 +133,11 @@ export default async function MagazineViewerPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: edition.seoContent }}
             />
             <div className="mt-8 pt-6 border-t border-gray-200 flex flex-wrap items-center gap-4">
-              <Link href="/magazine" className="text-brand-purple font-medium text-sm hover:text-brand-purple-light transition-colors">
+              <Link href="/pickleball/magazine" className="text-brand-purple font-medium text-sm hover:text-brand-purple-light transition-colors">
                 ← Browse all editions of our <span className="underline">pickleball magazine</span>
               </Link>
               <span className="text-gray-300 hidden md:inline">|</span>
-              <Link href="/magazine" className="text-brand-purple/70 text-sm hover:text-brand-purple transition-colors">
+              <Link href="/pickleball/magazine" className="text-brand-purple/70 text-sm hover:text-brand-purple transition-colors">
                 Dink Authority — a <span className="underline">leading pickleball magazine</span>
               </Link>
             </div>

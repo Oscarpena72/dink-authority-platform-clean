@@ -694,7 +694,7 @@ export default function MagazineViewerClient({ edition }: { edition: EditionData
             <div className="max-w-[1400px] mx-auto px-4 py-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <CTACard icon={<ShareButtons url={shareUrl} title={edition.seoH1 || edition.title} description={edition.description ?? undefined} />} customButton dark />
-                <CTACard icon={<Newspaper size={20} />} label="Latest Articles" href="/news" dark />
+                <CTACard icon={<Newspaper size={20} />} label="Latest Articles" href="/pickleball/news" dark />
                 <CTACard icon={<Mail size={20} />} label="Subscribe" href="/#newsletter" dark />
                 <CTACard icon={<Megaphone size={20} />} label="Advertise With Us" href="/contact" dark />
               </div>

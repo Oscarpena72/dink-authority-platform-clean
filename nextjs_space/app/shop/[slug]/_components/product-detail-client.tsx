@@ -34,7 +34,7 @@ export default function ProductDetailClient({ product, relatedProducts, bannerDa
         <nav className="flex items-center gap-2 text-sm text-brand-gray-dark mb-8">
           <Link href="/" className="hover:text-brand-purple transition-colors flex items-center gap-1"><Home size={14} /> {t('article.home')}</Link>
           <span>/</span>
-          <Link href="/shop" className="hover:text-brand-purple transition-colors">{t('shop.title')}</Link>
+          <Link href="/pickleball/shop" className="hover:text-brand-purple transition-colors">{t('shop.title')}</Link>
           <span>/</span>
           <span className="text-brand-purple font-medium truncate max-w-xs">{product.name}</span>
         </nav>
