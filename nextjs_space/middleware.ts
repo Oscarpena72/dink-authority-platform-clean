@@ -207,16 +207,26 @@ export function middleware(request: NextRequest) {
   // 0-pre. Section "?category=" listings → new /pickleball/... routes (301).
   // Only the exact listing paths are matched; individual /news/[slug] and
   // /players/[slug] detail pages are never touched.
+  // Helper: carry over the remaining query params (page, q, ...) — everything
+  // except `category`, which is now encoded in the destination path — so a
+  // redirect never drops pagination/search state.
+  const withPreservedParams = (dest: string): URL => {
+    const url = new URL(dest, request.url);
+    searchParams.forEach((value, key) => {
+      if (key !== 'category') url.searchParams.set(key, value);
+    });
+    return url;
+  };
   if (pathname === '/news') {
     const category = searchParams.get('category');
     if (category && NEWS_CATEGORY_REDIRECTS[category]) {
-      return NextResponse.redirect(new URL(NEWS_CATEGORY_REDIRECTS[category], request.url), 301);
+      return NextResponse.redirect(withPreservedParams(NEWS_CATEGORY_REDIRECTS[category]), 301);
     }
   }
   if (pathname === '/players') {
     const category = searchParams.get('category');
     if (category && PLAYERS_CATEGORY_REDIRECTS[category]) {
-      return NextResponse.redirect(new URL(PLAYERS_CATEGORY_REDIRECTS[category], request.url), 301);
+      return NextResponse.redirect(withPreservedParams(PLAYERS_CATEGORY_REDIRECTS[category]), 301);
     }
   }
 

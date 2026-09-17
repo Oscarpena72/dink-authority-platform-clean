@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 import Header from '@/app/_components/header';
@@ -69,6 +69,7 @@ interface Props {
 
 export default function ArticlesPageClient({ articles, currentPage, totalPages, query, category, section, pageLocale, localePrefix = '' }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const { t: ctxT } = useLanguage();
   // On fixed-locale pages, translate UI strings to that locale; otherwise follow the client language context.
   const t = (key: TranslationKey) => (pageLocale ? translate(key, pageLocale) : ctxT(key));
@@ -84,6 +85,25 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
     Object.entries(params ?? {}).forEach(([k, v]: any) => { if (v) p.set(k, v); });
     const qs = p.toString();
     return qs ? `${basePath}?${qs}` : basePath;
+  };
+
+  // Pagination must STAY on the current route instead of routing through
+  // `/players?category=X` (which the middleware 301-redirects to the clean
+  // route while dropping the `page` param — the cause of the "stuck on page 1"
+  // bug on every section subcategory). We build the URL from the live pathname
+  // so the `page` param is preserved and no redirect is involved.
+  // When the category is already encoded in the path (clean routes such as
+  // /pickleball/players/enthusiasts) we omit the redundant `category` query;
+  // when it lives in the query string (e.g. legacy /articles?category=news) we
+  // keep it so the category context survives pagination.
+  const categoryInPath = !!category && pathname.endsWith(`/${category}`);
+  const buildPageUrl = (targetPage: number) => {
+    const p = new URLSearchParams();
+    if (category && !categoryInPath) p.set('category', category);
+    if (query) p.set('q', query);
+    if (targetPage > 1) p.set('page', String(targetPage));
+    const qs = p.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
   };
 
   const sectionTitle = section === 'players' ? 'Players' : section === 'tips' ? 'Tips' : section === 'news' ? t('articles.heading') : t('articles.heading');
@@ -176,7 +196,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-10">
               <button
-                onClick={() => router.push(buildUrl({ category, q: query, page: String(Math.max(1, currentPage - 1)) }))}
+                onClick={() => router.push(buildPageUrl(Math.max(1, currentPage - 1)))}
                 disabled={currentPage <= 1}
                 className="p-2 rounded bg-brand-gray hover:bg-brand-neon hover:text-brand-purple-dark disabled:opacity-30 transition-all"
               >
@@ -185,7 +205,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
               {Array.from({ length: totalPages }, (_, i: number) => i + 1).map((p: number) => (
                 <button
                   key={p}
-                  onClick={() => router.push(buildUrl({ category, q: query, page: String(p) }))}
+                  onClick={() => router.push(buildPageUrl(p))}
                   className={`w-10 h-10 rounded font-bold text-sm transition-all ${
                     p === currentPage ? 'bg-brand-neon text-brand-purple-dark' : 'bg-brand-gray text-brand-purple hover:bg-brand-neon/10'
                   }`}
@@ -194,7 +214,7 @@ export default function ArticlesPageClient({ articles, currentPage, totalPages, 
                 </button>
               ))}
               <button
-                onClick={() => router.push(buildUrl({ category, q: query, page: String(Math.min(totalPages, currentPage + 1)) }))}
+                onClick={() => router.push(buildPageUrl(Math.min(totalPages, currentPage + 1)))}
                 disabled={currentPage >= totalPages}
                 className="p-2 rounded bg-brand-gray hover:bg-brand-neon hover:text-brand-purple-dark disabled:opacity-30 transition-all"
               >
