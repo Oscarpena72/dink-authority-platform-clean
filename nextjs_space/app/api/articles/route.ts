@@ -7,15 +7,54 @@ import { authOptions } from '@/lib/auth-options';
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const status = url.searchParams.get('status') ?? undefined;
+    const q        = url.searchParams.get('q')        ?? undefined; // free-text: title OR content
+    const status   = url.searchParams.get('status')   ?? undefined;
     const category = url.searchParams.get('category') ?? undefined;
+    const locale   = url.searchParams.get('locale')   ?? undefined;
+    const month    = url.searchParams.get('month')    ?? undefined; // "YYYY-MM"
+    const year     = url.searchParams.get('year')     ?? undefined; // "YYYY"
+
     const where: any = {};
-    if (status) where.status = status;
+
+    if (status)   where.status   = status;
     if (category) where.category = category;
+    if (locale)   where.locale   = locale;
+
+    // Date filter: month takes precedence over year-only
+    if (month && /^\d{4}-\d{2}$/.test(month)) {
+      const [y, m] = month.split('-').map(Number);
+      where.publishedAt = { gte: new Date(y, m - 1, 1), lt: new Date(y, m, 1) };
+    } else if (year && /^\d{4}$/.test(year)) {
+      const y = parseInt(year, 10);
+      where.publishedAt = { gte: new Date(y, 0, 1), lt: new Date(y + 1, 0, 1) };
+    }
+
+    // Free-text: AND (title LIKE q OR content LIKE q)
+    if (q && q.trim()) {
+      where.OR = [
+        { title:   { contains: q.trim(), mode: 'insensitive' } },
+        { content: { contains: q.trim(), mode: 'insensitive' } },
+      ];
+    }
+
     const articles = await prisma.article.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { author: { select: { name: true, email: true } } },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        category: true,
+        status: true,
+        locale: true,
+        translationOf: true,
+        authorName: true,
+        isHeroStory: true,
+        isFeatured: true,
+        viewCount: true,
+        publishedAt: true,
+        createdAt: true,
+      },
     });
     return NextResponse.json(articles ?? []);
   } catch (error: any) {
