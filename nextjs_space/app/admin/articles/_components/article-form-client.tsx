@@ -534,10 +534,13 @@ export default function ArticleFormClient({ article, versions = {}, baseId }: Ar
                   </div>
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold text-brand-purple mb-1">Hero (16:9)</p>
-                  <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-gray-100">
-                    <img src={form.imageUrl} alt="Hero preview" className="w-full h-full object-cover" style={{ objectPosition: `${form?.focalPointX ?? 50}% ${form?.focalPointY ?? 50}%` }} />
+                  <p className="text-[11px] font-semibold text-brand-purple mb-1">Hero (16:9) — vista real del artículo</p>
+                  {/* WYSIWYG: matches the public article hero exactly — full image,
+                     object-contain over brand background, never cropped. */}
+                  <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-brand-purple">
+                    <img src={form.imageUrl} alt="Hero preview" className="w-full h-full object-contain" />
                   </div>
+                  <p className="text-[10px] text-brand-gray-dark mt-1">La imagen Hero se muestra completa, sin recortar. El punto focal solo afecta a las miniaturas (Card).</p>
                 </div>
               </div>
             )}

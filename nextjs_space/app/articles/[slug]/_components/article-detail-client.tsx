@@ -439,11 +439,15 @@ export default function ArticleDetailClient({ article, relatedArticles, sidebarD
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        {/* Hero image — full width */}
+        {/* Hero image — show the FULL designed graphic, never cropped (Option A).
+           Real 16:9 frame at every breakpoint (no fixed desktop height override),
+           object-contain over the brand background so any non-16:9 image (incl.
+           vertical/portrait graphics) is shown whole with brand-colored letterbox
+           instead of cutting off baked-in text/logos. Centered (no focal-point
+           shift) because with `contain` the whole image is always visible. */}
         {article?.imageUrl && (
-          <div className="relative w-full aspect-[16/9] md:aspect-auto md:h-[420px] lg:h-[460px] bg-brand-purple overflow-hidden">
-            <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-cover" style={{ objectPosition: `${article?.focalPointX ?? 50}% ${article?.focalPointY ?? 50}%` }} sizes="100vw" priority />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/80 to-transparent" />
+          <div className="relative w-full max-w-[1200px] mx-auto aspect-[16/9] bg-brand-purple overflow-hidden">
+            <Image src={article.imageUrl} alt={article?.title ?? ''} fill className="object-contain" sizes="(max-width: 1200px) 100vw, 1200px" priority />
           </div>
         )}
 
