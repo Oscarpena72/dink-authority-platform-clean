@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -39,14 +39,35 @@ function GoogleAnalyticsTracker() {
     return () => clearInterval(interval);
   }, []);
 
-  // Track page views on route change
+  // Track page views on EVERY navigation (initial hard load + client-side soft
+  // navigations). In GA4, re-calling gtag('config', ID) on route change does NOT
+  // reliably emit a new page_view, so pages reached only via client-side <Link>
+  // navigation (e.g. /pickleball/shop, individual article pages) were never
+  // recorded. We instead send an explicit 'page_view' event on each route change.
   useEffect(() => {
-    if (!consentGiven || !GA_MEASUREMENT_ID || typeof window.gtag !== "function") return;
+    if (!consentGiven || !GA_MEASUREMENT_ID) return;
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
-    window.gtag("config", GA_MEASUREMENT_ID, {
-      page_path: url,
-    });
+
+    const sendPageView = () => {
+      if (typeof window.gtag !== "function") return false;
+      window.gtag("event", "page_view", {
+        page_path: url,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+      return true;
+    };
+
+    // Fire immediately if gtag is ready; otherwise retry briefly to cover the
+    // race where the gtag script has not finished loading on the first view.
+    if (sendPageView()) return;
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      if (sendPageView() || tries > 20) clearInterval(timer);
+    }, 150);
+    return () => clearInterval(timer);
   }, [pathname, searchParams, consentGiven]);
 
   if (!GA_MEASUREMENT_ID || !consentGiven) return null;
@@ -65,9 +86,11 @@ function GoogleAnalyticsTracker() {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
+            // Load GA but do NOT auto-send the first page_view here; the React
+            // effect above sends a 'page_view' event for every route (including
+            // the initial one) so tracking is consistent across the whole app.
             gtag('config', '${GA_MEASUREMENT_ID}', {
-              page_path: window.location.pathname,
-              send_page_view: true
+              send_page_view: false
             });
           `,
         }}
